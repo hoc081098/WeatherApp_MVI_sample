@@ -16,6 +16,9 @@ abstract class WeatherDao {
     @Update
     abstract fun updateCurrentWeather(weather: Weather)
 
+    @Delete
+    abstract fun deleteWeather(weather: Weather)
+
     @Query("SELECT * FROM weathers ORDER BY name")
     abstract fun getAllWeathers(): Flowable<List<Weather>>
 

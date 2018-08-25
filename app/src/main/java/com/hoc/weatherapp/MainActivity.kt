@@ -70,8 +70,6 @@ class MainActivity : AppCompatActivity() {
                             addAction(ACTION_CHANGED_LOCATION)
                         }
                 )
-
-        getCurrentWeather(sharedPrefUtil.selectedCity)
     }
 
     override fun onDestroy() {
@@ -225,29 +223,39 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun getCurrentWeather(city: City?) {
-        if (city != null) {
-            toast("Get current weather...")
-            weatherRepository.getCurrentWeatherByCity(city)
-                    .subscribeOn(Schedulers.io())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribeBy(
-                            onError = { toast(it.message ?: "An error occurred") },
-                            onNext = {
-                                currentWeatherFragment.updateUi(it)
+        when {
+            city != null -> {
+                toast("Get current weather...")
+                weatherRepository.getCurrentWeatherByCity(city)
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribeBy(
+                                onError = { toast(it.message ?: "An error occurred") },
+                                onNext = {
+                                    currentWeatherFragment.updateUi(it)
 
-                                updateBackground(it.icon)
-                                toolbar_title.text = "${it.city.name} - ${it.city.country}"
+                                    updateBackground(it.icon)
+                                    toolbar_title.text = "${it.city.name} - ${it.city.country}"
 
-                                sharedPrefUtil.selectedCity = it.city
-                                showNotification(it)
+                                    sharedPrefUtil.selectedCity = it.city
+                                    showNotification(it)
 
-                                toast("Get current weather successfully")
-                            },
-                            onComplete = ::enqueueWorkRequest
-                    )
-                    .addTo(compositeDisposable)
-        } else {
-            enqueueWorkRequest()
+                                    toast("Get current weather successfully")
+                                },
+                                onComplete = ::enqueueWorkRequest
+                        )
+                        .addTo(compositeDisposable)
+            }
+            else -> {
+                currentWeatherFragment.resetUi()
+
+                image_background.setImageResource(R.drawable.default_bg)
+                toolbar_title.text = ""
+
+                toast("Please selecte a city!")
+
+                enqueueWorkRequest()
+            }
         }
     }
 }

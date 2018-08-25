@@ -3,9 +3,7 @@ package com.hoc.weatherapp.data
 import io.reactivex.Completable
 import io.reactivex.Flowable
 
-class LocalDataSource(
-        private val weatherDao: WeatherDao
-) {
+class LocalDataSource(private val weatherDao: WeatherDao) {
     fun getCurrentWeatherById(id: Long): Flowable<Weather> {
         return weatherDao.getCurrentWeatherById(id)
     }
@@ -18,5 +16,11 @@ class LocalDataSource(
 
     fun getAllWeathers(): Flowable<List<Weather>> {
         return weatherDao.getAllWeathers()
+    }
+
+    fun deleteWeather(weather: Weather): Completable {
+        return Completable.fromAction {
+            weatherDao.deleteWeather(weather)
+        }
     }
 }
