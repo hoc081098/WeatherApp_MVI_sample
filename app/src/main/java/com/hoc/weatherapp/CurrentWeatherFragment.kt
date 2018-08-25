@@ -29,13 +29,28 @@ class CurrentWeatherFragment : Fragment() {
             inflater: LayoutInflater,
             container: ViewGroup?,
             savedInstanceState: Bundle?
-    ): View = layoutInflater.inflate(R.layout.fragment_current_weather, container, false)
+    ): View = inflater.inflate(R.layout.fragment_current_weather, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        swipe_refresh_layout.setOnRefreshListener {
-            mainActivity.getCurrentWeather(sharedPrefUtil.selectedCity)
+        swipe_refresh_layout.setOnRefreshListener(::onSwipeRefresh)
+
+        onSwipeRefresh()
+    }
+
+    private fun onSwipeRefresh() {
+        mainActivity.getCurrentWeather(sharedPrefUtil.selectedCity)
+    }
+
+    fun resetUi() {
+        swipe_refresh_layout.post {
+            swipe_refresh_layout.isRefreshing = false
         }
+        image_icon.setImageDrawable(null)
+        text_temperature.text = ""
+        text_main_weather.text = ""
+        text_last_update.text = ""
+        button_live.visibility = View.INVISIBLE
     }
 
     fun updateUi(weather: Weather) {
@@ -46,6 +61,7 @@ class CurrentWeatherFragment : Fragment() {
         text_temperature.text = "${weather.temperature} \u2103"
         text_main_weather.text = weather.main
         text_last_update.text = "${sdf.format(weather.dataTime)} update"
+        button_live.visibility = View.VISIBLE
     }
 
     private fun updateWeatherIcon(icon: String) {

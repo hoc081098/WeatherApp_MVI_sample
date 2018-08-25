@@ -1,6 +1,7 @@
 package com.hoc.weatherapp.data
 
 import com.hoc.weatherapp.utils.debug
+import io.reactivex.Completable
 import io.reactivex.Flowable
 import java.util.*
 
@@ -14,6 +15,10 @@ class WeatherRepositoryImpl(
         private val weatherApiService: WeatherApiService,
         private val localDataSource: LocalDataSource
 ) : WeatherRepository {
+    override fun deleteWeather(weather: Weather): Completable {
+        return localDataSource.deleteWeather(weather)
+    }
+
     override fun addOrUpdateWeather(weather: Weather): Flowable<Weather> {
         return localDataSource.insertOrCurrentWeather(weather)
                 .andThen(Flowable.just(weather))

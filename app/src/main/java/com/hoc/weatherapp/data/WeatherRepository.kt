@@ -1,5 +1,6 @@
 package com.hoc.weatherapp.data
 
+import io.reactivex.Completable
 import io.reactivex.Flowable
 
 interface WeatherRepository {
@@ -9,4 +10,6 @@ interface WeatherRepository {
     fun getAllWeathers(): Flowable<List<Weather>>
 
     fun addOrUpdateWeather(weather: Weather): Flowable<Weather>
+
+    fun deleteWeather(weather: Weather): Completable
 }
