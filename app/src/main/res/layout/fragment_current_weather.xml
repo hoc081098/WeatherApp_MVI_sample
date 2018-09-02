@@ -86,6 +86,7 @@
                 android:textColor="@android:color/white"
                 android:textSize="12sp"
                 android:textStyle="italic"
+                android:visibility="invisible"
                 app:cornerRadius="8dp"
                 app:icon="@drawable/ic_navigate_next_white_24dp"
                 app:iconGravity="textStart"

@@ -1,10 +1,10 @@
 package com.hoc.weatherapp.koin
 
 import com.hoc.weatherapp.BuildConfig
-import com.hoc.weatherapp.data.BASE_URL
-import com.hoc.weatherapp.data.BASE_URL_HELPER
-import com.hoc.weatherapp.data.HelperApiService
-import com.hoc.weatherapp.data.WeatherApiService
+import com.hoc.weatherapp.data.remote.BASE_URL
+import com.hoc.weatherapp.data.remote.BASE_URL_HELPER
+import com.hoc.weatherapp.data.remote.HelperApiService
+import com.hoc.weatherapp.data.remote.WeatherApiService
 import com.squareup.moshi.Moshi
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -45,7 +45,11 @@ val retrofitModule = module {
     }
 
 
-    single<WeatherApiService> { get<Retrofit>(name = WEATHER_RETROFIT).create(WeatherApiService::class.java) }
+    single<WeatherApiService> {
+        get<Retrofit>(name = WEATHER_RETROFIT).create(
+            WeatherApiService::class.java
+        )
+    }
 
     single<Retrofit>(name = HELPER_RETROFIT) {
         Retrofit.Builder()
@@ -56,5 +60,9 @@ val retrofitModule = module {
                 .build()
     }
 
-    single<HelperApiService> { get<Retrofit>(name = HELPER_RETROFIT).create(HelperApiService::class.java) }
+    single<HelperApiService> {
+        get<Retrofit>(name = HELPER_RETROFIT).create(
+            HelperApiService::class.java
+        )
+    }
 }

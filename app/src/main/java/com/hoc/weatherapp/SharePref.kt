@@ -1,7 +1,7 @@
 package com.hoc.weatherapp
 
 import android.content.SharedPreferences
-import com.hoc.weatherapp.data.City
+import com.hoc.weatherapp.data.models.entity.City
 import com.squareup.moshi.Moshi
 import java.io.IOException
 import kotlin.properties.ReadWriteProperty

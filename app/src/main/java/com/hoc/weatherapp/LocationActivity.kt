@@ -14,18 +14,27 @@ import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
-import androidx.recyclerview.widget.*
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.DividerItemDecoration.VERTICAL
+import androidx.recyclerview.widget.ItemTouchHelper
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.ListAdapter
+import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.bumptech.glide.request.RequestOptions.fitCenterTransform
 import com.bumptech.glide.request.RequestOptions.placeholderOf
 import com.hoc.weatherapp.AddCityActivity.Companion.ACTION_CHANGED_LOCATION
 import com.hoc.weatherapp.AddCityActivity.Companion.SELECTED_CITY
-import com.hoc.weatherapp.data.City
-import com.hoc.weatherapp.data.Weather
 import com.hoc.weatherapp.data.WeatherRepository
-import com.hoc.weatherapp.utils.*
+import com.hoc.weatherapp.data.models.entity.City
+import com.hoc.weatherapp.data.models.entity.CurrentWeather
+import com.hoc.weatherapp.utils.SwipeController
+import com.hoc.weatherapp.utils.SwipeControllerActions
+import com.hoc.weatherapp.utils.debug
+import com.hoc.weatherapp.utils.getIconDrawableFromIconString
+import com.hoc.weatherapp.utils.toast
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.addTo
@@ -35,7 +44,8 @@ import kotlinx.android.synthetic.main.activity_location.*
 import kotlinx.android.synthetic.main.city_item_layout.view.*
 import org.koin.android.ext.android.inject
 
-class CityAdapter(selectedCityId: Long?, private val onClickListener: (City) -> Unit) : ListAdapter<Weather, CityAdapter.ViewHolder>(diffCallback) {
+class CityAdapter(selectedCityId: Long?, private val onClickListener: (City) -> Unit) :
+    ListAdapter<CurrentWeather, CityAdapter.ViewHolder>(diffCallback) {
     var selectedCityId: Long? = selectedCityId
         set(value) {
             field = value
@@ -45,15 +55,16 @@ class CityAdapter(selectedCityId: Long?, private val onClickListener: (City) -> 
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         return LayoutInflater.from(parent.context)
-                .inflate(R.layout.city_item_layout, parent, false)
-                .let(::ViewHolder)
+            .inflate(R.layout.city_item_layout, parent, false)
+            .let(::ViewHolder)
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         holder.bind(getItem(position))
     }
 
-    inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView), View.OnClickListener {
+    inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView),
+        View.OnClickListener {
         private val textName = itemView.text_name!!
         private val textWeather = itemView.text_weather
         private val imageIconCityItem = itemView.image_icon_city_item
@@ -64,36 +75,42 @@ class CityAdapter(selectedCityId: Long?, private val onClickListener: (City) -> 
         }
 
         override fun onClick(v: View) {
-            (adapterPosition.takeIf { it != RecyclerView.NO_POSITION } ?: return)
-                    .let(::getItem)
-                    .let(Weather::city)
+            val position = adapterPosition
+            if (position != RecyclerView.NO_POSITION) {
+                position.let(::getItem)
+                    .let(CurrentWeather::city)
                     .let(onClickListener)
+            }
         }
 
-        fun bind(weather: Weather) {
+        fun bind(weather: CurrentWeather) {
             textName.text = "${weather.city.name} - ${weather.city.country}"
-            textWeather.text = "${weather.main}, ${weather.temperatureMax} ~ ${weather.temperatureMin}"
+            textWeather.text =
+                "${weather.description.capitalize()}, ${weather.temperatureMin} ℃ ~ ${weather.temperatureMax} ℃"
             radioButtonSelectedCity.isChecked = weather.city.id == selectedCityId
 
 
             Glide.with(itemView.context)
-                    .load(getIconDrawableFromIconString(weather.icon))
-                    .apply(fitCenterTransform().centerCrop())
-                    .transition(DrawableTransitionOptions.withCrossFade())
-                    .apply(
-                            ContextCompat.getColor(itemView.context, R.color.colorPrimaryDark)
-                                    .let(::ColorDrawable)
-                                    .let(::placeholderOf)
-                    )
-                    .into(imageIconCityItem)
+                .load(getIconDrawableFromIconString(weather.icon))
+                .apply(fitCenterTransform().centerCrop())
+                .transition(DrawableTransitionOptions.withCrossFade())
+                .apply(
+                    ContextCompat.getColor(itemView.context, R.color.colorPrimaryDark)
+                        .let(::ColorDrawable)
+                        .let(::placeholderOf)
+                )
+                .into(imageIconCityItem)
         }
     }
 
     companion object {
         @JvmField
-        val diffCallback = object : DiffUtil.ItemCallback<Weather>() {
-            override fun areItemsTheSame(oldItem: Weather, newItem: Weather) = oldItem.city.id == newItem.city.id
-            override fun areContentsTheSame(oldItem: Weather, newItem: Weather) = oldItem == newItem
+        val diffCallback = object : DiffUtil.ItemCallback<CurrentWeather>() {
+            override fun areItemsTheSame(oldItem: CurrentWeather, newItem: CurrentWeather) =
+                oldItem.city.id == newItem.city.id
+
+            override fun areContentsTheSame(oldItem: CurrentWeather, newItem: CurrentWeather) =
+                oldItem == newItem
         }
     }
 }
@@ -105,7 +122,7 @@ class LocationActivity : AppCompatActivity() {
     private val compositeDisposeble1 = CompositeDisposable()
     private val broadcastReceiver = LocationActivityBroadcastReceiver()
     private val sharedPrefUtil by inject<SharedPrefUtil>()
-    private var weathers: List<Weather> = emptyList()
+    private var weathers: List<CurrentWeather> = emptyList()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -163,48 +180,48 @@ class LocationActivity : AppCompatActivity() {
         }
 
         LocalBroadcastManager.getInstance(this)
-                .registerReceiver(
-                        broadcastReceiver,
-                        IntentFilter().apply {
-                            addAction(ACTION_CHANGED_LOCATION)
-                        }
-                )
+            .registerReceiver(
+                broadcastReceiver,
+                IntentFilter().apply {
+                    addAction(ACTION_CHANGED_LOCATION)
+                }
+            )
     }
 
-    private fun deleteWeather(weather: Weather, adapterPosition: Int) {
+    private fun deleteWeather(weather: CurrentWeather, adapterPosition: Int) {
         val newSelectedCity = weathers.getOrNull(adapterPosition + 1)?.city
-                ?: weathers.getOrNull(adapterPosition - 1)?.city
+            ?: weathers.getOrNull(adapterPosition - 1)?.city
 
         weatherRepository.deleteWeather(weather)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribeBy(
-                        onError = {
-                            toast("Delete ${weather.city.name} failed: ${it.message}")
-                        },
-                        onComplete = {
-                            if (cityAdapter.selectedCityId == weather.city.id) {
-                                onItemCityClick(newSelectedCity)
-                            }
-                            toast("Delete ${weather.city.name} successfully")
-                        }
-                )
-                .addTo(compositeDisposeble1)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribeBy(
+                onError = {
+                    toast("Delete ${weather.city.name} failed: ${it.message}")
+                },
+                onComplete = {
+                    if (cityAdapter.selectedCityId == weather.city.id) {
+                        onItemCityClick(newSelectedCity)
+                    }
+                    toast("Delete ${weather.city.name} successfully")
+                }
+            )
+            .addTo(compositeDisposeble1)
     }
 
     private fun refreshWeatherOfCity(city: City) {
         weatherRepository.getCurrentWeatherByCity(city)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribeBy(
-                        onError = {
-                            toast("Refresh weather of ${city.name} failed: ${it.message}")
-                        },
-                        onComplete = {
-                            toast("Refresh weather of ${city.name} successfully")
-                        }
-                )
-                .addTo(compositeDisposeble1)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribeBy(
+                onError = {
+                    toast("Refresh weather of ${city.name} failed: ${it.message}")
+                },
+                onComplete = {
+                    toast("Refresh weather of ${city.name} successfully")
+                }
+            )
+            .addTo(compositeDisposeble1)
     }
 
     private fun onItemCityClick(city: City?) {
@@ -212,27 +229,27 @@ class LocationActivity : AppCompatActivity() {
         sharedPrefUtil.selectedCity = city
 
         LocalBroadcastManager.getInstance(this@LocationActivity)
-                .sendBroadcast(
-                        Intent(ACTION_CHANGED_LOCATION).apply {
-                            putExtra(SELECTED_CITY, city)
-                            putExtra("SELF", true)
-                        }
-                )
+            .sendBroadcast(
+                Intent(ACTION_CHANGED_LOCATION).apply {
+                    putExtra(SELECTED_CITY, city)
+                    putExtra("SELF", true)
+                }
+            )
     }
 
     override fun onStart() {
         super.onStart()
         weatherRepository.getAllWeathers()
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribeBy(
-                        onError = {},
-                        onNext = {
-                            cityAdapter.submitList(it)
-                            weathers = it
-                        }
-                )
-                .addTo(compositeDisposable)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribeBy(
+                onError = {},
+                onNext = {
+                    cityAdapter.submitList(it)
+                    weathers = it
+                }
+            )
+            .addTo(compositeDisposable)
     }
 
     override fun onStop() {
@@ -243,7 +260,7 @@ class LocationActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         LocalBroadcastManager.getInstance(this)
-                .unregisterReceiver(broadcastReceiver)
+            .unregisterReceiver(broadcastReceiver)
         compositeDisposeble1.clear()
     }
 
@@ -271,5 +288,4 @@ class LocationActivity : AppCompatActivity() {
             }
         }
     }
-
 }

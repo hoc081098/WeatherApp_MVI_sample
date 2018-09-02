@@ -1,15 +1,18 @@
 package com.hoc.weatherapp.data
 
+import com.hoc.weatherapp.data.models.entity.City
+import com.hoc.weatherapp.data.models.entity.CurrentWeather
+import com.hoc.weatherapp.data.models.entity.DailyWeather
 import io.reactivex.Completable
 import io.reactivex.Flowable
 
 interface WeatherRepository {
 
-    fun getCurrentWeatherByCity(city: City): Flowable<Weather>
+    fun getCurrentWeatherByCity(city: City): Flowable<CurrentWeather>
 
-    fun getAllWeathers(): Flowable<List<Weather>>
+    fun getFiveDayForecastByCity(city: City): Flowable<List<DailyWeather>>
 
-    fun addOrUpdateWeather(weather: Weather): Flowable<Weather>
+    fun getAllWeathers(): Flowable<List<CurrentWeather>>
 
-    fun deleteWeather(weather: Weather): Completable
+    fun deleteWeather(weather: CurrentWeather): Completable
 }

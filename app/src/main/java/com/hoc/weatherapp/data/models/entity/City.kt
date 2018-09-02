@@ -1,4 +1,4 @@
-package com.hoc.weatherapp.data
+package com.hoc.weatherapp.data.models.entity
 
 import android.os.Parcelable
 import androidx.room.Entity
@@ -9,7 +9,7 @@ import kotlinx.android.parcel.Parcelize
 @Parcelize
 data class City(
         @PrimaryKey
-        val id: Long = -1,
+        val id: Long = Long.MIN_VALUE,
         val name: String = "",
         val country: String = "",
         val lat: Double = Double.NEGATIVE_INFINITY,

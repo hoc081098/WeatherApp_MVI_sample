@@ -24,9 +24,9 @@ import com.google.android.gms.location.LocationSettingsStatusCodes
 import com.google.android.gms.location.places.Place
 import com.google.android.gms.location.places.ui.PlaceSelectionListener
 import com.google.android.gms.location.places.ui.SupportPlaceAutocompleteFragment
-import com.hoc.weatherapp.data.City
-import com.hoc.weatherapp.data.Weather
 import com.hoc.weatherapp.data.WeatherRepository
+import com.hoc.weatherapp.data.models.entity.City
+import com.hoc.weatherapp.data.models.entity.CurrentWeather
 import com.hoc.weatherapp.utils.debug
 import com.hoc.weatherapp.utils.toast
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -37,7 +37,7 @@ import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_add_city.*
 import kotlinx.android.synthetic.main.some_city_layout.*
 import org.koin.android.ext.android.inject
-import java.util.*
+import java.util.Locale
 
 class AddCityActivity : AppCompatActivity() {
     private val fusedLocationProviderClient by lazy(LazyThreadSafetyMode.NONE) {
@@ -249,7 +249,7 @@ class AddCityActivity : AppCompatActivity() {
     private fun getCityInformation(latitude: Double, longitude: Double) {
         City(lat = latitude, lng = longitude)
                 .let(weatherRepository::getCurrentWeatherByCity)
-                .map(Weather::city)
+            .map(CurrentWeather::city)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribeBy(
