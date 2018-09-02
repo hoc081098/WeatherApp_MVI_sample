@@ -2,6 +2,8 @@
 <resources>
     <array name="preloaded_fonts" translatable="false">
         <item>@font/noto_sans</item>
+        <item>@font/noto_serif</item>
+        <item>@font/nunito</item>
         <item>@font/nunito_sans</item>
     </array>
 </resources>

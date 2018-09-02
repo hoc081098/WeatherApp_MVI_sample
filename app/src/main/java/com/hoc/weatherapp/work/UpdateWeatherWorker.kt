@@ -10,8 +10,8 @@ import com.hoc.weatherapp.App
 import com.hoc.weatherapp.MainActivity
 import com.hoc.weatherapp.R
 import com.hoc.weatherapp.SharedPrefUtil
-import com.hoc.weatherapp.data.Weather
 import com.hoc.weatherapp.data.WeatherRepository
+import com.hoc.weatherapp.data.models.entity.CurrentWeather
 import com.hoc.weatherapp.utils.debug
 import org.koin.standalone.KoinComponent
 import org.koin.standalone.inject
@@ -34,11 +34,14 @@ class UpdateWeatherWorker : Worker(), KoinComponent {
                 Result.FAILURE
             }
         } else {
+            val notificationManager =
+                applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            notificationManager.cancel(NOTIFICATION_ID)
             Result.FAILURE
         }
     }
 
-    private fun showNotification(weather: Weather) {
+    private fun showNotification(weather: CurrentWeather) {
         val builder = NotificationCompat.Builder(applicationContext, App.CHANNEL_ID)
                 .setSmallIcon(R.mipmap.ic_launcher_round)
                 .setContentTitle("${weather.city.name} - ${weather.city.country}")
