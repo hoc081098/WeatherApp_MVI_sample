@@ -1,6 +1,6 @@
 package com.hoc.weatherapp.koin
 
-import com.hoc.weatherapp.WeatherRepositoryImpl2
+import com.hoc.weatherapp.data.WeatherRepositoryImpl2
 import com.hoc.weatherapp.data.WeatherRepository
 import com.hoc.weatherapp.data.WeatherRepositoryImpl
 import com.hoc.weatherapp.data.local.AppDatabase

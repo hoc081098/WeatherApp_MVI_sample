@@ -23,7 +23,8 @@ class Main(
      *  Unit Default: Kelvin, Metric: Celsius, Imperial: Fahrenheit.
      */
     @Json(name = "temp_max")
-    val tempMax: Double? = null,
+    val
+    tempMax: Double? = null,
 
     /**
      * Atmospheric pressure on the sea level by default, hPa

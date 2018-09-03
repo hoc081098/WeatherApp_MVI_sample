@@ -10,7 +10,6 @@ import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import androidx.annotation.DrawableRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.NotificationCompat
 import androidx.fragment.app.Fragment
@@ -32,11 +31,11 @@ import com.hoc.weatherapp.data.models.entity.CurrentWeather
 import com.hoc.weatherapp.utils.ZoomOutPageTransformer
 import com.hoc.weatherapp.utils.blur.GlideBlurTransformation
 import com.hoc.weatherapp.utils.debug
+import com.hoc.weatherapp.utils.getBackgroundDrawableFromIconString
 import com.hoc.weatherapp.work.UpdateWeatherWorker
 import io.reactivex.disposables.CompositeDisposable
 import kotlinx.android.synthetic.main.activity_main.*
 import org.koin.android.ext.android.inject
-import java.util.Random
 import java.util.concurrent.TimeUnit
 
 class MainActivity : AppCompatActivity() {
@@ -64,8 +63,6 @@ class MainActivity : AppCompatActivity() {
                     addAction(ACTION_CHANGED_LOCATION)
                 }
             )
-
-        (sharedPrefUtil.selectedCity)
     }
 
     override fun onDestroy() {
@@ -137,7 +134,7 @@ class MainActivity : AppCompatActivity() {
             .build()
 
         workManager.enqueueUniquePeriodicWork(
-            "UNIQ_NAME",
+            WORK_UNIQ_NAME,
             ExistingPeriodicWorkPolicy.REPLACE,
             workRequest
         )
@@ -174,52 +171,26 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateBackground(icon: String) {
-        debug(icon)
-        val random = Random()
-
-        @DrawableRes val background = when (icon) {
-            "01d" -> R.drawable.sohot
-            "01n" -> if (random.nextBoolean()) R.drawable.beautifulnight else R.drawable.moon
-            "02d" -> R.drawable.sun
-            "02n" -> if (random.nextBoolean()) R.drawable.beautifulnight else R.drawable.moon
-            "03d" -> R.drawable.sun
-            "03n" -> R.drawable.beautifulnight
-            "04d" -> R.drawable.sun
-            "04n" -> R.drawable.beautifulnight
-            "09d" -> R.drawable.rainy
-            "09n" -> R.drawable.rainy
-            "10d" -> R.drawable.rainy
-            "10n" -> R.drawable.rainy
-            "11d" -> R.drawable.rainy
-            "11n" -> R.drawable.rainy
-            "13d" -> R.drawable.sun
-            "13n" -> R.drawable.beautifulnight
-            "50d" -> R.drawable.sun
-            "50n" -> R.drawable.beautifulnight
-            else -> return
-        }
-
-
         Glide.with(this)
-            .load(background)
+            .load(getBackgroundDrawableFromIconString(icon))
             .transition(DrawableTransitionOptions.withCrossFade())
             .apply(RequestOptions.fitCenterTransform().centerCrop())
-            .apply(RequestOptions.bitmapTransform(GlideBlurTransformation(this, 20f)))
+            .apply(RequestOptions.bitmapTransform(GlideBlurTransformation(this, 25f)))
             .into(image_background)
     }
 
     fun updateUi(weather: CurrentWeather?) {
-        when {
-            weather !== null -> {
-                updateBackground(weather.icon)
-                toolbar_title.text = "${weather.city.name} - ${weather.city.country}"
-                showNotification(weather)
-            }
-            else -> {
+        when (weather) {
+            null -> {
                 image_background.setImageResource(R.drawable.default_bg)
                 toolbar_title.text = ""
                 (getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager)
                     .cancel(UpdateWeatherWorker.NOTIFICATION_ID)
+            }
+            else -> {
+                updateBackground(weather.icon)
+                toolbar_title.text = "${weather.city.name} - ${weather.city.country}"
+                showNotification(weather)
             }
         }
     }
@@ -230,5 +201,9 @@ class MainActivity : AppCompatActivity() {
                 ACTION_CHANGED_LOCATION -> enableIndicatorAndViewPager()
             }
         }
+    }
+
+    companion object {
+        private const val WORK_UNIQ_NAME = "UNIQ_NAME"
     }
 }

@@ -1,7 +1,7 @@
 package com.hoc.weatherapp.data
 
 import com.hoc.weatherapp.data.local.LocalDataSource
-import com.hoc.weatherapp.data.models.currentweather.CurrentWeatherReponse
+import com.hoc.weatherapp.data.models.currentweather.CurrentWeatherResponse
 import com.hoc.weatherapp.data.models.entity.City
 import com.hoc.weatherapp.data.models.entity.CurrentWeather
 import com.hoc.weatherapp.data.models.entity.DailyWeather
@@ -22,6 +22,16 @@ class WeatherRepositoryImpl(
     private val weatherApiService: WeatherApiService,
     private val localDataSource: LocalDataSource
 ) : WeatherRepository {
+    override fun getCityInformationAndSaveToLocal(
+        latitude: Double,
+        longitude: Double
+    ): Flowable<City> {
+        return weatherApiService.getCurrentWeatherByLatLng(latitude, longitude)
+            .map(::mapperResponseToCurrentWeatherEntity)
+            .flatMap(::addOrUpdateWeather)
+            .map(CurrentWeather::city)
+    }
+
     override fun getFiveDayForecastByCity(city: City): Flowable<List<DailyWeather>> {
         return Flowable.just(isValidLatLng(city.lat, city.lng) to (city.id >= 0))
             .flatMap { (latLngValid, cityIdValid) ->
@@ -132,7 +142,7 @@ class WeatherRepositoryImpl(
         } ?: emptyList()
     }
 
-    fun mapperResponseToCurrentWeatherEntity(response: CurrentWeatherReponse): CurrentWeather {
+    fun mapperResponseToCurrentWeatherEntity(response: CurrentWeatherResponse): CurrentWeather {
         return response.run {
             val firstWeather = weather?.first()
 
@@ -158,7 +168,8 @@ class WeatherRepositoryImpl(
                 winDegrees = wind?.deg ?: 0.0,
                 dataTime = Date((dt ?: 0) * 1_000),
                 snowVolumeForTheLast3Hours = snow?._3h ?: 0.0,
-                rainVolumeForTheLast3Hours = rain?._3h ?: 0.0
+                rainVolumeForTheLast3Hours = rain?._3h ?: 0.0,
+                visibility = visibility ?: 0.0
             )
         }
     }
