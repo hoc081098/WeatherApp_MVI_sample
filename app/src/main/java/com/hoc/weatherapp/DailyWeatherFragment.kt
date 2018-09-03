@@ -48,8 +48,8 @@ class DailyWeatherAdapter(val list: MutableList<Any> = mutableListOf()) :
     }
 
     override fun getItemViewType(position: Int): Int {
-        val item = getItem(position)
-        return when (item) {
+        return when (
+            val item = getItem(position)) {
             is Date -> HEADER_TYPE
             is DailyWeather -> DAILY_WEATHER_TYPE
             else -> throw  IllegalStateException("Unknown type of item $item at position $position")
@@ -115,7 +115,7 @@ class DailyWeatherAdapter(val list: MutableList<Any> = mutableListOf()) :
 
         fun bind(dailyWeather: DailyWeather?) = dailyWeather?.let { weather ->
             textWeather.text =
-                "${weather.description.capitalize()}, ${weather.temperatureMin} ℃ ~ ${weather.temperatureMax} ℃"
+                "${weather.description.capitalize()}, ${weather.temperatureMin}~${weather.temperatureMax}"
             textViewDataTime.text = itemDateFormat.format(weather.timeOfDataForecasted)
 
             Glide.with(itemView.context)
@@ -143,8 +143,8 @@ class DailyWeatherAdapter(val list: MutableList<Any> = mutableListOf()) :
         @JvmField
         val calendar = Calendar.getInstance()
 
-        private const val HEADER_TYPE = 1
-        private const val DAILY_WEATHER_TYPE = 3
+        const val HEADER_TYPE = 1
+        const val DAILY_WEATHER_TYPE = 3
     }
 }
 

@@ -1,11 +1,13 @@
 package com.hoc.weatherapp
 
+import android.annotation.SuppressLint
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
@@ -30,7 +32,7 @@ import org.koin.android.ext.android.inject
 import java.text.SimpleDateFormat
 import java.util.Locale
 
-class CurrentWeatherFragment : Fragment() {
+class CurrentWeatherFragment : Fragment(), View.OnTouchListener {
     private val sharedPrefUtil by inject<SharedPrefUtil>()
     private val weatherRepository by inject<WeatherRepository>()
 
@@ -80,13 +82,19 @@ class CurrentWeatherFragment : Fragment() {
                 text_main_weather.text = ""
                 text_last_update.text = ""
                 button_live.visibility = View.INVISIBLE
+                card_view1.visibility = View.INVISIBLE
             }
             else -> {
                 updateWeatherIcon(weather.icon)
                 text_temperature.text = "${weather.temperature} ℃"
-                text_main_weather.text = weather.main
+                text_main_weather.text = weather.description.capitalize()
                 text_last_update.text = "${sdf.format(weather.dataTime)} update"
                 button_live.visibility = View.VISIBLE
+                card_view1.visibility = View.VISIBLE
+                text_pressure.text = "${weather.pressure}hPa"
+                text_humidity.text = "${weather.humidity}%"
+                text_rain.text = "${"%.1f".format(weather.rainVolumeForTheLast3Hours)}mm"
+                text_visibility.text = "${"%.1f".format(weather.visibility / 1_000)}km"
             }
         }
     }
@@ -100,8 +108,14 @@ class CurrentWeatherFragment : Fragment() {
     }
 
     private fun getCurrentWeather(city: City?) {
+        scroll_view.setOnTouchListener(if (city === null) this@CurrentWeatherFragment else null)
+
         when (city) {
             null -> {
+                swipe_refresh_layout.post {
+                    swipe_refresh_layout.isRefreshing = false
+                }
+
                 updateUi(null)
                 mainActivity.updateUi(null)
                 sharedPrefUtil.selectedCity = null
@@ -153,6 +167,11 @@ class CurrentWeatherFragment : Fragment() {
                 ACTION_CHANGED_LOCATION -> getCurrentWeather(intent.getParcelableExtra(SELECTED_CITY))
             }
         }
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
+    override fun onTouch(v: View?, event: MotionEvent?): Boolean {
+        return true
     }
 
     companion object {

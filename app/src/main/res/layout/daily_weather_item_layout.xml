@@ -15,9 +15,10 @@
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
         android:layout_marginBottom="8dp"
-        android:fontFamily="sans-serif"
+        android:fontFamily="@font/noto_sans"
         android:textColor="@android:color/white"
-        android:textSize="18sp"
+        android:textSize="16sp"
+        android:layout_marginEnd="8dp"
         app:layout_constraintBottom_toTopOf="@+id/textViewDataTime"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
@@ -27,12 +28,13 @@
 
     <androidx.cardview.widget.CardView
         android:id="@+id/card_view"
-        android:layout_width="72dp"
-        android:layout_height="72dp"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
         android:layout_marginBottom="8dp"
         app:cardBackgroundColor="@android:color/white"
-        app:cardCornerRadius="36dp"
+        app:cardCornerRadius="32dp"
         app:cardElevation="0dp"
         app:cardMaxElevation="0dp"
         app:cardUseCompatPadding="false"
@@ -57,14 +59,15 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginBottom="8dp"
-        android:fontFamily="@font/nunito_sans"
+        android:fontFamily="@font/nunito"
         android:textColor="@android:color/white"
         android:textSize="14sp"
+        android:textStyle="italic"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="@+id/text_weather"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="@+id/text_weather"
         app:layout_constraintTop_toBottomOf="@+id/text_weather"
-        tools:text="09:00" />
+        tools:text="09:05" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

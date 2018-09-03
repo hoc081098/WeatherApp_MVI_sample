@@ -1,6 +1,6 @@
 package com.hoc.weatherapp.data.remote
 
-import com.hoc.weatherapp.data.models.currentweather.CurrentWeatherReponse
+import com.hoc.weatherapp.data.models.currentweather.CurrentWeatherResponse
 import com.hoc.weatherapp.data.models.forecastweather.FiveDayForecastResponse
 import io.reactivex.Flowable
 import retrofit2.http.GET
@@ -28,21 +28,21 @@ interface WeatherApiService {
         @Query("lon") lon: Double,
         @Query("units") units: TemperatureUnit = TemperatureUnit.CELSIUS,
         @Query("appid") appId: String = APP_ID
-    ): Flowable<CurrentWeatherReponse>
+    ): Flowable<CurrentWeatherResponse>
 
     @GET("weather")
     fun getCurrentWeatherByCityId(
         @Query("id") id: Long,
         @Query("units") units: TemperatureUnit = TemperatureUnit.CELSIUS,
         @Query("appid") appId: String = APP_ID
-    ): Flowable<CurrentWeatherReponse>
+    ): Flowable<CurrentWeatherResponse>
 
     @GET("weather")
     fun getCurrentWeatherByCityName(
         @Query("q") nameAndCoutryCode: String,
         @Query("units") units: TemperatureUnit = TemperatureUnit.CELSIUS,
         @Query("appid") appId: String = APP_ID
-    ): Flowable<CurrentWeatherReponse>
+    ): Flowable<CurrentWeatherResponse>
 
     @GET("forecast")
     fun get5DayEvery3HourForecastByLatLng(

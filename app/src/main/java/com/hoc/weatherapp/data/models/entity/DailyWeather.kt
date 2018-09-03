@@ -15,6 +15,7 @@ data class DailyWeather(
      * Time of data forecasted, unix, UTC
      */
     val timeOfDataForecasted: Date,
+
     /**
      * Temperature. Unit Default: Kelvin, Metric: Celsius, Imperial: Fahrenheit.
      */
