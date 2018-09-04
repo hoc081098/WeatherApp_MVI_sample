@@ -8,7 +8,6 @@ import android.os.Build
 import com.hoc.weatherapp.koin.dataSourceModule
 import com.hoc.weatherapp.koin.retrofitModule
 import com.hoc.weatherapp.koin.sharePrefUtilModule
-import com.squareup.leakcanary.LeakCanary
 import org.koin.android.ext.android.startKoin
 
 class App : Application() {
@@ -16,10 +15,6 @@ class App : Application() {
         super.onCreate()
         startKoin(this, listOf(retrofitModule, dataSourceModule, sharePrefUtilModule))
         createNotificationChannel()
-
-        if (!LeakCanary.isInAnalyzerProcess(this)) {
-            LeakCanary.install(this)
-        }
     }
 
     private fun createNotificationChannel() {

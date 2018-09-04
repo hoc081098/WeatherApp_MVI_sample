@@ -83,6 +83,9 @@ class CurrentWeatherFragment : Fragment(), View.OnTouchListener {
                 text_last_update.text = ""
                 button_live.visibility = View.INVISIBLE
                 card_view1.visibility = View.INVISIBLE
+
+                windmill1.visibility = View.INVISIBLE
+                windmill2.visibility = View.INVISIBLE
             }
             else -> {
                 updateWeatherIcon(weather.icon)
@@ -95,6 +98,11 @@ class CurrentWeatherFragment : Fragment(), View.OnTouchListener {
                 text_humidity.text = "${weather.humidity}%"
                 text_rain.text = "${"%.1f".format(weather.rainVolumeForTheLast3Hours)}mm"
                 text_visibility.text = "${"%.1f".format(weather.visibility / 1_000)}km"
+
+                windmill1.visibility = View.VISIBLE
+                windmill2.visibility = View.VISIBLE
+                windmill1.winSpeed = weather.winSpeed
+                windmill2.winSpeed = weather.winSpeed
             }
         }
     }

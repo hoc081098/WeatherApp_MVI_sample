@@ -1,20 +1,16 @@
 package com.hoc.weatherapp.work
 
 import android.app.NotificationManager
-import android.app.PendingIntent
 import android.content.Context
-import android.content.Intent
-import androidx.core.app.NotificationCompat
 import androidx.work.Worker
-import com.hoc.weatherapp.App
-import com.hoc.weatherapp.MainActivity
-import com.hoc.weatherapp.R
 import com.hoc.weatherapp.SharedPrefUtil
 import com.hoc.weatherapp.data.WeatherRepository
-import com.hoc.weatherapp.data.models.entity.CurrentWeather
+import com.hoc.weatherapp.utils.NOTIFICATION_ID
 import com.hoc.weatherapp.utils.debug
+import com.hoc.weatherapp.utils.showOrUpdateNotification
 import org.koin.standalone.KoinComponent
 import org.koin.standalone.inject
+import java.util.Date
 
 class UpdateWeatherWorker : Worker(), KoinComponent {
     private val weatherDataSource by inject<WeatherRepository>()
@@ -26,9 +22,9 @@ class UpdateWeatherWorker : Worker(), KoinComponent {
             try {
                 val weather = weatherDataSource
                         .getCurrentWeatherByCity(city)
-                        .blockingFirst()
-                debug("UpdateWeatherWorker::doWork $weather", "MAIN_TAG")
-                showNotification(weather)
+                    .blockingLast()
+                debug("UpdateWeatherWorker::doWork ${Date()} $weather", "MAIN_TAG")
+                applicationContext.showOrUpdateNotification(weather)
                 Result.SUCCESS
             } catch (e: Exception) {
                 Result.FAILURE
@@ -39,31 +35,5 @@ class UpdateWeatherWorker : Worker(), KoinComponent {
             notificationManager.cancel(NOTIFICATION_ID)
             Result.FAILURE
         }
-    }
-
-    private fun showNotification(weather: CurrentWeather) {
-        val builder = NotificationCompat.Builder(applicationContext, App.CHANNEL_ID)
-                .setSmallIcon(R.mipmap.ic_launcher_round)
-                .setContentTitle("${weather.city.name} - ${weather.city.country}")
-                .setContentText("${weather.main}...${weather.temperature} \u2103")
-                .setAutoCancel(false)
-                .setOngoing(true)
-                .setWhen(weather.dataTime.time)
-                .setPriority(NotificationCompat.PRIORITY_HIGH)
-
-        val resultPendingIntent = PendingIntent.getActivity(
-                applicationContext,
-                0,
-                Intent(applicationContext, MainActivity::class.java),
-                PendingIntent.FLAG_UPDATE_CURRENT
-        )
-        builder.setContentIntent(resultPendingIntent)
-        val notificationManager =
-                applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        notificationManager.notify(NOTIFICATION_ID, builder.build())
-    }
-
-    companion object {
-        const val NOTIFICATION_ID = 2
     }
 }
