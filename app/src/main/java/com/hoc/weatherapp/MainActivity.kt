@@ -1,7 +1,6 @@
 package com.hoc.weatherapp
 
 import android.app.NotificationManager
-import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -11,7 +10,6 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.NotificationCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentPagerAdapter
@@ -26,12 +24,13 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.bumptech.glide.request.RequestOptions
 import com.hoc.weatherapp.AddCityActivity.Companion.ACTION_CHANGED_LOCATION
-import com.hoc.weatherapp.App.Companion.CHANNEL_ID
 import com.hoc.weatherapp.data.models.entity.CurrentWeather
+import com.hoc.weatherapp.utils.NOTIFICATION_ID
 import com.hoc.weatherapp.utils.ZoomOutPageTransformer
 import com.hoc.weatherapp.utils.blur.GlideBlurTransformation
 import com.hoc.weatherapp.utils.debug
 import com.hoc.weatherapp.utils.getBackgroundDrawableFromIconString
+import com.hoc.weatherapp.utils.showOrUpdateNotification
 import com.hoc.weatherapp.work.UpdateWeatherWorker
 import io.reactivex.disposables.CompositeDisposable
 import kotlinx.android.synthetic.main.activity_main.*
@@ -101,28 +100,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun showNotification(weather: CurrentWeather) {
-        val builder = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(R.mipmap.ic_launcher_round)
-            .setContentTitle("${weather.city.name} - ${weather.city.country}")
-            .setContentText("${weather.main}...${weather.temperature} \u2103")
-            .setAutoCancel(false)
-            .setOngoing(true)
-            .setWhen(weather.dataTime.time)
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
-
-        val resultPendingIntent = PendingIntent.getActivity(
-            this,
-            0,
-            Intent(applicationContext, MainActivity::class.java),
-            PendingIntent.FLAG_UPDATE_CURRENT
-        )
-        builder.setContentIntent(resultPendingIntent)
-        val notificationManager =
-            getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        notificationManager.notify(UpdateWeatherWorker.NOTIFICATION_ID, builder.build())
-    }
-
     fun enqueueWorkRequest() {
         val workManager = WorkManager.getInstance()
         val workRequest = PeriodicWorkRequestBuilder<UpdateWeatherWorker>(15, TimeUnit.MINUTES)
@@ -185,12 +162,12 @@ class MainActivity : AppCompatActivity() {
                 image_background.setImageResource(R.drawable.default_bg)
                 toolbar_title.text = ""
                 (getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager)
-                    .cancel(UpdateWeatherWorker.NOTIFICATION_ID)
+                    .cancel(NOTIFICATION_ID)
             }
             else -> {
                 updateBackground(weather.icon)
                 toolbar_title.text = "${weather.city.name} - ${weather.city.country}"
-                showNotification(weather)
+                showOrUpdateNotification(weather)
             }
         }
     }
