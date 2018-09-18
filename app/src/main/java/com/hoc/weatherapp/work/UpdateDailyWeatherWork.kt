@@ -1,39 +1,46 @@
 package com.hoc.weatherapp.work
 
-import android.app.NotificationManager
-import android.content.Context
 import androidx.work.Worker
 import com.hoc.weatherapp.SharedPrefUtil
 import com.hoc.weatherapp.data.WeatherRepository
 import com.hoc.weatherapp.utils.NOTIFICATION_ID
+import com.hoc.weatherapp.utils.cancelNotificationById
 import com.hoc.weatherapp.utils.debug
-import com.hoc.weatherapp.utils.showOrUpdateNotification
 import org.koin.standalone.KoinComponent
 import org.koin.standalone.inject
 import java.util.Date
 
-class UpdateWeatherWorker : Worker(), KoinComponent {
-    private val weatherDataSource by inject<WeatherRepository>()
+class UpdateDailyWeatherWork : Worker(), KoinComponent {
+    private val weatherRepository by inject<WeatherRepository>()
     private val sharePrefUtil by inject<SharedPrefUtil>()
 
     override fun doWork(): Result {
+        debug("UpdateDailyWeatherWork::doWork time=${Date()}")
+
         val city = sharePrefUtil.selectedCity
         return if (city != null) {
             try {
-                val weather = weatherDataSource
-                        .getCurrentWeatherByCity(city)
+                val dailyWeathers = weatherRepository
+                    .getFiveDayForecastByCity(city)
                     .blockingLast()
-                debug("UpdateWeatherWorker::doWork ${Date()} $weather", "MAIN_TAG")
-                applicationContext.showOrUpdateNotification(weather)
+
+                debug("UpdateDailyWeatherWork::doWork dailyWeathers=$dailyWeathers")
+
                 Result.SUCCESS
             } catch (e: Exception) {
+                debug("UpdateDailyWeatherWork::doWork e=$e")
+
                 Result.FAILURE
             }
         } else {
-            val notificationManager =
-                applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            notificationManager.cancel(NOTIFICATION_ID)
+            debug("UpdateDailyWeatherWork::doWork no selected city")
+
+            applicationContext.cancelNotificationById(NOTIFICATION_ID)
             Result.FAILURE
         }
+    }
+
+    companion object {
+        const val UNIQUE_WORK_NAME = "UpdateDailyWeatherWork"
     }
 }

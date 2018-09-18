@@ -18,6 +18,7 @@ import com.bumptech.glide.request.RequestOptions
 import com.hoc.weatherapp.AddCityActivity.Companion.ACTION_CHANGED_LOCATION
 import com.hoc.weatherapp.AddCityActivity.Companion.SELECTED_CITY
 import com.hoc.weatherapp.data.WeatherRepository
+import com.hoc.weatherapp.data.models.WindDirection
 import com.hoc.weatherapp.data.models.entity.City
 import com.hoc.weatherapp.data.models.entity.CurrentWeather
 import com.hoc.weatherapp.utils.getIconDrawableFromIconString
@@ -57,6 +58,10 @@ class CurrentWeatherFragment : Fragment(), View.OnTouchListener {
 
         swipe_refresh_layout.setOnRefreshListener { getCurrentWeather(sharedPrefUtil.selectedCity) }
 
+        button_live.setOnClickListener {
+            Intent(requireContext(), LiveWeatherActivity::class.java).let(::startActivity)
+        }
+
         getCurrentWeather(sharedPrefUtil.selectedCity)
         LocalBroadcastManager.getInstance(mainActivity)
             .registerReceiver(
@@ -83,26 +88,26 @@ class CurrentWeatherFragment : Fragment(), View.OnTouchListener {
                 text_last_update.text = ""
                 button_live.visibility = View.INVISIBLE
                 card_view1.visibility = View.INVISIBLE
-
-                windmill1.visibility = View.INVISIBLE
-                windmill2.visibility = View.INVISIBLE
+                card_view2.visibility = View.INVISIBLE
             }
             else -> {
                 updateWeatherIcon(weather.icon)
                 text_temperature.text = "${weather.temperature} ℃"
                 text_main_weather.text = weather.description.capitalize()
-                text_last_update.text = "${sdf.format(weather.dataTime)} update"
+                text_last_update.text = "Last updated: ${sdf.format(weather.dataTime)}"
                 button_live.visibility = View.VISIBLE
+
                 card_view1.visibility = View.VISIBLE
                 text_pressure.text = "${weather.pressure}hPa"
                 text_humidity.text = "${weather.humidity}%"
                 text_rain.text = "${"%.1f".format(weather.rainVolumeForTheLast3Hours)}mm"
                 text_visibility.text = "${"%.1f".format(weather.visibility / 1_000)}km"
 
-                windmill1.visibility = View.VISIBLE
-                windmill2.visibility = View.VISIBLE
+                card_view2.visibility = View.VISIBLE
                 windmill1.winSpeed = weather.winSpeed
                 windmill2.winSpeed = weather.winSpeed
+                text_wind_dir.text = "Direction: ${WindDirection.fromDegrees(weather.winDegrees)}"
+                text_wind_speed.text = "Speed: ${weather.winSpeed}m/s"
             }
         }
     }
@@ -130,7 +135,7 @@ class CurrentWeatherFragment : Fragment(), View.OnTouchListener {
 
                 toast("Please select a city!")
 
-                mainActivity.enqueueWorkRequest()
+                mainActivity.cancelWorkRequest()
             }
             else -> weatherRepository.getCurrentWeatherByCity(city)
                 .subscribeOn(Schedulers.io())
@@ -160,9 +165,6 @@ class CurrentWeatherFragment : Fragment(), View.OnTouchListener {
                         swipe_refresh_layout.post {
                             swipe_refresh_layout.isRefreshing = false
                         }
-                    },
-                    onComplete = {
-
                     }
                 )
                 .addTo(compositeDisposable)

@@ -34,6 +34,9 @@
         android:background="@null"
         android:elevation="0dp"
         android:theme="@style/AppTheme.AppBarOverlay"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
         app:popupTheme="@style/AppTheme.PopupOverlay"
         app:title="@string/app_name">
 
@@ -44,11 +47,11 @@
             android:ellipsize="end"
             android:fontFamily="@font/noto_sans"
             android:maxLines="2"
-            android:text="Weather app"
             android:textColor="@android:color/white"
             android:textSize="18sp"
             tools:layout_editor_absoluteX="135dp"
-            tools:layout_editor_absoluteY="12dp" />
+            tools:layout_editor_absoluteY="12dp"
+            tools:text="Weather app" />
 
     </androidx.appcompat.widget.Toolbar>
 

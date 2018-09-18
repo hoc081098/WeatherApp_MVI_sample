@@ -6,4 +6,7 @@
 
     <color name="colorOverlay">#78ffffff</color>
     <color name="colorBorder">#89d4fff9</color>
+
+    <color name="colorMaterialBlue500">#2196f3</color>
+    <color name="colorDeepPurpleAccent700">#6200ea</color>
 </resources>

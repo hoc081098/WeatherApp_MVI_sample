@@ -43,6 +43,6 @@ class WindmillView @JvmOverloads constructor(
     }
 
     companion object {
-        const val MAX_ANIM_DURATION = 5_000
+        const val MAX_ANIM_DURATION = 10_000
     }
 }
