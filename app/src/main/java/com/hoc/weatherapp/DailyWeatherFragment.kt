@@ -10,6 +10,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.annotation.IntDef
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
@@ -47,6 +48,7 @@ class DailyWeatherAdapter(val list: MutableList<Any> = mutableListOf()) :
         return list.size
     }
 
+    @DailyWeatherAdapter.ViewType
     override fun getItemViewType(position: Int): Int {
         return when (
             val item = getItem(position)) {
@@ -60,7 +62,7 @@ class DailyWeatherAdapter(val list: MutableList<Any> = mutableListOf()) :
         return list[position]
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+    override fun onCreateViewHolder(parent: ViewGroup, @DailyWeatherAdapter.ViewType viewType: Int): RecyclerView.ViewHolder {
         return when (viewType) {
             HEADER_TYPE -> LayoutInflater.from(parent.context).inflate(
                 R.layout.daily_weather_header_layout,
@@ -131,6 +133,10 @@ class DailyWeatherAdapter(val list: MutableList<Any> = mutableListOf()) :
         }
     }
 
+    @IntDef(value = [HEADER_TYPE, DAILY_WEATHER_TYPE])
+    @Retention(value = AnnotationRetention.SOURCE)
+    annotation class ViewType
+
     companion object {
         @SuppressLint("SimpleDateFormat")
         @JvmField
@@ -152,9 +158,16 @@ class DailyWeatherFragment : Fragment() {
     private val weatherRepository by inject<WeatherRepository>()
     private val sharedPrefUtil by inject<SharedPrefUtil>()
 
+    private lateinit var mainActivity: MainActivity
+
     private val compositeDisposable = CompositeDisposable()
     private val dailyWeatherAdapter = DailyWeatherAdapter()
     private val dailyWeatherFragmentReceiver = DailyWeatherFragmentReceiver()
+
+    override fun onAttach(context: Context?) {
+        super.onAttach(context)
+        mainActivity = context as MainActivity
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -183,7 +196,7 @@ class DailyWeatherFragment : Fragment() {
         swipe_refresh_layout.setOnRefreshListener { getDailyWeather(sharedPrefUtil.selectedCity) }
         getDailyWeather(sharedPrefUtil.selectedCity)
 
-        LocalBroadcastManager.getInstance(requireContext())
+        LocalBroadcastManager.getInstance(mainActivity)
             .registerReceiver(
                 dailyWeatherFragmentReceiver,
                 IntentFilter().apply {
@@ -195,16 +208,19 @@ class DailyWeatherFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         compositeDisposable.clear()
-        LocalBroadcastManager.getInstance(requireContext())
+        LocalBroadcastManager.getInstance(mainActivity)
             .unregisterReceiver(dailyWeatherFragmentReceiver)
     }
 
     private fun getDailyWeather(city: City?) {
         when (city) {
-            null -> toast("Please select a city!")
+            null -> {
+                toast("Please select a city!")
+                mainActivity.cancelWorkRequest()
+            }
             else -> weatherRepository.getFiveDayForecastByCity(city)
-                .map {
-                    it.groupBy { it.timeOfDataForecasted.trim() }
+                .map { dailyWeathers ->
+                    dailyWeathers.groupBy { it.timeOfDataForecasted.trim() }
                         .toSortedMap()
                         .flatMap { (date, weathers) -> listOf(date) + weathers }
                 }
@@ -221,6 +237,7 @@ class DailyWeatherFragment : Fragment() {
                         swipe_refresh_layout.post {
                             swipe_refresh_layout.isRefreshing = false
                         }
+                        mainActivity.enqueueWorkRequest()
                     },
                     onNext = {
                         dailyWeatherAdapter.list.run {
@@ -233,6 +250,7 @@ class DailyWeatherFragment : Fragment() {
                         swipe_refresh_layout.post {
                             swipe_refresh_layout.isRefreshing = false
                         }
+                        mainActivity.enqueueWorkRequest()
                     }
                 )
                 .addTo(compositeDisposable)

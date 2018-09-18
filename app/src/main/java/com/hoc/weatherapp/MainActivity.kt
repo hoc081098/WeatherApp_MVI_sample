@@ -1,6 +1,5 @@
 package com.hoc.weatherapp
 
-import android.app.NotificationManager
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -15,9 +14,7 @@ import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentPagerAdapter
 import androidx.lifecycle.Observer
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
-import androidx.work.Constraints
 import androidx.work.ExistingPeriodicWorkPolicy
-import androidx.work.NetworkType
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.bumptech.glide.Glide
@@ -28,10 +25,12 @@ import com.hoc.weatherapp.data.models.entity.CurrentWeather
 import com.hoc.weatherapp.utils.NOTIFICATION_ID
 import com.hoc.weatherapp.utils.ZoomOutPageTransformer
 import com.hoc.weatherapp.utils.blur.GlideBlurTransformation
+import com.hoc.weatherapp.utils.cancelNotificationById
 import com.hoc.weatherapp.utils.debug
 import com.hoc.weatherapp.utils.getBackgroundDrawableFromIconString
 import com.hoc.weatherapp.utils.showOrUpdateNotification
-import com.hoc.weatherapp.work.UpdateWeatherWorker
+import com.hoc.weatherapp.work.UpdateCurrentWeatherWorker
+import com.hoc.weatherapp.work.UpdateDailyWeatherWork
 import io.reactivex.disposables.CompositeDisposable
 import kotlinx.android.synthetic.main.activity_main.*
 import org.koin.android.ext.android.inject
@@ -75,11 +74,12 @@ class MainActivity : AppCompatActivity() {
         view_pager.run {
             val fragments = listOf(
                 CurrentWeatherFragment(),
-                DailyWeatherFragment()
+                DailyWeatherFragment(),
+                ChartFragment()
             )
             adapter = SectionsPagerAdapter(supportFragmentManager, fragments)
                 .also { pagerAdapter = it }
-            offscreenPageLimit = 2
+            offscreenPageLimit = 3
             setPageTransformer(true, ZoomOutPageTransformer())
 
             dots_indicator.setViewPager(view_pager)
@@ -101,25 +101,39 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun enqueueWorkRequest() {
-        val workManager = WorkManager.getInstance()
-        val workRequest = PeriodicWorkRequestBuilder<UpdateWeatherWorker>(15, TimeUnit.MINUTES)
-            .setConstraints(
-                Constraints.Builder()
-                    .setRequiredNetworkType(NetworkType.CONNECTED)
-                    .build()
-            )
-            .build()
+        val updateCurrentWeather =
+            PeriodicWorkRequestBuilder<UpdateCurrentWeatherWorker>(15, TimeUnit.MINUTES)
+                .build()
 
-        workManager.enqueueUniquePeriodicWork(
-            WORK_UNIQ_NAME,
-            ExistingPeriodicWorkPolicy.REPLACE,
-            workRequest
-        )
-        workManager.getStatusById(workRequest.id).observe(this, Observer {
-            if (it != null && it.state.isFinished) {
-                debug("UpdateWeatherWorker isFinished", "MAIN_TAG")
-            }
-        })
+        val updateDailyWeathers =
+            PeriodicWorkRequestBuilder<UpdateDailyWeatherWork>(15, TimeUnit.MINUTES)
+                .build()
+
+        WorkManager.getInstance().run {
+            enqueueUniquePeriodicWork(
+                UpdateCurrentWeatherWorker.UNIQUE_WORK_NAME,
+                ExistingPeriodicWorkPolicy.REPLACE,
+                updateCurrentWeather
+            )
+            getStatusesForUniqueWork(UpdateCurrentWeatherWorker.UNIQUE_WORK_NAME)
+                .observe(this@MainActivity, Observer {
+                    if (it != null) {
+                        this@MainActivity.debug("${UpdateCurrentWeatherWorker.UNIQUE_WORK_NAME}: $it")
+                    }
+                })
+
+            enqueueUniquePeriodicWork(
+                UpdateDailyWeatherWork.UNIQUE_WORK_NAME,
+                ExistingPeriodicWorkPolicy.REPLACE,
+                updateDailyWeathers
+            )
+            getStatusesForUniqueWork(UpdateDailyWeatherWork.UNIQUE_WORK_NAME)
+                .observe(this@MainActivity, Observer {
+                    if (it != null) {
+                        this@MainActivity.debug("${UpdateDailyWeatherWork.UNIQUE_WORK_NAME}: $it")
+                    }
+                })
+        }
     }
 
     private class SectionsPagerAdapter(fm: FragmentManager, private val fragments: List<Fragment>) :
@@ -141,6 +155,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             R.id.action_settings -> {
+                startActivity(Intent(this, SettingsActivity::class.java))
                 true
             }
             else -> super.onOptionsItemSelected(item)
@@ -161,8 +176,7 @@ class MainActivity : AppCompatActivity() {
             null -> {
                 image_background.setImageResource(R.drawable.default_bg)
                 toolbar_title.text = ""
-                (getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager)
-                    .cancel(NOTIFICATION_ID)
+                cancelNotificationById(NOTIFICATION_ID)
             }
             else -> {
                 updateBackground(weather.icon)
@@ -172,15 +186,18 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    fun cancelWorkRequest() {
+        WorkManager.getInstance().run {
+            cancelUniqueWork(UpdateDailyWeatherWork.UNIQUE_WORK_NAME)
+            cancelUniqueWork(UpdateCurrentWeatherWorker.UNIQUE_WORK_NAME)
+        }
+    }
+
     private inner class MainActivityBroadcastReceiver : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             when (intent?.action) {
                 ACTION_CHANGED_LOCATION -> enableIndicatorAndViewPager()
             }
         }
-    }
-
-    companion object {
-        private const val WORK_UNIQ_NAME = "UNIQ_NAME"
     }
 }
