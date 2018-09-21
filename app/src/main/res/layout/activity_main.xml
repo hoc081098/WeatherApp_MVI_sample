@@ -5,25 +5,17 @@
     android:id="@+id/main_content"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity">
+    android:fitsSystemWindows="true"
+    tools:context=".ui.main.MainActivity">
 
-    <FrameLayout
+    <ImageView
+        android:id="@+id/image_background"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
-
-        <ImageView
-            android:id="@+id/image_background"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:scaleType="centerCrop"
-            android:src="@drawable/default_bg" />
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:background="@drawable/gradient_shape" />
-
-    </FrameLayout>
+        android:layout_height="match_parent"
+        android:contentDescription="@string/background_image"
+        android:fitsSystemWindows="true"
+        android:scaleType="centerCrop"
+        android:src="@drawable/default_bg" />
 
 
     <androidx.appcompat.widget.Toolbar
@@ -42,15 +34,16 @@
 
         <TextView
             android:id="@+id/toolbar_title"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:ellipsize="end"
             android:fontFamily="@font/noto_sans"
+            android:gravity="center"
             android:maxLines="2"
             android:textColor="@android:color/white"
             android:textSize="18sp"
-            tools:layout_editor_absoluteX="135dp"
-            tools:layout_editor_absoluteY="12dp"
+            tools:layout_editor_absoluteX="16dp"
+            tools:layout_editor_absoluteY="13dp"
             tools:text="Weather app" />
 
     </androidx.appcompat.widget.Toolbar>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <androidx.preference.CheckBoxPreference
+        android:defaultValue="true"
+        android:key="@string/key_show_notification"
+        android:summary="Show weather information in notification"
+        android:title="Show notification" />
+
+</androidx.preference.PreferenceScreen>

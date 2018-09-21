@@ -4,9 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    tools:background="#424242">
-
+    android:background="@color/colorCardBackground"
+    android:orientation="vertical">
 
     <TextView
         android:id="@+id/text_weather"
@@ -14,11 +13,11 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
         android:layout_marginBottom="8dp"
         android:fontFamily="@font/noto_sans"
         android:textColor="@android:color/white"
         android:textSize="16sp"
-        android:layout_marginEnd="8dp"
         app:layout_constraintBottom_toTopOf="@+id/textViewDataTime"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
@@ -49,7 +48,7 @@
             android:layout_gravity="center"
             android:background="@color/colorPrimaryDark"
             android:padding="8dp"
-            tools:src="@drawable/clear_daytime" />
+            tools:src="@mipmap/ic_launcher_round" />
 
     </androidx.cardview.widget.CardView>
 

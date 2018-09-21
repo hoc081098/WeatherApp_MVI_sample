@@ -67,8 +67,9 @@ class WeatherRepositoryImpl(
             .andThen(Flowable.just(dailyWeathers))
     }
 
-    override fun deleteWeather(weather: CurrentWeather): Completable {
-        return localDataSource.deleteWeather(weather)
+    override fun deleteCityById(id: Long): Completable {
+        return localDataSource.deleteWeatherById(id)
+            .andThen(localDataSource.deleteDailyWeathersByCityId(id))
     }
 
     override fun getAllWeathers(): Flowable<List<CurrentWeather>> {

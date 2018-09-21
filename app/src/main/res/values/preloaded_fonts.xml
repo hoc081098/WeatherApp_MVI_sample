@@ -1,9 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <array name="preloaded_fonts" translatable="false">
+        <item>@font/lato_light</item>
+        <item>@font/lato_thin</item>
+        <item>@font/montserrat</item>
         <item>@font/noto_sans</item>
         <item>@font/noto_serif</item>
         <item>@font/nunito</item>
         <item>@font/nunito_sans</item>
+        <item>@font/open_sans</item>
     </array>
 </resources>

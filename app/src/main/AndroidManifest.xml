@@ -14,13 +14,11 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme.NoActionBarFullscreen"
+        android:theme="@style/AppTheme.NoActionBar"
         tools:ignore="GoogleAppIndexingWarning">
+
         <activity
-            android:name=".SettingsActivity"
-            android:label="@string/title_activity_settings"></activity>
-        <activity
-            android:name=".SplashActivity"
+            android:name=".ui.SplashActivity"
             android:theme="@style/SplashTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -28,12 +26,17 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
         <activity
-            android:name=".MainActivity"
+            android:name=".ui.main.MainActivity"
+            android:theme="@style/AppTheme.NoActionBarTransparentStatusBar"
             android:label="@string/app_name" />
-        <activity android:name=".LocationActivity" />
-        <activity android:name=".AddCityActivity" />
-        <activity android:name=".LiveWeatherActivity" />
+
+        <activity android:name=".ui.LocationActivity" />
+
+        <activity android:name=".ui.AddCityActivity" />
+
+        <activity android:name=".ui.LiveWeatherActivity" />
 
         <meta-data
             android:name="preloaded_fonts"
@@ -51,9 +54,13 @@
             android:value="@string/google_maps_key" />
 
         <activity
-            android:name=".MapsActivity"
+            android:name=".ui.MapsActivity"
             android:label="@string/title_activity_maps" />
-        <activity android:name=".SettingsActivity2" />
+
+        <activity
+            android:name=".ui.SettingsActivity"
+            android:theme="@style/AppTheme" />
+
     </application>
 
 </manifest>
