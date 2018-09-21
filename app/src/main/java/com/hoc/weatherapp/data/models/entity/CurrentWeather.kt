@@ -1,9 +1,12 @@
 package com.hoc.weatherapp.data.models.entity
 
+import android.os.Parcelable
 import androidx.room.Embedded
 import androidx.room.Entity
+import kotlinx.android.parcel.Parcelize
 import java.util.Date
 
+@Parcelize
 @Entity(tableName = "current_weathers", primaryKeys = ["id"])
 data class CurrentWeather(
     /**
@@ -89,4 +92,4 @@ data class CurrentWeather(
      * Visibility, meter
      */
     val visibility: Double
-)
+) : Parcelable

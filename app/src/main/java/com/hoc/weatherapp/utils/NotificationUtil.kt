@@ -7,15 +7,15 @@ import android.content.Intent
 import androidx.core.app.NotificationCompat
 import androidx.core.text.HtmlCompat
 import com.hoc.weatherapp.App
-import com.hoc.weatherapp.CurrentWeatherFragment
-import com.hoc.weatherapp.MainActivity
 import com.hoc.weatherapp.data.models.entity.CurrentWeather
+import com.hoc.weatherapp.ui.main.CurrentWeatherFragment
+import com.hoc.weatherapp.ui.main.MainActivity
 
 const val NOTIFICATION_ID = 2
 
 fun Context.showOrUpdateNotification(weather: CurrentWeather) {
     val text = HtmlCompat.fromHtml(
-        "${weather.temperature} ℃<br>${weather.description.capitalize()}<br><i>Update time: ${CurrentWeatherFragment.sdf.format(
+        "${weather.temperature} \u2103<br>${weather.description.capitalize()}<br><i>Update time: ${CurrentWeatherFragment.sdf.format(
             weather.dataTime
         )}</i>",
         HtmlCompat.FROM_HTML_MODE_LEGACY

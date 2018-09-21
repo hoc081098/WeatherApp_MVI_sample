@@ -1,9 +1,12 @@
 package com.hoc.weatherapp.data.models.entity
 
+import android.os.Parcelable
 import androidx.room.Embedded
 import androidx.room.Entity
+import kotlinx.android.parcel.Parcelize
 import java.util.Date
 
+@Parcelize
 @Entity(tableName = "five_day_forecast", primaryKeys = ["id", "timeOfDataForecasted"])
 data class DailyWeather(
     /**
@@ -94,4 +97,4 @@ data class DailyWeather(
      * Snow volume for last 3 hours
      */
     val snowVolumeForTheLast3Hours: Double
-)
+) : Parcelable

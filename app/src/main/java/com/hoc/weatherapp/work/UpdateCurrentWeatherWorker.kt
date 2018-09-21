@@ -1,9 +1,9 @@
 package com.hoc.weatherapp.work
 
 import androidx.work.Worker
-import com.hoc.weatherapp.SharedPrefUtil
 import com.hoc.weatherapp.data.WeatherRepository
 import com.hoc.weatherapp.utils.NOTIFICATION_ID
+import com.hoc.weatherapp.utils.SharedPrefUtil
 import com.hoc.weatherapp.utils.cancelNotificationById
 import com.hoc.weatherapp.utils.debug
 import com.hoc.weatherapp.utils.showOrUpdateNotification
@@ -27,7 +27,9 @@ class UpdateCurrentWeatherWorker : Worker(), KoinComponent {
 
                 debug("UpdateCurrentWeatherWorker::doWork currentWeather=$currentWeather")
 
-                applicationContext.showOrUpdateNotification(currentWeather)
+                if (sharePrefUtil.showNotification) {
+                    applicationContext.showOrUpdateNotification(currentWeather)
+                }
                 Result.SUCCESS
             } catch (e: Exception) {
                 debug("UpdateCurrentWeatherWorker::doWork e=$e")

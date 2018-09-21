@@ -24,9 +24,9 @@ class LocalDataSource(
         return weatherDao.getAllWeathers()
     }
 
-    fun deleteWeather(weather: CurrentWeather): Completable {
+    fun deleteWeatherById(id: Long): Completable {
         return Completable.fromAction {
-            weatherDao.deleteWeather(weather)
+            weatherDao.deleteWeatherById(id)
         }
     }
 
@@ -40,6 +40,12 @@ class LocalDataSource(
     ): Completable {
         return Completable.fromAction {
             dailyWeatherDao.deleteDailyWeathersByCityIdAndInsert(id, weathers)
+        }
+    }
+
+    fun deleteDailyWeathersByCityId(id: Long): Completable {
+        return Completable.fromAction {
+            dailyWeatherDao.deleteAllDailyWeathersByCityId(id)
         }
     }
 

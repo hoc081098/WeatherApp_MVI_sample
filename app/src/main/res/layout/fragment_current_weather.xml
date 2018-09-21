@@ -5,8 +5,8 @@
     android:id="@+id/swipe_refresh_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:background="@drawable/default_bg"
-    tools:context=".MainActivity">
+    tools:background="@drawable/bg_01n"
+    tools:context=".ui.main.MainActivity">
 
     <ScrollView
         android:id="@+id/scroll_view"
@@ -30,17 +30,18 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                tools:src="@drawable/nt_chancesnow_nighttime" />
+                tools:src="@mipmap/ic_launcher_round" />
 
             <TextView
                 android:id="@+id/text_temperature"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:fontFamily="@font/noto_sans"
+                android:fontFamily="@font/lato_light"
                 android:gravity="center"
+                android:textAlignment="center"
                 android:textColor="@android:color/white"
-                android:textSize="64dp"
+                android:textSize="64sp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/image_icon"
@@ -48,7 +49,7 @@
 
             <TextView
                 android:id="@+id/text_main_weather"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:ellipsize="end"
                 android:fontFamily="@font/noto_sans"
@@ -63,11 +64,12 @@
 
             <TextView
                 android:id="@+id/text_last_update"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
+                android:textAlignment="center"
                 android:textColor="@android:color/white"
-                android:textSize="14sp"
+                android:textSize="16sp"
                 android:textStyle="italic"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
@@ -105,7 +107,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:visibility="invisible"
-                app:cardBackgroundColor="#1b00bfa5"
+                app:cardBackgroundColor="@color/colorCardBackground"
                 app:cardCornerRadius="4dp"
                 app:cardElevation="0dp"
                 app:cardPreventCornerOverlap="true"
@@ -435,7 +437,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:visibility="invisible"
-                app:cardBackgroundColor="#1b00bfa5"
+                app:cardBackgroundColor="@color/colorCardBackground"
                 app:cardCornerRadius="4dp"
                 app:cardElevation="0dp"
                 app:cardPreventCornerOverlap="true"

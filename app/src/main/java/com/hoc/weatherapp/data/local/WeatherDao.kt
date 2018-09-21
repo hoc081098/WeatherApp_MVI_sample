@@ -2,7 +2,6 @@ package com.hoc.weatherapp.data.local
 
 import android.database.sqlite.SQLiteConstraintException
 import androidx.room.Dao
-import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
@@ -23,8 +22,8 @@ abstract class WeatherDao {
     @Update
     abstract fun updateCurrentWeather(weather: CurrentWeather)
 
-    @Delete
-    abstract fun deleteWeather(weather: CurrentWeather)
+    @Query("DELETE FROM current_weathers WHERE id = :id")
+    abstract fun deleteWeatherById(id: Long)
 
     @Query("SELECT * FROM current_weathers ORDER BY name")
     abstract fun getAllWeathers(): Flowable<List<CurrentWeather>>
