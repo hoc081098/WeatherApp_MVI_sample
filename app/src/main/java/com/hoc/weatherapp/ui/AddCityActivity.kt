@@ -119,7 +119,7 @@ class AddCityActivity : AppCompatActivity() {
                     TransitionSet()
                         .addTransition(Fade(Fade.OUT).addTarget(button_my_loction))
                         .addTransition(Fade(Fade.IN).addTarget(progress_bar))
-                        .setDuration(200)
+                        .setDuration(300)
                 )
                 button_my_loction.visibility = View.INVISIBLE
                 progress_bar.visibility = View.VISIBLE
@@ -151,7 +151,7 @@ class AddCityActivity : AppCompatActivity() {
             TransitionSet()
                 .addTransition(Fade(Fade.IN).addTarget(button_my_loction))
                 .addTransition(Fade(Fade.OUT).addTarget(progress_bar))
-                .setDuration(200)
+                .setDuration(300)
         )
         progress_bar.visibility = View.INVISIBLE
         button_my_loction.visibility = View.VISIBLE

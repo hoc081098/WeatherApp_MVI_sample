@@ -191,7 +191,7 @@ class MainActivity : AppCompatActivity() {
                 updateBackground(weather)
                 toolbar_title.text = "${weather.city.name} - ${weather.city.country}"
                 if (sharedPrefUtil.showNotification) {
-                    showOrUpdateNotification(weather)
+                    showOrUpdateNotification(weather, sharedPrefUtil.temperatureUnit)
                 }
             }
         }

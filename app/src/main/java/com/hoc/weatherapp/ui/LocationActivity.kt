@@ -30,6 +30,7 @@ import com.hoc.weatherapp.R
 import com.hoc.weatherapp.data.WeatherRepository
 import com.hoc.weatherapp.data.models.entity.City
 import com.hoc.weatherapp.data.models.entity.CurrentWeather
+import com.hoc.weatherapp.data.remote.TemperatureUnit
 import com.hoc.weatherapp.ui.AddCityActivity.Companion.ACTION_CHANGED_LOCATION
 import com.hoc.weatherapp.ui.AddCityActivity.Companion.SELECTED_CITY
 import com.hoc.weatherapp.utils.SharedPrefUtil
@@ -49,7 +50,11 @@ import kotlinx.android.synthetic.main.activity_location.*
 import kotlinx.android.synthetic.main.city_item_layout.view.*
 import org.koin.android.ext.android.inject
 
-class CityAdapter(selectedCityId: Long?, private val onClickListener: (City) -> Unit) :
+class CityAdapter(
+    selectedCityId: Long?,
+    private val temperatureUnit: TemperatureUnit,
+    private val onClickListener: (City) -> Unit
+) :
     ListAdapter<CurrentWeather, CityAdapter.ViewHolder>(object :
         DiffUtil.ItemCallback<CurrentWeather?>() {
         override fun areItemsTheSame(oldItem: CurrentWeather, newItem: CurrentWeather): Boolean {
@@ -98,11 +103,13 @@ class CityAdapter(selectedCityId: Long?, private val onClickListener: (City) -> 
         }
 
         fun bind(weather: CurrentWeather) {
+            val temperatureMin = temperatureUnit.format(weather.temperatureMin)
+            val temperatureMax = temperatureUnit.format(weather.temperatureMax)
+
             textName.text = "${weather.city.name} - ${weather.city.country}"
             textWeather.text =
-                "${weather.description.capitalize()}, ${weather.temperatureMin} ℃ ~ ${weather.temperatureMax} ℃"
+                "${weather.description.capitalize()}, $temperatureMin ~ $temperatureMax"
             radioButtonSelectedCity.isChecked = weather.city.id == selectedCityId
-
 
             Glide.with(itemView.context)
                 .load(getIconDrawableFromIconString(weather.icon))
@@ -162,9 +169,10 @@ class LocationActivity : AppCompatActivity() {
             setHasFixedSize(true)
             layoutManager = LinearLayoutManager(this@LocationActivity)
 
-            cityAdapter = CityAdapter(sharedPrefUtil.selectedCity?.id) {
-                onChangeSelectedCity(it)
-            }
+            cityAdapter = CityAdapter(
+                sharedPrefUtil.selectedCity?.id,
+                sharedPrefUtil.temperatureUnit
+            ) { onChangeSelectedCity(it) }
             adapter = cityAdapter
 
             addItemDecoration(DividerItemDecoration(this@LocationActivity, VERTICAL))

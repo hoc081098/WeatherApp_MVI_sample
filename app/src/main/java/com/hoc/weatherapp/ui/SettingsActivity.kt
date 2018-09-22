@@ -50,6 +50,9 @@ class SettingsActivity : AppCompatActivity() {
         private val weatherRepository by inject<WeatherRepository>()
         private val sharedPrefUtil by inject<SharedPrefUtil>()
         private val compositeDisposable = CompositeDisposable()
+        private val localBroadcastManager by lazy(LazyThreadSafetyMode.NONE) {
+            LocalBroadcastManager.getInstance(requireContext())
+        }
 
         override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
             setPreferencesFromResource(R.xml.preferences, rootKey)
@@ -70,8 +73,19 @@ class SettingsActivity : AppCompatActivity() {
                 key == getString(R.string.key_show_notification) && newValue is Boolean -> {
                     onChangeEnableNotification(newValue)
                 }
+                key == getString(R.string.key_temperature_unit) && newValue is String -> {
+                    onChangeTemperatureUnit(newValue)
+                }
             }
             return true
+        }
+
+        private fun onChangeTemperatureUnit(newValue: String) {
+            localBroadcastManager.sendBroadcast(
+                Intent(ACTION_CHANGED_TEMPERATURE_UNIT).apply {
+                    putExtra(EXTRA_TEMPERATURE_UNIT, newValue)
+                }
+            )
         }
 
         private fun onChangeEnableNotification(newValue: Boolean) {
@@ -87,10 +101,13 @@ class SettingsActivity : AppCompatActivity() {
                             onSuccess = {
                                 this@SettingFragment.debug("sendBroadcast")
                                 if (sharedPrefUtil.showNotification) {
-                                    requireContext().showOrUpdateNotification(it)
+                                    requireContext().showOrUpdateNotification(
+                                        it,
+                                        sharedPrefUtil.temperatureUnit
+                                    )
                                 }
 
-                                LocalBroadcastManager.getInstance(requireContext())
+                                localBroadcastManager
                                     .sendBroadcast(
                                         Intent(ACTION_UPDATE_CURRENT_WEATHER).apply {
                                             putExtra(EXTRA_CURRENT_WEATHER, it)
@@ -105,6 +122,11 @@ class SettingsActivity : AppCompatActivity() {
             } else {
                 requireContext().cancelNotificationById(NOTIFICATION_ID)
             }
+        }
+
+        companion object {
+            const val ACTION_CHANGED_TEMPERATURE_UNIT = "ACTION_CHANGED_TEMPERATURE_UNIT"
+            const val EXTRA_TEMPERATURE_UNIT = "EXTRA_TEMPERATURE_UNIT"
         }
     }
 }

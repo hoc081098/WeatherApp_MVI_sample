@@ -1,9 +1,11 @@
 package com.hoc.weatherapp.koin
 
 import com.hoc.weatherapp.BuildConfig
+import com.hoc.weatherapp.data.remote.APP_ID
 import com.hoc.weatherapp.data.remote.BASE_URL
 import com.hoc.weatherapp.data.remote.BASE_URL_HELPER
 import com.hoc.weatherapp.data.remote.HelperApiService
+import com.hoc.weatherapp.data.remote.TemperatureUnit
 import com.hoc.weatherapp.data.remote.WeatherApiService
 import com.squareup.moshi.Moshi
 import okhttp3.OkHttpClient
@@ -19,29 +21,44 @@ const val HELPER_RETROFIT = "HELPER_RETROFIT"
 val retrofitModule = module {
     single<OkHttpClient> {
         OkHttpClient.Builder()
-                .apply {
-                    if (BuildConfig.DEBUG) {
-                        HttpLoggingInterceptor()
-                                .setLevel(HttpLoggingInterceptor.Level.BODY)
-                                .let(::addInterceptor)
-                    }
+            .apply {
+                if (BuildConfig.DEBUG) {
+                    HttpLoggingInterceptor()
+                        .setLevel(HttpLoggingInterceptor.Level.BODY)
+                        .let(::addInterceptor)
                 }
-                .build()
+            }
+            .addInterceptor { chain ->
+                chain.request().let { originalRequest ->
+                    originalRequest
+                        .newBuilder()
+                        .url(
+                            originalRequest.url()
+                                .newBuilder()
+                                .addQueryParameter("units", TemperatureUnit.KELVIN.toString())
+                                .addQueryParameter("appid", APP_ID)
+                                .build()
+                        )
+                        .build()
+                        .let(chain::proceed)
+                }
+            }
+            .build()
     }
 
     single<Moshi> {
         Moshi.Builder()
-                .add(com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory())
-                .build()
+            .add(com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory())
+            .build()
     }
 
     single<Retrofit>(name = WEATHER_RETROFIT) {
         Retrofit.Builder()
-                .baseUrl(BASE_URL)
-                .client(get())
-                .addConverterFactory(MoshiConverterFactory.create(get()))
-                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
-                .build()
+            .baseUrl(BASE_URL)
+            .client(get())
+            .addConverterFactory(MoshiConverterFactory.create(get()))
+            .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+            .build()
     }
 
 
@@ -53,11 +70,11 @@ val retrofitModule = module {
 
     single<Retrofit>(name = HELPER_RETROFIT) {
         Retrofit.Builder()
-                .baseUrl(BASE_URL_HELPER)
-                .client(get())
-                .addConverterFactory(MoshiConverterFactory.create(get()))
-                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
-                .build()
+            .baseUrl(BASE_URL_HELPER)
+            .client(get())
+            .addConverterFactory(MoshiConverterFactory.create(get()))
+            .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+            .build()
     }
 
     single<HelperApiService> {

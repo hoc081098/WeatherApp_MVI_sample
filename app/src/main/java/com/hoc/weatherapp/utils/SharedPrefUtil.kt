@@ -4,16 +4,28 @@ import android.content.Context
 import android.content.SharedPreferences
 import com.hoc.weatherapp.R
 import com.hoc.weatherapp.data.models.entity.City
+import com.hoc.weatherapp.data.remote.TemperatureUnit
 import com.squareup.moshi.Moshi
 import java.io.IOException
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
+
+val i: Int.(Int) -> Unit = {}
 
 class SharedPrefUtil(
     sharedPreferences: SharedPreferences,
     context: Context,
     private val moshi: Moshi
 ) {
+    val temperatureUnit by sharedPreferences.delegate<TemperatureUnit>(
+        { key, defaultValue ->
+            (getString(key, defaultValue.toString()) ?: defaultValue.toString())
+                .let { TemperatureUnit.fromString(it) }
+        },
+        { key, value -> putString(key, value.toString()) },
+        TemperatureUnit.KELVIN,
+        context.applicationContext.getString(R.string.key_temperature_unit)
+    )
     val showNotification by sharedPreferences.delegate<Boolean>(
         key = context.applicationContext.getString(
             R.string.key_show_notification

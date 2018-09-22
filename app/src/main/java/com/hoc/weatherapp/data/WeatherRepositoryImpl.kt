@@ -170,7 +170,9 @@ class WeatherRepositoryImpl(
                 dataTime = Date((dt ?: 0) * 1_000),
                 snowVolumeForTheLast3Hours = snow?._3h ?: 0.0,
                 rainVolumeForTheLast3Hours = rain?._3h ?: 0.0,
-                visibility = visibility ?: 0.0
+                visibility = visibility ?: 0.0,
+                sunrise = Date(sys?.sunrise ?: 0),
+                sunset = Date(sys?.sunset ?: 0)
             )
         }
     }
