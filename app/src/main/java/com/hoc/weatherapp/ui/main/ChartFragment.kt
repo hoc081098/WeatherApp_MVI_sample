@@ -1,5 +1,6 @@
 package com.hoc.weatherapp.ui.main
 
+import android.content.IntentFilter
 import android.graphics.DashPathEffect
 import android.graphics.Paint
 import android.os.Bundle
@@ -15,11 +16,17 @@ import com.db.chart.view.LineChartView
 import com.hoc.weatherapp.R
 import com.hoc.weatherapp.data.local.DailyWeatherDao
 import com.hoc.weatherapp.data.models.entity.DailyWeather
+import com.hoc.weatherapp.data.remote.TemperatureUnit
+import com.hoc.weatherapp.ui.SettingsActivity.SettingFragment.Companion.ACTION_CHANGED_TEMPERATURE_UNIT
+import com.hoc.weatherapp.ui.SettingsActivity.SettingFragment.Companion.EXTRA_TEMPERATURE_UNIT
 import com.hoc.weatherapp.utils.SharedPrefUtil
+import com.hoc.weatherapp.utils.UnitConvertor
 import com.hoc.weatherapp.utils.debug
+import com.hoc.weatherapp.utils.rxIntentFlowable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.addTo
+import io.reactivex.rxkotlin.combineLatest
 import io.reactivex.rxkotlin.subscribeBy
 import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.fragment_chart.*
@@ -39,13 +46,24 @@ class ChartFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View = inflater.inflate(R.layout.fragment_chart, container, false)
 
-    override fun onResume() {
-        super.onResume()
-        debug("ChartFragment::onResume")
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        val temperatureUnitFlowable = rxIntentFlowable(
+            IntentFilter().apply { addAction(ACTION_CHANGED_TEMPERATURE_UNIT) },
+            requireContext()
+        )
+            .filter { it.action == ACTION_CHANGED_TEMPERATURE_UNIT }
+            .map { it.getStringExtra(EXTRA_TEMPERATURE_UNIT)!! }
+            .map { TemperatureUnit.fromString(it) }
+            .startWith(sharedPrefUtil.temperatureUnit)
+
         sharedPrefUtil.selectedCity?.let { city ->
             dailyWeatherDao.getAllDailyWeathersByCityId(city.id)
+                .combineLatest(temperatureUnitFlowable)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
+                .doOnNext { debug("${it.first.size}, ${it.second.symbol()}", "@@@") }
                 .subscribeBy(
                     onError = { throw it },
                     onNext = ::updateCharts
@@ -54,18 +72,19 @@ class ChartFragment : Fragment() {
         }
     }
 
-    override fun onPause() {
-        super.onPause()
-        debug("ChartFragment::onPause")
+    override fun onDestroyView() {
+        super.onDestroyView()
+        debug("ChartFragment::onDestroyView", "@@@")
         compositeDisposable.clear()
     }
 
-    private fun updateCharts(dailyWeathers: List<DailyWeather>) {
-        text_temperature.text = "Temperature (℃)"
+    private fun updateCharts(pair: Pair<List<DailyWeather>, TemperatureUnit>) {
+        val (dailyWeathers, temperatureUnit) = pair
+        text_temperature.text = "Temperature (${temperatureUnit.symbol()})"
         drawChart(
             chart_temperature,
             dailyWeathers,
-            { it.temperature.toFloat() },
+            { UnitConvertor.convertTemperature(it.temperature, temperatureUnit).toFloat() },
             ContextCompat.getColor(
                 requireContext(),
                 R.color.colorPrimary

@@ -27,7 +27,11 @@ enum class TemperatureUnit {
                 temperatureInKelvin,
                 this
             )
-        ) + when (this) {
+        ) + symbol()
+    }
+
+    fun symbol(): String {
+        return when (this) {
             FAHRENHEIT -> "℉"
             CELSIUS -> "℃"
             KELVIN -> "K"

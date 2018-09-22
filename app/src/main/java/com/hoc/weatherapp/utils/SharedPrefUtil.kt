@@ -7,6 +7,7 @@ import com.hoc.weatherapp.data.models.entity.City
 import com.hoc.weatherapp.data.remote.TemperatureUnit
 import com.squareup.moshi.Moshi
 import java.io.IOException
+import kotlin.properties.ReadOnlyProperty
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
@@ -17,12 +18,10 @@ class SharedPrefUtil(
     context: Context,
     private val moshi: Moshi
 ) {
-    val temperatureUnit by sharedPreferences.delegate<TemperatureUnit>(
+    val temperatureUnit by sharedPreferences.delegateVal<TemperatureUnit>(
         { key, defaultValue ->
-            (getString(key, defaultValue.toString()) ?: defaultValue.toString())
-                .let { TemperatureUnit.fromString(it) }
+            getString(key, defaultValue.toString())!!.let { TemperatureUnit.fromString(it) }
         },
-        { key, value -> putString(key, value.toString()) },
         TemperatureUnit.KELVIN,
         context.applicationContext.getString(R.string.key_temperature_unit)
     )
@@ -67,43 +66,43 @@ inline fun <reified T> SharedPreferences.delegate(
     default: T? = null
 ): ReadWriteProperty<Any, T> = when (
     val kClass = T::class) {
-    Int::class -> delegate(
+    Int::class -> delegateVar(
         SharedPreferences::getInt,
         SharedPreferences.Editor::putInt,
         (default as? Int) ?: 0,
         key
     )
-    Long::class -> delegate(
+    Long::class -> delegateVar(
         SharedPreferences::getLong,
         SharedPreferences.Editor::putLong,
         (default as? Long) ?: 0,
         key
     )
-    Float::class -> delegate(
+    Float::class -> delegateVar(
         SharedPreferences::getFloat,
         SharedPreferences.Editor::putFloat,
         (default as? Float) ?: 0f,
         key
     )
-    Double::class -> delegate(
+    Double::class -> delegateVar(
         SharedPreferences::getDouble,
         SharedPreferences.Editor::putDouble,
         (default as? Double) ?: 0.0,
         key
     )
-    Boolean::class -> delegate(
+    Boolean::class -> delegateVar(
         SharedPreferences::getBoolean,
         SharedPreferences.Editor::putBoolean,
         (default as? Boolean) ?: false,
         key
     )
-    String::class -> delegate(
+    String::class -> delegateVar(
         SharedPreferences::getString,
         SharedPreferences.Editor::putString,
         (default as? String).orEmpty(),
         key
     )
-    Set::class -> delegate<Set<String>>(
+    Set::class -> delegateVar<Set<String>>(
         SharedPreferences::getStringSet,
         SharedPreferences.Editor::putStringSet,
         (default as? Set<*>).orEmpty().filterIsInstanceTo(mutableSetOf()),
@@ -124,7 +123,7 @@ internal fun SharedPreferences.getDouble(
     defaultValue: Double
 ): Double = Double.fromBits(getLong(key, defaultValue.toRawBits()))
 
-fun <T> SharedPreferences.delegate(
+fun <T> SharedPreferences.delegateVar(
     getter: SharedPreferences.(key: String, defaultValue: T) -> T,
     setter: SharedPreferences.Editor.(key: String, value: T) -> SharedPreferences.Editor,
     defaultValue: T,
@@ -136,5 +135,16 @@ fun <T> SharedPreferences.delegate(
 
         override fun setValue(thisRef: Any, property: KProperty<*>, value: T) =
             edit().setter(key ?: property.name, value).apply()
+    }
+}
+
+fun <T> SharedPreferences.delegateVal(
+    getter: SharedPreferences.(key: String, defaultValue: T) -> T,
+    defaultValue: T,
+    key: String? = null
+): ReadOnlyProperty<Any, T> {
+    return object : ReadOnlyProperty<Any, T> {
+        override fun getValue(thisRef: Any, property: KProperty<*>) =
+            getter(key ?: property.name, defaultValue)
     }
 }

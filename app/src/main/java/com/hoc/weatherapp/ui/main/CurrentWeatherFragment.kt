@@ -31,6 +31,7 @@ import com.hoc.weatherapp.ui.SettingsActivity.SettingFragment.Companion.EXTRA_TE
 import com.hoc.weatherapp.utils.SharedPrefUtil
 import com.hoc.weatherapp.utils.debug
 import com.hoc.weatherapp.utils.getIconDrawableFromIconString
+import com.hoc.weatherapp.utils.showOrUpdateNotification
 import com.hoc.weatherapp.utils.snackBar
 import com.hoc.weatherapp.utils.startActivity
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -82,6 +83,7 @@ class CurrentWeatherFragment : Fragment(), View.OnTouchListener {
                 IntentFilter().apply {
                     addAction(ACTION_CHANGED_LOCATION)
                     addAction(ACTION_UPDATE_CURRENT_WEATHER)
+                    addAction(ACTION_CHANGED_TEMPERATURE_UNIT)
                 }
             )
     }
@@ -216,6 +218,8 @@ class CurrentWeatherFragment : Fragment(), View.OnTouchListener {
     private fun onChangedTemperatureUnit(unit: TemperatureUnit) {
         lastestCurrentWeather?.let {
             text_temperature.text = unit.format(it.temperature)
+            requireContext().showOrUpdateNotification(it, unit)
+            debug("CurrentWeatherFragment::onChangedTemperatureUnit unit=$unit", "@@@")
         }
     }
 

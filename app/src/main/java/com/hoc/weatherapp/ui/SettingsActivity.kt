@@ -57,9 +57,10 @@ class SettingsActivity : AppCompatActivity() {
         override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
             setPreferencesFromResource(R.xml.preferences, rootKey)
 
-            findPreference(getString(R.string.key_show_notification)).run {
-                onPreferenceChangeListener = this@SettingFragment
-            }
+            findPreference(getString(R.string.key_show_notification))
+                .onPreferenceChangeListener = this
+            findPreference(getString(R.string.key_temperature_unit))
+                .onPreferenceChangeListener = this
         }
 
         override fun onDestroyView() {
@@ -85,7 +86,7 @@ class SettingsActivity : AppCompatActivity() {
                 Intent(ACTION_CHANGED_TEMPERATURE_UNIT).apply {
                     putExtra(EXTRA_TEMPERATURE_UNIT, newValue)
                 }
-            )
+            ).let { debug("SettingFragment::onChangeTemperatureUnit: sendBroadcast=$it, newValue=$newValue", "@@@") }
         }
 
         private fun onChangeEnableNotification(newValue: Boolean) {
