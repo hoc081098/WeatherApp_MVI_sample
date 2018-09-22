@@ -7,8 +7,8 @@
         android:summary="Show weather information in notification"
         android:title="Show notification" />
 
-    <androidx.preference.ListPreferenceDialogFragmentCompat
-        android:defaultValue="kelvin"
+    <androidx.preference.ListPreference
+        android:defaultValue="Kelvin"
         android:entries="@array/pref_list_temperature_units_titles"
         android:entryValues="@array/pref_list_temperature_units_values"
         android:key="@string/key_temperature_unit"

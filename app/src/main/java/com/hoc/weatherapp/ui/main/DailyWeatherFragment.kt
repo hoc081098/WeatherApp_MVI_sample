@@ -32,6 +32,7 @@ import com.hoc.weatherapp.ui.LocationActivity.Companion.EXTRA_DAILY_WEATHERS
 import com.hoc.weatherapp.ui.SettingsActivity.SettingFragment.Companion.ACTION_CHANGED_TEMPERATURE_UNIT
 import com.hoc.weatherapp.ui.SettingsActivity.SettingFragment.Companion.EXTRA_TEMPERATURE_UNIT
 import com.hoc.weatherapp.utils.SharedPrefUtil
+import com.hoc.weatherapp.utils.debug
 import com.hoc.weatherapp.utils.getIconDrawableFromIconString
 import com.hoc.weatherapp.utils.snackBar
 import com.hoc.weatherapp.utils.trim
@@ -224,6 +225,8 @@ class DailyWeatherFragment : Fragment() {
             dailyWeatherFragmentReceiver,
             IntentFilter().apply {
                 addAction(ACTION_CHANGED_LOCATION)
+                addAction(ACTION_UPDATE_DAILY_WEATHERS)
+                addAction(ACTION_CHANGED_TEMPERATURE_UNIT)
             }
         )
     }
@@ -297,6 +300,7 @@ class DailyWeatherFragment : Fragment() {
                             }
                             dailyWeatherAdapter.notifyDataSetChanged()
                             mainActivity.enqueueWorkRequest()
+                            debug("ACTION_UPDATE_DAILY_WEATHERS", "@@@")
                         }
                 }
                 ACTION_CHANGED_TEMPERATURE_UNIT -> {
@@ -310,5 +314,6 @@ class DailyWeatherFragment : Fragment() {
 
     private fun onChangedTemperatureUnit(temperatureUnit: TemperatureUnit) {
         dailyWeatherAdapter.temperatureUnit = temperatureUnit
+        debug("DailyWeatherFragment::onChangedTemperatureUnit temperatureUnit=$temperatureUnit", "@@@")
     }
 }

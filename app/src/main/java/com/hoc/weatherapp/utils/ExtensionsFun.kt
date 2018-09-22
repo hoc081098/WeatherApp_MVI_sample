@@ -1,7 +1,9 @@
 package com.hoc.weatherapp.utils
 
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.util.Log
 import android.view.View
 import android.widget.Toast
@@ -60,6 +62,27 @@ fun <T : Any?> Task<T>.toFlowable(): Flowable<T> {
             if (!emitter.isCancelled) {
                 emitter.onError(it)
             }
+        }
+    }, BackpressureStrategy.LATEST)
+}
+
+fun rxIntentFlowable(
+    intentFilter: IntentFilter,
+    context: Context
+): Flowable<Intent> {
+    return Flowable.create({ emitter: FlowableEmitter<Intent> ->
+        val receiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                if (intent !== null && !emitter.isCancelled) {
+                    debug("onReceive $intent", "@@@")
+                    emitter.onNext(intent)
+                }
+            }
+        }
+        context.registerReceiver(receiver, intentFilter)
+        emitter.setCancellable {
+            context.unregisterReceiver(receiver)
+                .also { Log.d("@@@", "unregisterReceiver") }
         }
     }, BackpressureStrategy.LATEST)
 }
