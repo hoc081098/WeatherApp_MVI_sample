@@ -8,14 +8,17 @@ import androidx.core.app.NotificationCompat
 import androidx.core.text.HtmlCompat
 import com.hoc.weatherapp.App
 import com.hoc.weatherapp.data.models.entity.CurrentWeather
+import com.hoc.weatherapp.data.remote.TemperatureUnit
 import com.hoc.weatherapp.ui.main.CurrentWeatherFragment
 import com.hoc.weatherapp.ui.main.MainActivity
 
 const val NOTIFICATION_ID = 2
 
-fun Context.showOrUpdateNotification(weather: CurrentWeather) {
+fun Context.showOrUpdateNotification(weather: CurrentWeather, unit: TemperatureUnit) {
+    val temperature = unit.format(weather.temperature)
+
     val text = HtmlCompat.fromHtml(
-        "${weather.temperature} \u2103<br>${weather.description.capitalize()}<br><i>Update time: ${CurrentWeatherFragment.sdf.format(
+        "$temperature<br>${weather.description.capitalize()}<br><i>Update time: ${CurrentWeatherFragment.sdf.format(
             weather.dataTime
         )}</i>",
         HtmlCompat.FROM_HTML_MODE_LEGACY
@@ -23,7 +26,7 @@ fun Context.showOrUpdateNotification(weather: CurrentWeather) {
     val builder = NotificationCompat.Builder(this, App.CHANNEL_ID)
         .setSmallIcon(getIconDrawableFromIconString(weather.icon))
         .setContentTitle("${weather.city.name} - ${weather.city.country}")
-        .setContentText("${weather.temperature} ℃")
+        .setContentText(temperature)
         .setStyle(NotificationCompat.BigTextStyle().bigText(text))
         .setAutoCancel(false)
         .setOngoing(true)

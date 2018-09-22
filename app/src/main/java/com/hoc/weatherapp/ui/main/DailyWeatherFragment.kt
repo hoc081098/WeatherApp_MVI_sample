@@ -24,10 +24,13 @@ import com.hoc.weatherapp.R
 import com.hoc.weatherapp.data.WeatherRepository
 import com.hoc.weatherapp.data.models.entity.City
 import com.hoc.weatherapp.data.models.entity.DailyWeather
+import com.hoc.weatherapp.data.remote.TemperatureUnit
 import com.hoc.weatherapp.ui.AddCityActivity.Companion.ACTION_CHANGED_LOCATION
 import com.hoc.weatherapp.ui.AddCityActivity.Companion.SELECTED_CITY
 import com.hoc.weatherapp.ui.LocationActivity.Companion.ACTION_UPDATE_DAILY_WEATHERS
 import com.hoc.weatherapp.ui.LocationActivity.Companion.EXTRA_DAILY_WEATHERS
+import com.hoc.weatherapp.ui.SettingsActivity.SettingFragment.Companion.ACTION_CHANGED_TEMPERATURE_UNIT
+import com.hoc.weatherapp.ui.SettingsActivity.SettingFragment.Companion.EXTRA_TEMPERATURE_UNIT
 import com.hoc.weatherapp.utils.SharedPrefUtil
 import com.hoc.weatherapp.utils.getIconDrawableFromIconString
 import com.hoc.weatherapp.utils.snackBar
@@ -46,8 +49,17 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 
-class DailyWeatherAdapter(val list: MutableList<Any> = mutableListOf()) :
+class DailyWeatherAdapter(
+    temperatureUnit: TemperatureUnit,
+    val list: MutableList<Any> = mutableListOf()
+) :
     RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+    var temperatureUnit: TemperatureUnit = temperatureUnit
+        set(value) {
+            field = value
+            notifyDataSetChanged()
+        }
+
     override fun getItemCount(): Int {
         return list.size
     }
@@ -72,12 +84,12 @@ class DailyWeatherAdapter(val list: MutableList<Any> = mutableListOf()) :
                 R.layout.daily_weather_header_layout,
                 parent,
                 false
-            ).let(DailyWeatherAdapter::HeaderViewHolder)
+            ).let(::HeaderViewHolder)
             DAILY_WEATHER_TYPE -> LayoutInflater.from(parent.context).inflate(
                 R.layout.daily_weather_item_layout,
                 parent,
                 false
-            ).let(DailyWeatherAdapter::DailyWeatherViewHolder)
+            ).let(::DailyWeatherViewHolder)
             else -> throw IllegalStateException("Unknown view type $viewType")
         }
     }
@@ -113,14 +125,17 @@ class DailyWeatherAdapter(val list: MutableList<Any> = mutableListOf()) :
         }
     }
 
-    class DailyWeatherViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+    inner class DailyWeatherViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val textWeather = itemView.text_weather!!
         private val imageIconCityItem = itemView.image_icon_city_item!!
         private val textViewDataTime = itemView.textViewDataTime!!
 
         fun bind(dailyWeather: DailyWeather?) = dailyWeather?.let { weather ->
+            val temperatureMin = temperatureUnit.format(weather.temperatureMin)
+            val temperatureMax = temperatureUnit.format(weather.temperatureMax)
+
             textWeather.text =
-                "${weather.description.capitalize()}, ${weather.temperatureMin}~${weather.temperatureMax}"
+                "${weather.description.capitalize()}, $temperatureMin ~ $temperatureMax"
             textViewDataTime.text = itemDateFormat.format(weather.timeOfDataForecasted)
 
             Glide.with(itemView.context)
@@ -167,7 +182,7 @@ class DailyWeatherFragment : Fragment() {
     private lateinit var mainActivity: MainActivity
 
     private val compositeDisposable = CompositeDisposable()
-    private val dailyWeatherAdapter = DailyWeatherAdapter()
+    private val dailyWeatherAdapter = DailyWeatherAdapter(sharedPrefUtil.temperatureUnit)
     private val dailyWeatherFragmentReceiver = DailyWeatherFragmentReceiver()
     private val localBroadcastManager by lazy(LazyThreadSafetyMode.NONE) {
         LocalBroadcastManager.getInstance(mainActivity)
@@ -266,7 +281,9 @@ class DailyWeatherFragment : Fragment() {
     private inner class DailyWeatherFragmentReceiver : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             when (intent?.action) {
-                ACTION_CHANGED_LOCATION -> getDailyWeather(intent.getParcelableExtra(SELECTED_CITY))
+                ACTION_CHANGED_LOCATION -> {
+                    getDailyWeather(intent.getParcelableExtra(SELECTED_CITY))
+                }
                 ACTION_UPDATE_DAILY_WEATHERS -> {
                     intent.getParcelableArrayListExtra<DailyWeather>(EXTRA_DAILY_WEATHERS)
                         ?.takeIf { arrayList ->
@@ -282,7 +299,16 @@ class DailyWeatherFragment : Fragment() {
                             mainActivity.enqueueWorkRequest()
                         }
                 }
+                ACTION_CHANGED_TEMPERATURE_UNIT -> {
+                    intent.getStringExtra(EXTRA_TEMPERATURE_UNIT)
+                        .let { TemperatureUnit.fromString(it) }
+                        .let(::onChangedTemperatureUnit)
+                }
             }
         }
+    }
+
+    private fun onChangedTemperatureUnit(temperatureUnit: TemperatureUnit) {
+        dailyWeatherAdapter.temperatureUnit = temperatureUnit
     }
 }

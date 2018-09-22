@@ -20,11 +20,14 @@ import com.hoc.weatherapp.data.WeatherRepository
 import com.hoc.weatherapp.data.models.WindDirection
 import com.hoc.weatherapp.data.models.entity.City
 import com.hoc.weatherapp.data.models.entity.CurrentWeather
+import com.hoc.weatherapp.data.remote.TemperatureUnit
 import com.hoc.weatherapp.ui.AddCityActivity.Companion.ACTION_CHANGED_LOCATION
 import com.hoc.weatherapp.ui.AddCityActivity.Companion.SELECTED_CITY
 import com.hoc.weatherapp.ui.LiveWeatherActivity
 import com.hoc.weatherapp.ui.LocationActivity
 import com.hoc.weatherapp.ui.LocationActivity.Companion.ACTION_UPDATE_CURRENT_WEATHER
+import com.hoc.weatherapp.ui.SettingsActivity.SettingFragment.Companion.ACTION_CHANGED_TEMPERATURE_UNIT
+import com.hoc.weatherapp.ui.SettingsActivity.SettingFragment.Companion.EXTRA_TEMPERATURE_UNIT
 import com.hoc.weatherapp.utils.SharedPrefUtil
 import com.hoc.weatherapp.utils.debug
 import com.hoc.weatherapp.utils.getIconDrawableFromIconString
@@ -51,6 +54,7 @@ class CurrentWeatherFragment : Fragment(), View.OnTouchListener {
     private val localBroadcastManager by lazy(LazyThreadSafetyMode.NONE) {
         LocalBroadcastManager.getInstance(mainActivity)
     }
+    private var lastestCurrentWeather: CurrentWeather? = null
 
     override fun onAttach(context: Context?) {
         super.onAttach(context)
@@ -89,6 +93,8 @@ class CurrentWeatherFragment : Fragment(), View.OnTouchListener {
     }
 
     private fun updateUi(weather: CurrentWeather?) {
+        lastestCurrentWeather = weather
+
         when (weather) {
             null -> {
                 image_icon.setImageDrawable(null)
@@ -100,8 +106,9 @@ class CurrentWeatherFragment : Fragment(), View.OnTouchListener {
                 card_view2.visibility = View.INVISIBLE
             }
             else -> {
+                val temperature = sharedPrefUtil.temperatureUnit.format(weather.temperature)
                 updateWeatherIcon(weather.icon)
-                text_temperature.text = "${weather.temperature} \u2103"
+                text_temperature.text = temperature
                 text_main_weather.text = weather.description.capitalize()
                 text_last_update.text = "Last updated: ${sdf.format(weather.dataTime)}"
                 button_live.visibility = View.VISIBLE
@@ -183,7 +190,9 @@ class CurrentWeatherFragment : Fragment(), View.OnTouchListener {
     private inner class CurrentWeatherFragmentReceiver : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             when (intent?.action) {
-                ACTION_CHANGED_LOCATION -> getCurrentWeather(intent.getParcelableExtra(SELECTED_CITY))
+                ACTION_CHANGED_LOCATION -> {
+                    getCurrentWeather(intent.getParcelableExtra(SELECTED_CITY))
+                }
                 ACTION_UPDATE_CURRENT_WEATHER -> {
                     intent.getParcelableExtra<CurrentWeather>(LocationActivity.EXTRA_CURRENT_WEATHER)
                         ?.takeIf { it.city.id == sharedPrefUtil.selectedCity?.id }
@@ -195,7 +204,18 @@ class CurrentWeatherFragment : Fragment(), View.OnTouchListener {
                             mainActivity.enqueueWorkRequest()
                         }
                 }
+                ACTION_CHANGED_TEMPERATURE_UNIT -> {
+                    intent.getStringExtra(EXTRA_TEMPERATURE_UNIT)
+                        .let { TemperatureUnit.fromString(it) }
+                        .let(::onChangedTemperatureUnit)
+                }
             }
+        }
+    }
+
+    private fun onChangedTemperatureUnit(unit: TemperatureUnit) {
+        lastestCurrentWeather?.let {
+            text_temperature.text = unit.format(it.temperature)
         }
     }
 

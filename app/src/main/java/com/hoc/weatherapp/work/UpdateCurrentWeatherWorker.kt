@@ -28,7 +28,10 @@ class UpdateCurrentWeatherWorker : Worker(), KoinComponent {
                 debug("UpdateCurrentWeatherWorker::doWork currentWeather=$currentWeather")
 
                 if (sharePrefUtil.showNotification) {
-                    applicationContext.showOrUpdateNotification(currentWeather)
+                    applicationContext.showOrUpdateNotification(
+                        currentWeather,
+                        sharePrefUtil.temperatureUnit
+                    )
                 }
                 Result.SUCCESS
             } catch (e: Exception) {

@@ -50,7 +50,7 @@ import com.hoc.weatherapp.data.models.entity.CurrentWeather
 
 @DrawableRes
 fun getBackgroundDrawableFromWeather(weather: CurrentWeather, context: Context): Int {
-    if (weather.temperature > 35) {
+    if (weather.temperature > 35 + 273.15) { // 35℃
         return R.drawable.bg_hot
     }
     return context.resources.getIdentifier(

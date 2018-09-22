@@ -1,10 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <androidx.preference.CheckBoxPreference
+    <androidx.preference.SwitchPreferenceCompat
         android:defaultValue="true"
         android:key="@string/key_show_notification"
         android:summary="Show weather information in notification"
         android:title="Show notification" />
+
+    <androidx.preference.ListPreferenceDialogFragmentCompat
+        android:defaultValue="kelvin"
+        android:entries="@array/pref_list_temperature_units_titles"
+        android:entryValues="@array/pref_list_temperature_units_values"
+        android:key="@string/key_temperature_unit"
+        android:negativeButtonText="@null"
+        android:positiveButtonText="@null"
+        android:title="@string/pref_title_select_temperature_unit" />
 
 </androidx.preference.PreferenceScreen>

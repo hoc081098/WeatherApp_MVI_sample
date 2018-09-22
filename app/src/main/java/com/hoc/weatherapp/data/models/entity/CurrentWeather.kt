@@ -91,5 +91,15 @@ data class CurrentWeather(
     /**
      * Visibility, meter
      */
-    val visibility: Double
+    val visibility: Double,
+
+    /**
+     * Sunrise time, unix, UTC
+     */
+    val sunrise: Date,
+
+    /**
+     * Sunset time, unix, UTC
+     */
+    val sunset: Date
 ) : Parcelable
