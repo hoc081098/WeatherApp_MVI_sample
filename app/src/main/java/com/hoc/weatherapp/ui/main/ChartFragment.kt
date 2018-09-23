@@ -63,6 +63,8 @@ class ChartFragment : Fragment() {
             }
         ).publish()
 
+        // TODO: issue
+
         val temperatureUnitFlowable = intentFlowable
             .filter { it.action == ACTION_CHANGED_TEMPERATURE_UNIT }
             .map { it.getStringExtra(EXTRA_TEMPERATURE_UNIT)!! }
