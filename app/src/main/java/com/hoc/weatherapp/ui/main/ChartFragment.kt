@@ -8,7 +8,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.ColorInt
-import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.db.chart.model.LineSet
 import com.db.chart.util.Tools
@@ -22,7 +21,7 @@ import com.hoc.weatherapp.ui.SettingsActivity.SettingFragment.Companion.EXTRA_TE
 import com.hoc.weatherapp.utils.SharedPrefUtil
 import com.hoc.weatherapp.utils.UnitConvertor
 import com.hoc.weatherapp.utils.debug
-import com.hoc.weatherapp.utils.rxIntentFlowable
+import com.hoc.weatherapp.utils.receivesLocal
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.addTo
@@ -49,11 +48,9 @@ class ChartFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val temperatureUnitFlowable = rxIntentFlowable(
-            IntentFilter().apply { addAction(ACTION_CHANGED_TEMPERATURE_UNIT) },
-            requireContext()
-        )
-            .filter { it.action == ACTION_CHANGED_TEMPERATURE_UNIT }
+        val temperatureUnitFlowable = requireContext().receivesLocal(
+            IntentFilter().apply { addAction(ACTION_CHANGED_TEMPERATURE_UNIT) }
+        ).filter { it.action == ACTION_CHANGED_TEMPERATURE_UNIT }
             .map { it.getStringExtra(EXTRA_TEMPERATURE_UNIT)!! }
             .map { TemperatureUnit.fromString(it) }
             .startWith(sharedPrefUtil.temperatureUnit)
