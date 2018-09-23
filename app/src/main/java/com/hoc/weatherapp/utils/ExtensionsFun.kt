@@ -4,17 +4,20 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.os.Looper
 import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.annotation.DrawableRes
 import androidx.annotation.IntDef
 import androidx.fragment.app.Fragment
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.google.android.gms.tasks.Task
 import com.google.android.material.snackbar.Snackbar
 import io.reactivex.BackpressureStrategy
 import io.reactivex.Flowable
 import io.reactivex.FlowableEmitter
+import io.reactivex.android.schedulers.AndroidSchedulers
 
 @IntDef(value = [Toast.LENGTH_SHORT, Toast.LENGTH_LONG])
 @Retention(AnnotationRetention.SOURCE)
@@ -66,23 +69,30 @@ fun <T : Any?> Task<T>.toFlowable(): Flowable<T> {
     }, BackpressureStrategy.LATEST)
 }
 
-fun rxIntentFlowable(
-    intentFilter: IntentFilter,
-    context: Context
-): Flowable<Intent> {
+fun Context.receivesLocal(intentFilter: IntentFilter): Flowable<Intent> {
     return Flowable.create({ emitter: FlowableEmitter<Intent> ->
         val receiver = object : BroadcastReceiver() {
-            override fun onReceive(context: Context?, intent: Intent?) {
-                if (intent !== null && !emitter.isCancelled) {
-                    debug("onReceive $intent", "@@@")
-                    emitter.onNext(intent)
-                }
+            override fun onReceive(context: Context?, intent: Intent) {
+                debug("onReceive $intent", "Context::receivesLocal")
+                emitter.onNext(intent)
             }
         }
-        context.registerReceiver(receiver, intentFilter)
+
+        LocalBroadcastManager.getInstance(this)
+            .registerReceiver(receiver, intentFilter)
+
         emitter.setCancellable {
-            context.unregisterReceiver(receiver)
-                .also { Log.d("@@@", "unregisterReceiver") }
+            if (Looper.getMainLooper() == Looper.myLooper()) {
+                LocalBroadcastManager.getInstance(this)
+                    .unregisterReceiver(receiver)
+            } else {
+                val worker = AndroidSchedulers.mainThread().createWorker()
+                worker.schedule {
+                    LocalBroadcastManager.getInstance(this)
+                        .unregisterReceiver(receiver)
+                    worker.dispose()
+                }
+            }
         }
     }, BackpressureStrategy.LATEST)
 }
