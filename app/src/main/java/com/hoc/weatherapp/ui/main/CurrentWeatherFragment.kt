@@ -22,7 +22,7 @@ import com.hoc.weatherapp.data.models.entity.City
 import com.hoc.weatherapp.data.models.entity.CurrentWeather
 import com.hoc.weatherapp.data.remote.TemperatureUnit
 import com.hoc.weatherapp.ui.AddCityActivity.Companion.ACTION_CHANGED_LOCATION
-import com.hoc.weatherapp.ui.AddCityActivity.Companion.SELECTED_CITY
+import com.hoc.weatherapp.ui.AddCityActivity.Companion.EXTRA_SELECTED_CITY
 import com.hoc.weatherapp.ui.LiveWeatherActivity
 import com.hoc.weatherapp.ui.LocationActivity
 import com.hoc.weatherapp.ui.LocationActivity.Companion.ACTION_UPDATE_CURRENT_WEATHER
@@ -140,13 +140,10 @@ class CurrentWeatherFragment : Fragment(), View.OnTouchListener {
 
     private fun getCurrentWeather(city: City?) {
         scroll_view.setOnTouchListener(if (city === null) this@CurrentWeatherFragment else null)
+        swipe_refresh_layout.post { swipe_refresh_layout.isRefreshing = city !== null }
 
         when (city) {
             null -> {
-                swipe_refresh_layout.post {
-                    swipe_refresh_layout.isRefreshing = false
-                }
-
                 updateUi(null)
                 mainActivity.updateUi(null)
                 sharedPrefUtil.selectedCity = null
@@ -158,11 +155,6 @@ class CurrentWeatherFragment : Fragment(), View.OnTouchListener {
             else -> weatherRepository.getCurrentWeatherByCity(city)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .doOnSubscribe {
-                    swipe_refresh_layout.post {
-                        swipe_refresh_layout.isRefreshing = true
-                    }
-                }
                 .subscribeBy(
                     onError = {
                         view?.snackBar(it.message ?: "An error occurred")
@@ -193,7 +185,7 @@ class CurrentWeatherFragment : Fragment(), View.OnTouchListener {
         override fun onReceive(context: Context?, intent: Intent?) {
             when (intent?.action) {
                 ACTION_CHANGED_LOCATION -> {
-                    getCurrentWeather(intent.getParcelableExtra(SELECTED_CITY))
+                    getCurrentWeather(intent.getParcelableExtra(EXTRA_SELECTED_CITY))
                 }
                 ACTION_UPDATE_CURRENT_WEATHER -> {
                     intent.getParcelableExtra<CurrentWeather>(LocationActivity.EXTRA_CURRENT_WEATHER)

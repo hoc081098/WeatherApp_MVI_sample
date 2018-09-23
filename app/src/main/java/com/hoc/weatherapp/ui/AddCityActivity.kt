@@ -137,7 +137,7 @@ class AddCityActivity : AppCompatActivity() {
                     localBroadcastManager
                         .sendBroadcast(
                             Intent(ACTION_CHANGED_LOCATION).apply {
-                                putExtra(SELECTED_CITY, it)
+                                putExtra(EXTRA_SELECTED_CITY, it)
                             }
                         )
                 }
@@ -348,6 +348,6 @@ class AddCityActivity : AppCompatActivity() {
         private const val MAX_NUMBER_REQUEST_PERMISSON = 2
 
         const val ACTION_CHANGED_LOCATION = "ACTION_CHANGED_LOCATION"
-        const val SELECTED_CITY = "SELECTED_CITY"
+        const val EXTRA_SELECTED_CITY = "EXTRA_SELECTED_CITY"
     }
 }
