@@ -26,7 +26,7 @@ import com.hoc.weatherapp.data.models.entity.City
 import com.hoc.weatherapp.data.models.entity.DailyWeather
 import com.hoc.weatherapp.data.remote.TemperatureUnit
 import com.hoc.weatherapp.ui.AddCityActivity.Companion.ACTION_CHANGED_LOCATION
-import com.hoc.weatherapp.ui.AddCityActivity.Companion.SELECTED_CITY
+import com.hoc.weatherapp.ui.AddCityActivity.Companion.EXTRA_SELECTED_CITY
 import com.hoc.weatherapp.ui.LocationActivity.Companion.ACTION_UPDATE_DAILY_WEATHERS
 import com.hoc.weatherapp.ui.LocationActivity.Companion.EXTRA_DAILY_WEATHERS
 import com.hoc.weatherapp.ui.SettingsActivity.SettingFragment.Companion.ACTION_CHANGED_TEMPERATURE_UNIT
@@ -285,7 +285,7 @@ class DailyWeatherFragment : Fragment() {
         override fun onReceive(context: Context?, intent: Intent?) {
             when (intent?.action) {
                 ACTION_CHANGED_LOCATION -> {
-                    getDailyWeather(intent.getParcelableExtra(SELECTED_CITY))
+                    getDailyWeather(intent.getParcelableExtra(EXTRA_SELECTED_CITY))
                 }
                 ACTION_UPDATE_DAILY_WEATHERS -> {
                     intent.getParcelableArrayListExtra<DailyWeather>(EXTRA_DAILY_WEATHERS)

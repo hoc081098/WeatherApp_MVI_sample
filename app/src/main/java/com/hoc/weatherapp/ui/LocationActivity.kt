@@ -32,7 +32,7 @@ import com.hoc.weatherapp.data.models.entity.City
 import com.hoc.weatherapp.data.models.entity.CurrentWeather
 import com.hoc.weatherapp.data.remote.TemperatureUnit
 import com.hoc.weatherapp.ui.AddCityActivity.Companion.ACTION_CHANGED_LOCATION
-import com.hoc.weatherapp.ui.AddCityActivity.Companion.SELECTED_CITY
+import com.hoc.weatherapp.ui.AddCityActivity.Companion.EXTRA_SELECTED_CITY
 import com.hoc.weatherapp.utils.SharedPrefUtil
 import com.hoc.weatherapp.utils.SwipeController
 import com.hoc.weatherapp.utils.SwipeControllerActions
@@ -312,7 +312,7 @@ class LocationActivity : AppCompatActivity() {
             localBroadcastManager
                 .sendBroadcast(
                     Intent(ACTION_CHANGED_LOCATION).apply {
-                        putExtra(SELECTED_CITY, newSelectedCity)
+                        putExtra(EXTRA_SELECTED_CITY, newSelectedCity)
                         putExtra(SELF, true)
                     }
                 )
@@ -358,7 +358,7 @@ class LocationActivity : AppCompatActivity() {
             when (intent?.action) {
                 ACTION_CHANGED_LOCATION -> {
                     if (!intent.getBooleanExtra(SELF, false)) {
-                        onChangeSelectedCity(intent.getParcelableExtra(SELECTED_CITY), false)
+                        onChangeSelectedCity(intent.getParcelableExtra(EXTRA_SELECTED_CITY), false)
                     }
                 }
             }

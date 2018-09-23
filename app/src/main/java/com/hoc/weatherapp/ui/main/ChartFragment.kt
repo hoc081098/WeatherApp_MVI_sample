@@ -8,24 +8,32 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.ColorInt
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.db.chart.model.LineSet
 import com.db.chart.util.Tools
 import com.db.chart.view.LineChartView
 import com.hoc.weatherapp.R
 import com.hoc.weatherapp.data.local.DailyWeatherDao
+import com.hoc.weatherapp.data.models.entity.City
 import com.hoc.weatherapp.data.models.entity.DailyWeather
 import com.hoc.weatherapp.data.remote.TemperatureUnit
+import com.hoc.weatherapp.ui.AddCityActivity.Companion.ACTION_CHANGED_LOCATION
+import com.hoc.weatherapp.ui.AddCityActivity.Companion.EXTRA_SELECTED_CITY
 import com.hoc.weatherapp.ui.SettingsActivity.SettingFragment.Companion.ACTION_CHANGED_TEMPERATURE_UNIT
 import com.hoc.weatherapp.ui.SettingsActivity.SettingFragment.Companion.EXTRA_TEMPERATURE_UNIT
+import com.hoc.weatherapp.utils.Optional
 import com.hoc.weatherapp.utils.SharedPrefUtil
+import com.hoc.weatherapp.utils.Some
 import com.hoc.weatherapp.utils.UnitConvertor
 import com.hoc.weatherapp.utils.debug
+import com.hoc.weatherapp.utils.ofNullable
 import com.hoc.weatherapp.utils.receivesLocal
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.addTo
 import io.reactivex.rxkotlin.combineLatest
+import io.reactivex.rxkotlin.ofType
 import io.reactivex.rxkotlin.subscribeBy
 import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.fragment_chart.*
@@ -48,25 +56,43 @@ class ChartFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val temperatureUnitFlowable = requireContext().receivesLocal(
-            IntentFilter().apply { addAction(ACTION_CHANGED_TEMPERATURE_UNIT) }
-        ).filter { it.action == ACTION_CHANGED_TEMPERATURE_UNIT }
+        val intentFlowable = requireContext().receivesLocal(
+            IntentFilter().apply {
+                addAction(ACTION_CHANGED_LOCATION)
+                addAction(ACTION_CHANGED_TEMPERATURE_UNIT)
+            }
+        ).publish()
+
+        val temperatureUnitFlowable = intentFlowable
+            .filter { it.action == ACTION_CHANGED_TEMPERATURE_UNIT }
             .map { it.getStringExtra(EXTRA_TEMPERATURE_UNIT)!! }
             .map { TemperatureUnit.fromString(it) }
             .startWith(sharedPrefUtil.temperatureUnit)
 
-        sharedPrefUtil.selectedCity?.let { city ->
-            dailyWeatherDao.getAllDailyWeathersByCityId(city.id)
-                .combineLatest(temperatureUnitFlowable)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .doOnNext { debug("${it.first.size}, ${it.second.symbol()}", "@@@") }
-                .subscribeBy(
-                    onError = { throw it },
-                    onNext = ::updateCharts
-                )
-                .addTo(compositeDisposable)
-        }
+        val selectedCityFlowable = intentFlowable
+            .filter { it.action == ACTION_CHANGED_LOCATION }
+            .map { Optional.ofNullable(it.getParcelableExtra<City>(EXTRA_SELECTED_CITY)) }
+            .startWith(Optional.ofNullable(sharedPrefUtil.selectedCity))
+            .ofType<Some<City>>()
+            .map { it.value }
+
+        intentFlowable.connect()
+
+        selectedCityFlowable
+            .switchMap {
+                dailyWeatherDao.getAllDailyWeathersByCityId(it.id)
+                    .combineLatest(temperatureUnitFlowable)
+                    .subscribeOn(Schedulers.io())
+                    .doOnNext { debug("${it.first.size}, ${it.second.symbol()}", "@@@") }
+
+            }
+            .filter { it.first.isNotEmpty() }
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribeBy(
+                onError = { throw it },
+                onNext = { updateCharts(it) }
+            )
+            .addTo(compositeDisposable)
     }
 
     override fun onDestroyView() {
