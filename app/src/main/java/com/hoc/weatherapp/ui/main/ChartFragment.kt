@@ -22,13 +22,12 @@ import com.hoc.weatherapp.ui.AddCityActivity.Companion.ACTION_CHANGED_LOCATION
 import com.hoc.weatherapp.ui.AddCityActivity.Companion.EXTRA_SELECTED_CITY
 import com.hoc.weatherapp.ui.SettingsActivity.SettingFragment.Companion.ACTION_CHANGED_TEMPERATURE_UNIT
 import com.hoc.weatherapp.ui.SettingsActivity.SettingFragment.Companion.EXTRA_TEMPERATURE_UNIT
-import com.hoc.weatherapp.utils.Optional
 import com.hoc.weatherapp.utils.SharedPrefUtil
 import com.hoc.weatherapp.utils.Some
 import com.hoc.weatherapp.utils.UnitConvertor
 import com.hoc.weatherapp.utils.debug
-import com.hoc.weatherapp.utils.ofNullable
 import com.hoc.weatherapp.utils.receivesLocal
+import com.hoc.weatherapp.utils.toOptional
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.addTo
@@ -55,15 +54,16 @@ class ChartFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        subscribe()
+    }
 
+    private fun subscribe() {
         val intentFlowable = requireContext().receivesLocal(
             IntentFilter().apply {
                 addAction(ACTION_CHANGED_LOCATION)
                 addAction(ACTION_CHANGED_TEMPERATURE_UNIT)
             }
         ).publish()
-
-        // TODO: issue
 
         val temperatureUnitFlowable = intentFlowable
             .filter { it.action == ACTION_CHANGED_TEMPERATURE_UNIT }
@@ -73,28 +73,27 @@ class ChartFragment : Fragment() {
 
         val selectedCityFlowable = intentFlowable
             .filter { it.action == ACTION_CHANGED_LOCATION }
-            .map { Optional.ofNullable(it.getParcelableExtra<City>(EXTRA_SELECTED_CITY)) }
-            .startWith(Optional.ofNullable(sharedPrefUtil.selectedCity))
+            .map { it.getParcelableExtra<City?>(EXTRA_SELECTED_CITY).toOptional() }
+            .startWith(sharedPrefUtil.selectedCity.toOptional())
             .ofType<Some<City>>()
             .map { it.value }
 
-        intentFlowable.connect()
-
         selectedCityFlowable
-            .switchMap {
-                dailyWeatherDao.getAllDailyWeathersByCityId(it.id)
-                    .combineLatest(temperatureUnitFlowable)
+            .switchMap { city ->
+                dailyWeatherDao.getAllDailyWeathersByCityId(city.id)
                     .subscribeOn(Schedulers.io())
-                    .doOnNext { debug("${it.first.size}, ${it.second.symbol()}", "@@@") }
-
+                    .filter { it.isNotEmpty() }
             }
-            .filter { it.first.isNotEmpty() }
+            .combineLatest(temperatureUnitFlowable)
+            .doOnNext { debug("${it.first.size}, ${it.second.symbol()}", "@@@") }
             .observeOn(AndroidSchedulers.mainThread())
             .subscribeBy(
                 onError = { throw it },
-                onNext = { updateCharts(it) }
+                onNext = ::updateCharts
             )
             .addTo(compositeDisposable)
+
+        intentFlowable.connect().addTo(compositeDisposable)
     }
 
     override fun onDestroyView() {

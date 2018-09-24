@@ -1,13 +1,11 @@
 package com.hoc.weatherapp.ui.main
 
-import android.annotation.SuppressLint
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
 import android.view.LayoutInflater
-import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
@@ -29,6 +27,7 @@ import com.hoc.weatherapp.ui.LocationActivity.Companion.ACTION_UPDATE_CURRENT_WE
 import com.hoc.weatherapp.ui.SettingsActivity.SettingFragment.Companion.ACTION_CHANGED_TEMPERATURE_UNIT
 import com.hoc.weatherapp.ui.SettingsActivity.SettingFragment.Companion.EXTRA_TEMPERATURE_UNIT
 import com.hoc.weatherapp.utils.SharedPrefUtil
+import com.hoc.weatherapp.utils.UnitConvertor
 import com.hoc.weatherapp.utils.debug
 import com.hoc.weatherapp.utils.getIconDrawableFromIconString
 import com.hoc.weatherapp.utils.showOrUpdateNotification
@@ -44,7 +43,7 @@ import org.koin.android.ext.android.inject
 import java.text.SimpleDateFormat
 import java.util.Locale
 
-class CurrentWeatherFragment : Fragment(), View.OnTouchListener {
+class CurrentWeatherFragment : Fragment() {
     private val sharedPrefUtil by inject<SharedPrefUtil>()
     private val weatherRepository by inject<WeatherRepository>()
 
@@ -108,9 +107,12 @@ class CurrentWeatherFragment : Fragment(), View.OnTouchListener {
                 card_view2.visibility = View.INVISIBLE
             }
             else -> {
-                val temperature = sharedPrefUtil.temperatureUnit.format(weather.temperature)
+                val temperature = UnitConvertor.convertTemperature(
+                    weather.temperature,
+                    sharedPrefUtil.temperatureUnit
+                )
                 updateWeatherIcon(weather.icon)
-                text_temperature.text = temperature
+                text_temperature.text = "$temperature°"
                 text_main_weather.text = weather.description.capitalize()
                 text_last_update.text = "Last updated: ${sdf.format(weather.dataTime)}"
                 button_live.visibility = View.VISIBLE
@@ -139,7 +141,6 @@ class CurrentWeatherFragment : Fragment(), View.OnTouchListener {
     }
 
     private fun getCurrentWeather(city: City?) {
-        scroll_view.setOnTouchListener(if (city === null) this@CurrentWeatherFragment else null)
         swipe_refresh_layout.post { swipe_refresh_layout.isRefreshing = city !== null }
 
         when (city) {
@@ -213,11 +214,6 @@ class CurrentWeatherFragment : Fragment(), View.OnTouchListener {
             requireContext().showOrUpdateNotification(it, unit)
             debug("CurrentWeatherFragment::onChangedTemperatureUnit unit=$unit", "@@@")
         }
-    }
-
-    @SuppressLint("ClickableViewAccessibility")
-    override fun onTouch(v: View?, event: MotionEvent?): Boolean {
-        return true
     }
 
     companion object {

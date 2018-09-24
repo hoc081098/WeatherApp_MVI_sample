@@ -1,12 +1,11 @@
 package com.hoc.weatherapp.utils
 
-sealed class Optional<out T> {
-    companion object
-}
+sealed class Optional<out T>
 
 class Some<T : Any>(val value: T) : Optional<T>()
 object None : Optional<Nothing>()
 
-fun <T : Any> Optional.Companion.ofNullable(value: T?): Optional<T> {
-    return if (value === null) None else Some(value)
+fun <T : Any> T?.toOptional(): Optional<T> = when (this) {
+    null -> None
+    else -> Some(this)
 }
