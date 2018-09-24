@@ -210,7 +210,11 @@ class CurrentWeatherFragment : Fragment() {
 
     private fun onChangedTemperatureUnit(unit: TemperatureUnit) {
         lastestCurrentWeather?.let {
-            text_temperature.text = unit.format(it.temperature)
+            val temperature = UnitConvertor.convertTemperature(
+                it.temperature,
+                unit
+            )
+            text_temperature.text = "$temperature°"
             requireContext().showOrUpdateNotification(it, unit)
             debug("CurrentWeatherFragment::onChangedTemperatureUnit unit=$unit", "@@@")
         }
