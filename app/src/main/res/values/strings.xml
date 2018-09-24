@@ -5,6 +5,12 @@
     <string name="title_activity_maps">Map</string>
     <string name="title_activity_settings">Settings</string>
     <string name="key_show_notification">show_notification</string>
+    <string name="temperature_degree">%s°</string>
+    <string name="last_updated">Last updated: %s</string>
+    <string name="humidity">%d%%</string>
+    <string name="wind_direction">Direction: %s</string>
+    <string name="temperature_chart_title">Temperature (%s)</string>
+    <string name="city_name_and_country">%s - %s</string>
 
     <!-- Strings related to Settings -->
 
@@ -92,4 +98,5 @@
     </string-array>
     <string name="key_temperature_unit">temperature_unit</string>
     <string name="pref_title_select_temperature_unit">Select temperature unit</string>
+    <string name="no_selected_city">No selected city</string>
 </resources>

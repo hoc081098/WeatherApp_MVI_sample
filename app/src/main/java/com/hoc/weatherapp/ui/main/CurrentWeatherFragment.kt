@@ -19,6 +19,7 @@ import com.hoc.weatherapp.data.models.WindDirection
 import com.hoc.weatherapp.data.models.entity.City
 import com.hoc.weatherapp.data.models.entity.CurrentWeather
 import com.hoc.weatherapp.data.remote.TemperatureUnit
+import com.hoc.weatherapp.data.remote.TemperatureUnit.Companion.NUMBER_FORMAT
 import com.hoc.weatherapp.ui.AddCityActivity.Companion.ACTION_CHANGED_LOCATION
 import com.hoc.weatherapp.ui.AddCityActivity.Companion.EXTRA_SELECTED_CITY
 import com.hoc.weatherapp.ui.LiveWeatherActivity
@@ -112,21 +113,26 @@ class CurrentWeatherFragment : Fragment() {
                     sharedPrefUtil.temperatureUnit
                 )
                 updateWeatherIcon(weather.icon)
-                text_temperature.text = "$temperature°"
+                text_temperature.text =
+                    getString(R.string.temperature_degree, NUMBER_FORMAT.format(temperature))
                 text_main_weather.text = weather.description.capitalize()
-                text_last_update.text = "Last updated: ${sdf.format(weather.dataTime)}"
+                text_last_update.text =
+                    getString(R.string.last_updated, SIMPLE_DATE_FORMAT.format(weather.dataTime))
                 button_live.visibility = View.VISIBLE
 
                 card_view1.visibility = View.VISIBLE
                 text_pressure.text = "${weather.pressure}hPa"
-                text_humidity.text = "${weather.humidity}%"
+                text_humidity.text = getString(R.string.humidity, weather.humidity)
                 text_rain.text = "${"%.1f".format(weather.rainVolumeForTheLast3Hours)}mm"
                 text_visibility.text = "${"%.1f".format(weather.visibility / 1_000)}km"
 
                 card_view2.visibility = View.VISIBLE
                 windmill1.winSpeed = weather.winSpeed
                 windmill2.winSpeed = weather.winSpeed
-                text_wind_dir.text = "Direction: ${WindDirection.fromDegrees(weather.winDegrees)}"
+                text_wind_dir.text = getString(
+                    R.string.wind_direction,
+                    WindDirection.fromDegrees(weather.winDegrees)
+                )
                 text_wind_speed.text = "Speed: ${weather.winSpeed}m/s"
             }
         }
@@ -208,21 +214,20 @@ class CurrentWeatherFragment : Fragment() {
         }
     }
 
-    private fun onChangedTemperatureUnit(unit: TemperatureUnit) {
-        lastestCurrentWeather?.let {
-            val temperature = UnitConvertor.convertTemperature(
-                it.temperature,
-                unit
-            )
-            text_temperature.text = "$temperature°"
-            requireContext().showOrUpdateNotification(it, unit)
-            debug("CurrentWeatherFragment::onChangedTemperatureUnit unit=$unit", "@@@")
-        }
+    private fun onChangedTemperatureUnit(unit: TemperatureUnit) = lastestCurrentWeather?.let {
+        val temperature = UnitConvertor.convertTemperature(
+            it.temperature,
+            unit
+        )
+        text_temperature.text =
+            getString(R.string.temperature_degree, NUMBER_FORMAT.format(temperature))
+        requireContext().showOrUpdateNotification(it, unit)
+        debug("CurrentWeatherFragment::onChangedTemperatureUnit unit=$unit", "@@@")
     }
 
     companion object {
         @JvmField
-        val sdf = SimpleDateFormat("dd/MM/yy HH:mm", Locale.US)
+        val SIMPLE_DATE_FORMAT = SimpleDateFormat("dd/MM/yy HH:mm", Locale.US)
     }
 }
 

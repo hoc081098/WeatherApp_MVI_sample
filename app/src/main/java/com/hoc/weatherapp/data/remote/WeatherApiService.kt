@@ -6,6 +6,7 @@ import com.hoc.weatherapp.utils.UnitConvertor
 import io.reactivex.Flowable
 import retrofit2.http.GET
 import retrofit2.http.Query
+import java.text.DecimalFormat
 
 const val BASE_URL = "http://api.openweathermap.org/data/2.5/"
 const val APP_ID = "8011ab8a054c3313249763404ac18589"
@@ -22,7 +23,7 @@ enum class TemperatureUnit {
     }
 
     fun format(temperatureInKelvin: Double): String {
-        return "%.1f".format(
+        return NUMBER_FORMAT.format(
             UnitConvertor.convertTemperature(
                 temperatureInKelvin,
                 this
@@ -50,6 +51,9 @@ enum class TemperatureUnit {
                 else -> throw IllegalStateException()
             }
         }
+
+        @JvmField
+        val NUMBER_FORMAT = DecimalFormat("#.#")
     }
 }
 

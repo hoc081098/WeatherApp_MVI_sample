@@ -106,7 +106,11 @@ class CityAdapter(
             val temperatureMin = temperatureUnit.format(weather.temperatureMin)
             val temperatureMax = temperatureUnit.format(weather.temperatureMax)
 
-            textName.text = "${weather.city.name} - ${weather.city.country}"
+            textName.text = itemView.context.getString(
+                R.string.city_name_and_country,
+                weather.city.name,
+                weather.city.country
+            )
             textWeather.text =
                 "${weather.description.capitalize()}, $temperatureMin ~ $temperatureMax"
             radioButtonSelectedCity.isChecked = weather.city.id == selectedCityId

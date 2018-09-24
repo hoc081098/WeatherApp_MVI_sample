@@ -79,7 +79,7 @@ class AddCityActivity : AppCompatActivity() {
 
                     if (latitude != null && longitude != null) {
                         weatherRepository.getCityInformationAndSaveToLocal(latitude, longitude)
-                            .subscribe_()
+                            .subscribeExtFunc()
                     }
                 }
 
@@ -109,7 +109,7 @@ class AddCityActivity : AppCompatActivity() {
         )
     }
 
-    private fun Flowable<City>.subscribe_() {
+    private fun Flowable<City>.subscribeExtFunc() {
         subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .doOnSubscribe {
@@ -181,7 +181,7 @@ class AddCityActivity : AppCompatActivity() {
                             it.longitude
                         ).subscribeOn(Schedulers.io())
                     }
-                    .subscribe_()
+                    .subscribeExtFunc()
             }
         }
     }
