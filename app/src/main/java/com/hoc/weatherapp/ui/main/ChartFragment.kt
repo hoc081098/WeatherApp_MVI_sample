@@ -104,7 +104,8 @@ class ChartFragment : Fragment() {
 
     private fun updateCharts(pair: Pair<List<DailyWeather>, TemperatureUnit>) {
         val (dailyWeathers, temperatureUnit) = pair
-        text_temperature.text = "Temperature (${temperatureUnit.symbol()})"
+        text_temperature.text =
+            getString(R.string.temperature_chart_title, temperatureUnit.symbol())
         drawChart(
             chart_temperature,
             dailyWeathers,
@@ -158,7 +159,6 @@ class ChartFragment : Fragment() {
         @ColorInt gridColor: Int
     ) {
         debug("::drawChart")
-
         lineChartView.run {
             reset()
 

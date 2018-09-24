@@ -184,12 +184,16 @@ class MainActivity : AppCompatActivity() {
                     .apply(RequestOptions.fitCenterTransform().centerCrop())
                     .apply(RequestOptions.bitmapTransform(GlideBlurTransformation(this, 25f)))
                     .into(image_background)
-                toolbar_title.text = "No selected city"
+                toolbar_title.text = getString(R.string.no_selected_city)
                 cancelNotificationById(NOTIFICATION_ID)
             }
             else -> {
                 updateBackground(weather)
-                toolbar_title.text = "${weather.city.name} - ${weather.city.country}"
+                toolbar_title.text = getString(
+                    R.string.city_name_and_country,
+                    weather.city.name,
+                    weather.city.country
+                )
                 if (sharedPrefUtil.showNotification) {
                     showOrUpdateNotification(weather, sharedPrefUtil.temperatureUnit)
                 }

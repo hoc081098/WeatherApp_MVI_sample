@@ -1,5 +1,6 @@
 package com.hoc.weatherapp.utils
 
+@Suppress("unused")
 sealed class Optional<out T>
 
 class Some<T : Any>(val value: T) : Optional<T>()

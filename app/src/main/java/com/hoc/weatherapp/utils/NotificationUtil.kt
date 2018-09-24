@@ -18,7 +18,7 @@ fun Context.showOrUpdateNotification(weather: CurrentWeather, unit: TemperatureU
     val temperature = unit.format(weather.temperature)
 
     val text = HtmlCompat.fromHtml(
-        "$temperature<br>${weather.description.capitalize()}<br><i>Update time: ${CurrentWeatherFragment.sdf.format(
+        "$temperature<br>${weather.description.capitalize()}<br><i>Update time: ${CurrentWeatherFragment.SIMPLE_DATE_FORMAT.format(
             weather.dataTime
         )}</i>",
         HtmlCompat.FROM_HTML_MODE_LEGACY
