@@ -55,7 +55,7 @@ class CurrentWeatherFragment : Fragment() {
     private val localBroadcastManager by lazy(LazyThreadSafetyMode.NONE) {
         LocalBroadcastManager.getInstance(mainActivity)
     }
-    private var lastestCurrentWeather: CurrentWeather? = null
+    private var latestCurrentWeather: CurrentWeather? = null
 
     override fun onAttach(context: Context?) {
         super.onAttach(context)
@@ -95,7 +95,7 @@ class CurrentWeatherFragment : Fragment() {
     }
 
     private fun updateUi(weather: CurrentWeather?) {
-        lastestCurrentWeather = weather
+        latestCurrentWeather = weather
 
         when (weather) {
             null -> {
@@ -214,7 +214,7 @@ class CurrentWeatherFragment : Fragment() {
         }
     }
 
-    private fun onChangedTemperatureUnit(unit: TemperatureUnit) = lastestCurrentWeather?.let {
+    private fun onChangedTemperatureUnit(unit: TemperatureUnit) = latestCurrentWeather?.let {
         val temperature = UnitConvertor.convertTemperature(
             it.temperature,
             unit
