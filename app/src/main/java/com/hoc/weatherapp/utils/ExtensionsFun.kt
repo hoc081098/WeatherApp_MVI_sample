@@ -85,11 +85,13 @@ fun Context.receivesLocal(intentFilter: IntentFilter): Flowable<Intent> {
             if (Looper.getMainLooper() == Looper.myLooper()) {
                 LocalBroadcastManager.getInstance(this)
                     .unregisterReceiver(receiver)
+                debug("unregisterReceiver1", "Context::receivesLocal")
             } else {
                 val worker = AndroidSchedulers.mainThread().createWorker()
                 worker.schedule {
                     LocalBroadcastManager.getInstance(this)
                         .unregisterReceiver(receiver)
+                    debug("unregisterReceiver2", "Context::receivesLocal")
                     worker.dispose()
                 }
             }
