@@ -33,7 +33,7 @@ import com.hoc.weatherapp.ui.SettingsActivity.SettingFragment.Companion.ACTION_C
 import com.hoc.weatherapp.ui.SettingsActivity.SettingFragment.Companion.EXTRA_TEMPERATURE_UNIT
 import com.hoc.weatherapp.utils.SharedPrefUtil
 import com.hoc.weatherapp.utils.debug
-import com.hoc.weatherapp.utils.getIconDrawableFromIconString
+import com.hoc.weatherapp.utils.getIconDrawableFromDailyWeather
 import com.hoc.weatherapp.utils.snackBar
 import com.hoc.weatherapp.utils.trim
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -140,7 +140,7 @@ class DailyWeatherAdapter(
             textViewDataTime.text = itemDateFormat.format(weather.timeOfDataForecasted)
 
             Glide.with(itemView.context)
-                .load(getIconDrawableFromIconString(weather.icon))
+                .load(itemView.context.getIconDrawableFromDailyWeather(weather))
                 .apply(RequestOptions.fitCenterTransform().centerCrop())
                 .transition(DrawableTransitionOptions.withCrossFade())
                 .apply(
@@ -314,6 +314,9 @@ class DailyWeatherFragment : Fragment() {
 
     private fun onChangedTemperatureUnit(temperatureUnit: TemperatureUnit) {
         dailyWeatherAdapter.temperatureUnit = temperatureUnit
-        debug("DailyWeatherFragment::onChangedTemperatureUnit temperatureUnit=$temperatureUnit", "@@@")
+        debug(
+            "DailyWeatherFragment::onChangedTemperatureUnit temperatureUnit=$temperatureUnit",
+            "@@@"
+        )
     }
 }

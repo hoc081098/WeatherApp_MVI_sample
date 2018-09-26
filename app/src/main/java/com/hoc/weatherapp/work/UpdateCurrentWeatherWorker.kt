@@ -2,8 +2,8 @@ package com.hoc.weatherapp.work
 
 import androidx.work.Worker
 import com.hoc.weatherapp.data.WeatherRepository
-import com.hoc.weatherapp.utils.NOTIFICATION_ID
 import com.hoc.weatherapp.utils.SharedPrefUtil
+import com.hoc.weatherapp.utils.WEATHER_NOTIFICATION_ID
 import com.hoc.weatherapp.utils.cancelNotificationById
 import com.hoc.weatherapp.utils.debug
 import com.hoc.weatherapp.utils.showOrUpdateNotification
@@ -42,7 +42,7 @@ class UpdateCurrentWeatherWorker : Worker(), KoinComponent {
         } else {
             debug("UpdateCurrentWeatherWorker::doWork no selected city")
 
-            applicationContext.cancelNotificationById(NOTIFICATION_ID)
+            applicationContext.cancelNotificationById(WEATHER_NOTIFICATION_ID)
             Result.FAILURE
         }
     }

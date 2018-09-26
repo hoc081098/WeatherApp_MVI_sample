@@ -1,9 +1,7 @@
 package com.hoc.weatherapp.ui.main
 
-import android.content.BroadcastReceiver
-import android.content.Context
-import android.content.Intent
 import android.content.IntentFilter
+import android.media.MediaPlayer
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
@@ -13,7 +11,6 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentPagerAdapter
 import androidx.lifecycle.Observer
-import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
@@ -21,22 +18,37 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.bumptech.glide.request.RequestOptions
 import com.hoc.weatherapp.R
+import com.hoc.weatherapp.data.local.LocalDataSource
+import com.hoc.weatherapp.data.models.entity.City
 import com.hoc.weatherapp.data.models.entity.CurrentWeather
 import com.hoc.weatherapp.ui.AddCityActivity.Companion.ACTION_CHANGED_LOCATION
+import com.hoc.weatherapp.ui.AddCityActivity.Companion.EXTRA_SELECTED_CITY
 import com.hoc.weatherapp.ui.LocationActivity
 import com.hoc.weatherapp.ui.SettingsActivity
-import com.hoc.weatherapp.utils.NOTIFICATION_ID
+import com.hoc.weatherapp.utils.Optional
 import com.hoc.weatherapp.utils.SharedPrefUtil
+import com.hoc.weatherapp.utils.Some
+import com.hoc.weatherapp.utils.WEATHER_NOTIFICATION_ID
 import com.hoc.weatherapp.utils.ZoomOutPageTransformer
 import com.hoc.weatherapp.utils.blur.GlideBlurTransformation
 import com.hoc.weatherapp.utils.cancelNotificationById
 import com.hoc.weatherapp.utils.debug
 import com.hoc.weatherapp.utils.getBackgroundDrawableFromWeather
+import com.hoc.weatherapp.utils.getOrNull
+import com.hoc.weatherapp.utils.getSoundUriFromCurrentWeather
+import com.hoc.weatherapp.utils.receivesLocal
 import com.hoc.weatherapp.utils.showOrUpdateNotification
 import com.hoc.weatherapp.utils.startActivity
+import com.hoc.weatherapp.utils.toOptional
 import com.hoc.weatherapp.work.UpdateCurrentWeatherWorker
 import com.hoc.weatherapp.work.UpdateDailyWeatherWork
+import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.processors.BehaviorProcessor
+import io.reactivex.rxkotlin.addTo
+import io.reactivex.rxkotlin.ofType
+import io.reactivex.rxkotlin.subscribeBy
+import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_main.*
 import org.koin.android.ext.android.inject
 import java.util.concurrent.TimeUnit
@@ -44,9 +56,15 @@ import java.util.concurrent.TimeUnit
 class MainActivity : AppCompatActivity() {
     private var pagerAdapter: SectionsPagerAdapter? = null
     private val sharedPrefUtil by inject<SharedPrefUtil>()
+    private val localDataSource by inject<LocalDataSource>()
 
-    private val mainActivityBroadcastReceiver = MainActivityBroadcastReceiver()
     private val compositeDisposable = CompositeDisposable()
+    private val compositeDisposable1 = CompositeDisposable()
+
+    private var mediaPlayer: MediaPlayer? = null
+    private var isPlaySound = false
+
+    private val cityFlowable = BehaviorProcessor.create<Optional<City>>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -61,20 +79,70 @@ class MainActivity : AppCompatActivity() {
 
         setupViewPager()
 
-        LocalBroadcastManager.getInstance(this)
-            .registerReceiver(
-                mainActivityBroadcastReceiver,
-                IntentFilter().apply {
-                    addAction(ACTION_CHANGED_LOCATION)
+        receivesLocal(
+            IntentFilter().apply {
+                addAction(ACTION_CHANGED_LOCATION)
+            }
+        ).filter { it.action == ACTION_CHANGED_LOCATION }
+            .map { it.getParcelableExtra<City?>(EXTRA_SELECTED_CITY).toOptional() }
+            .startWith(sharedPrefUtil.selectedCity.toOptional())
+            .subscribe(cityFlowable)
+
+        cityFlowable
+            .subscribeBy(
+                onError = {},
+                onNext = {
+                    enableIndicatorAndViewPager(it.getOrNull())
+                }
+            ).addTo(compositeDisposable1)
+    }
+
+    override fun onStart() {
+        super.onStart()
+
+        cityFlowable
+            .ofType<Some<City>>()
+            .map { it.value }
+            .switchMap {
+                localDataSource.getCurrentWeatherById(it.id)
+                    .subscribeOn(Schedulers.io())
+            }
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribeBy(
+                onError = {},
+                onNext = {
+                    debug("onNext $it", "@@@")
+
+                    mediaPlayer = MediaPlayer.create(this, getSoundUriFromCurrentWeather(it))
+                        .apply {
+                            setVolume(0.2f, 0.2f)
+                            isPlaySound = runCatching { start() }.isSuccess
+                            debug("Play $isPlaySound", "@@@")
+                        }
                 }
             )
+            .addTo(compositeDisposable)
+    }
+
+    override fun onStop() {
+        super.onStop()
+
+        compositeDisposable.clear()
+
+        if (isPlaySound) {
+            runCatching { mediaPlayer?.stop() }
+                .onSuccess { isPlaySound = false }
+        }
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        compositeDisposable.clear()
-        LocalBroadcastManager.getInstance(this)
-            .unregisterReceiver(mainActivityBroadcastReceiver)
+
+        compositeDisposable1.clear()
+
+        // free memory
+        mediaPlayer?.release()
+        mediaPlayer = null
     }
 
     private fun setupViewPager() {
@@ -87,20 +155,19 @@ class MainActivity : AppCompatActivity() {
             adapter = SectionsPagerAdapter(
                 supportFragmentManager,
                 fragments
-            )
-                .also { pagerAdapter = it }
-            offscreenPageLimit = 3
+            ).also { pagerAdapter = it }
+            offscreenPageLimit = fragments.size
             setPageTransformer(true, ZoomOutPageTransformer())
 
             dots_indicator.setViewPager(view_pager)
             dots_indicator.setDotsClickable(true)
 
-            enableIndicatorAndViewPager()
+            enableIndicatorAndViewPager(sharedPrefUtil.selectedCity)
         }
     }
 
-    fun enableIndicatorAndViewPager() {
-        if (sharedPrefUtil.selectedCity !== null) {
+    private fun enableIndicatorAndViewPager(selectedCity: City?) {
+        if (selectedCity !== null) {
             dots_indicator.visibility = View.VISIBLE
             view_pager.pagingEnable = true
         } else {
@@ -167,11 +234,10 @@ class MainActivity : AppCompatActivity() {
 
     private fun updateBackground(weather: CurrentWeather) {
         Glide.with(this)
-            .load(getBackgroundDrawableFromWeather(weather, this))
+            .load(getBackgroundDrawableFromWeather(weather))
             .transition(DrawableTransitionOptions.withCrossFade())
             .apply(RequestOptions.fitCenterTransform().centerCrop())
             .apply(RequestOptions.bitmapTransform(GlideBlurTransformation(this, 25f)))
-            .apply(RequestOptions.errorOf(R.drawable.default_bg))
             .into(image_background)
     }
 
@@ -185,7 +251,7 @@ class MainActivity : AppCompatActivity() {
                     .apply(RequestOptions.bitmapTransform(GlideBlurTransformation(this, 25f)))
                     .into(image_background)
                 toolbar_title.text = getString(R.string.no_selected_city)
-                cancelNotificationById(NOTIFICATION_ID)
+                cancelNotificationById(WEATHER_NOTIFICATION_ID)
             }
             else -> {
                 updateBackground(weather)
@@ -207,12 +273,5 @@ class MainActivity : AppCompatActivity() {
             cancelUniqueWork(UpdateCurrentWeatherWorker.UNIQUE_WORK_NAME)
         }
     }
-
-    private inner class MainActivityBroadcastReceiver : BroadcastReceiver() {
-        override fun onReceive(context: Context?, intent: Intent?) {
-            when (intent?.action) {
-                ACTION_CHANGED_LOCATION -> enableIndicatorAndViewPager()
-            }
-        }
-    }
 }
+

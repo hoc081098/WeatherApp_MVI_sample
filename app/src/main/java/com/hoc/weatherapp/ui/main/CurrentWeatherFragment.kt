@@ -30,7 +30,7 @@ import com.hoc.weatherapp.ui.SettingsActivity.SettingFragment.Companion.EXTRA_TE
 import com.hoc.weatherapp.utils.SharedPrefUtil
 import com.hoc.weatherapp.utils.UnitConvertor
 import com.hoc.weatherapp.utils.debug
-import com.hoc.weatherapp.utils.getIconDrawableFromIconString
+import com.hoc.weatherapp.utils.getIconDrawableFromCurrentWeather
 import com.hoc.weatherapp.utils.showOrUpdateNotification
 import com.hoc.weatherapp.utils.snackBar
 import com.hoc.weatherapp.utils.startActivity
@@ -112,7 +112,7 @@ class CurrentWeatherFragment : Fragment() {
                     weather.temperature,
                     sharedPrefUtil.temperatureUnit
                 )
-                updateWeatherIcon(weather.icon)
+                updateWeatherIcon(weather)
                 text_temperature.text =
                     getString(R.string.temperature_degree, NUMBER_FORMAT.format(temperature))
                 text_main_weather.text = weather.description.capitalize()
@@ -138,9 +138,9 @@ class CurrentWeatherFragment : Fragment() {
         }
     }
 
-    private fun updateWeatherIcon(icon: String) {
+    private fun updateWeatherIcon(weather: CurrentWeather) {
         Glide.with(this)
-            .load(getIconDrawableFromIconString(icon))
+            .load(requireContext().getIconDrawableFromCurrentWeather(weather))
             .apply(RequestOptions.fitCenterTransform().centerCrop())
             .transition(DrawableTransitionOptions.withCrossFade())
             .into(image_icon)

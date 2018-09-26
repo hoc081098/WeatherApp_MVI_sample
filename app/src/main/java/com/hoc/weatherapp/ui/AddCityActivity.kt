@@ -2,8 +2,11 @@ package com.hoc.weatherapp.ui
 
 import android.Manifest.permission.ACCESS_COARSE_LOCATION
 import android.Manifest.permission.ACCESS_FINE_LOCATION
+import android.app.Activity
 import android.content.Intent
+import android.content.IntentSender
 import android.content.pm.PackageManager.PERMISSION_GRANTED
+import android.location.Location
 import android.os.Bundle
 import android.view.MenuItem
 import android.view.View
@@ -13,18 +16,25 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.transition.Fade
 import androidx.transition.TransitionManager
 import androidx.transition.TransitionSet
+import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.common.api.Status
+import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.LocationSettingsRequest
+import com.google.android.gms.location.LocationSettingsResponse
+import com.google.android.gms.location.SettingsClient
 import com.google.android.gms.location.places.Place
 import com.google.android.gms.location.places.ui.PlaceSelectionListener
 import com.google.android.gms.location.places.ui.SupportPlaceAutocompleteFragment
+import com.google.android.gms.tasks.Task
 import com.hoc.weatherapp.R
 import com.hoc.weatherapp.data.WeatherRepository
 import com.hoc.weatherapp.data.models.entity.City
 import com.hoc.weatherapp.utils.SharedPrefUtil
 import com.hoc.weatherapp.utils.debug
 import com.hoc.weatherapp.utils.snackBar
-import com.hoc.weatherapp.utils.toFlowable
 import com.hoc.weatherapp.utils.toast
 import io.reactivex.Flowable
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -40,14 +50,12 @@ import java.util.concurrent.TimeUnit
 import androidx.core.app.ActivityCompat.requestPermissions as requestPermissionsCompat
 
 class AddCityActivity : AppCompatActivity() {
-    private val fusedLocationProviderClient by lazy(LazyThreadSafetyMode.NONE) {
-        LocationServices.getFusedLocationProviderClient(this@AddCityActivity)
-    }
     private val sharedPrefUtil by inject<SharedPrefUtil>()
     private val weatherRepository by inject<WeatherRepository>()
 
     private val compositeDisposable = CompositeDisposable()
     private var countRequestLocationPermission = 0
+
     private val localBroadcastManager by lazy(LazyThreadSafetyMode.NONE) {
         LocalBroadcastManager.getInstance(this)
     }
@@ -165,7 +173,8 @@ class AddCityActivity : AppCompatActivity() {
                     ++countRequestLocationPermission
 
                     requestPermissionsCompat(
-                        this, arrayOf(ACCESS_FINE_LOCATION, ACCESS_COARSE_LOCATION),
+                        this,
+                        arrayOf(ACCESS_FINE_LOCATION, ACCESS_COARSE_LOCATION),
                         LOCATION_PERMISSION_RC
                     )
                 } else {
@@ -173,8 +182,7 @@ class AddCityActivity : AppCompatActivity() {
                 }
             }
             else -> {
-                fusedLocationProviderClient.lastLocation
-                    .toFlowable()
+                getCurrentLocation()
                     .flatMap {
                         weatherRepository.getCityInformationAndSaveToLocal(
                             it.latitude,
@@ -186,103 +194,68 @@ class AddCityActivity : AppCompatActivity() {
         }
     }
 
-    /*
-    private fun enableGps() {
-        val googleApiClient = GoogleApiClient.Builder(this)
-            .addApi(LocationServices.API)
-            .addConnectionCallbacks(object : GoogleApiClient.ConnectionCallbacks {
-                override fun onConnected(p0: Bundle?) {
-                }
+    private fun getCurrentLocation(): Flowable<Location> {
+        val publishProcessor = PublishProcessor.create<Location>()
 
-                override fun onConnectionSuspended(p0: Int) {
-                }
-            })
-            .addOnConnectionFailedListener {
+        val locationRequest = LocationRequest().apply {
+            interval = 5_000
+            fastestInterval = 1_000
+            priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+            numUpdates = 1
+        }
+        val fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
 
-            }
-            .build()
-            .apply {
-                connect()
-            }
-        val locationRequest = LocationRequest()
-            .apply {
-                priority = PRIORITY_HIGH_ACCURACY
-                interval = 30 * 1_000
-                fastestInterval = 5 * 1_000
-            }
         val builder = LocationSettingsRequest.Builder()
             .addLocationRequest(locationRequest)
-            .setAlwaysShow(true)
-        @Suppress("DEPRECATION")
-        LocationServices.SettingsApi.checkLocationSettings(googleApiClient, builder.build())
-            .setResultCallback {
-                val status = it.status
-                when (status.statusCode) {
-                    LocationSettingsStatusCodes.SUCCESS -> {
-                        if (ContextCompat.checkSelfPermission(
-                                this,
-                                ACCESS_FINE_LOCATION
-                            ) != PERMISSION_GRANTED
-                            && ContextCompat.checkSelfPermission(
-                                this,
-                                ACCESS_COARSE_LOCATION
-                            ) != PERMISSION_GRANTED
-                        ) {
-                            ActivityCompat.requestPermissions(
-                                this,
-                                arrayOf(ACCESS_FINE_LOCATION, ACCESS_COARSE_LOCATION),
-                                LOCATION_PERMISSION_RC1
-                            )
-                        } else {
-                            getNearCity()
-                        }
-                    }
-                    LocationSettingsStatusCodes.RESOLUTION_REQUIRED -> {
-                        try {
-                            status.startResolutionForResult(this, REQUEST_CHECK_SETTINGS)
-                        } catch (e: IntentSender.SendIntentException) {
 
-                        }
-                    }
-                    LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE -> {
-                    }
-                }
-            }
-    }
+        val client: SettingsClient = LocationServices.getSettingsClient(this)
+        val task: Task<LocationSettingsResponse> = client.checkLocationSettings(builder.build())
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        when (resultCode) {
-            REQUEST_CHECK_SETTINGS -> {
-                when (resultCode) {
-                    Activity.RESULT_OK -> {
-                        if (ContextCompat.checkSelfPermission(
-                                this,
-                                ACCESS_FINE_LOCATION
-                            ) != PERMISSION_GRANTED
-                            && ContextCompat.checkSelfPermission(
-                                this,
-                                ACCESS_COARSE_LOCATION
-                            ) != PERMISSION_GRANTED
-                        ) {
-                            ActivityCompat.requestPermissions(
-                                this,
-                                arrayOf(ACCESS_FINE_LOCATION, ACCESS_COARSE_LOCATION),
-                                LOCATION_PERMISSION_RC1
-                            )
-                        } else {
-                            getNearCity()
+        task.addOnSuccessListener {
+            // All location settings are satisfied. The client can initialize
+            // location requests here.
+            // ...
+
+            if (checkSelfPermission(this, ACCESS_FINE_LOCATION) != PERMISSION_GRANTED
+                && checkSelfPermission(this, ACCESS_COARSE_LOCATION) != PERMISSION_GRANTED
+            ) return@addOnSuccessListener
+
+            fusedLocationProviderClient
+                .requestLocationUpdates(
+                    locationRequest,
+                    object : LocationCallback() {
+                        override fun onLocationResult(locationResult: LocationResult?) {
+                            locationResult?.lastLocation?.let {
+                                publishProcessor.onNext(it)
+                                publishProcessor.onComplete()
+                                fusedLocationProviderClient.removeLocationUpdates(this)
+                            }
                         }
-                    }
-                    Activity.RESULT_CANCELED -> {
-                        enableGps()
-                    }
+                    },
+                    null
+                )
+
+        }.addOnFailureListener { exception ->
+            if (exception is ResolvableApiException) {
+                // Location settings are not satisfied, but this can be fixed
+                // by showing the user a dialog.
+                try {
+                    // Show the dialog by calling startResolutionForResult(),
+                    // and check the result in onActivityResult().
+                    exception.startResolutionForResult(
+                        this,
+                        REQUEST_CHECK_SETTINGS
+                    )
+                } catch (sendEx: IntentSender.SendIntentException) {
+                    // Ignore the error.
                 }
             }
         }
+
+        return publishProcessor.hide()
     }
 
-    private fun getNearCity() {
+    /*private fun getNearCity() {
         if (ContextCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) != PERMISSION_GRANTED
             && ContextCompat.checkSelfPermission(this, ACCESS_COARSE_LOCATION) != PERMISSION_GRANTED
         ) return
@@ -309,8 +282,16 @@ class AddCityActivity : AppCompatActivity() {
             }
     }
 
-    private fun getCityByCountryCode(country: String) {}
-    */
+    private fun getCityByCountryCode(country: String) {}*/
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        when (requestCode) {
+            REQUEST_CHECK_SETTINGS -> if (resultCode == Activity.RESULT_OK) {
+                addCurrentLocation()
+            }
+        }
+    }
 
     override fun onRequestPermissionsResult(
         requestCode: Int,
@@ -340,10 +321,8 @@ class AddCityActivity : AppCompatActivity() {
         private const val COUNT_REQUEST_LOCATION_PERMISSION =
             "COUNT_REQUEST_LOCATION_PERMISSION"
 
-        /*
-        private const val LOCATION_PERMISSION_RC1 = 1
+        // private const val LOCATION_PERMISSION_RC1 = 1
         private const val REQUEST_CHECK_SETTINGS = 3
-        */
 
         private const val MAX_NUMBER_REQUEST_PERMISSON = 2
 

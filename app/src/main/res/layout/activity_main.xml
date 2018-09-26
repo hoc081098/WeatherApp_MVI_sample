@@ -25,6 +25,7 @@
         android:layout_weight="1"
         android:background="@null"
         android:elevation="0dp"
+        android:gravity="center"
         android:theme="@style/AppTheme.AppBarOverlay"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -34,12 +35,13 @@
 
         <TextView
             android:id="@+id/toolbar_title"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:ellipsize="end"
             android:fontFamily="@font/noto_sans"
             android:gravity="center"
             android:maxLines="2"
+            android:textAlignment="center"
             android:textColor="@android:color/white"
             android:textSize="18sp"
             tools:layout_editor_absoluteX="16dp"
