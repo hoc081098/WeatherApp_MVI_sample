@@ -24,6 +24,7 @@ import com.hoc.weatherapp.data.models.entity.CurrentWeather
 import com.hoc.weatherapp.ui.AddCityActivity.Companion.ACTION_CHANGED_LOCATION
 import com.hoc.weatherapp.ui.AddCityActivity.Companion.EXTRA_SELECTED_CITY
 import com.hoc.weatherapp.ui.LocationActivity
+import com.hoc.weatherapp.ui.MapActivity
 import com.hoc.weatherapp.ui.SettingsActivity
 import com.hoc.weatherapp.utils.Optional
 import com.hoc.weatherapp.utils.SharedPrefUtil
@@ -62,8 +63,6 @@ class MainActivity : AppCompatActivity() {
     private val compositeDisposable1 = CompositeDisposable()
 
     private var mediaPlayer: MediaPlayer? = null
-    private var isPlaySound = false
-
     private val cityFlowable = BehaviorProcessor.create<Optional<City>>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -110,15 +109,19 @@ class MainActivity : AppCompatActivity() {
             .observeOn(AndroidSchedulers.mainThread())
             .subscribeBy(
                 onError = {},
-                onNext = {
-                    debug("onNext $it", "@@@")
+                onNext = { weather ->
+                    debug("onNext $weather", "@@@")
 
-                    mediaPlayer = MediaPlayer.create(this, getSoundUriFromCurrentWeather(it))
-                        .apply {
-                            setVolume(0.2f, 0.2f)
-                            isPlaySound = runCatching { start() }.isSuccess
-                            debug("Play $isPlaySound", "@@@")
-                        }
+                    runCatching {
+                        mediaPlayer?.takeIf { it.isPlaying }?.stop()
+                    }
+                    mediaPlayer =
+                        MediaPlayer.create(this, getSoundUriFromCurrentWeather(weather))
+                            .apply {
+                                setVolume(0.1f, 0.1f)
+                                runCatching { start() }
+                                    .onSuccess { debug("MediaPlayer::start", "@@@") }
+                            }
                 }
             )
             .addTo(compositeDisposable)
@@ -127,19 +130,19 @@ class MainActivity : AppCompatActivity() {
     override fun onStop() {
         super.onStop()
 
-        compositeDisposable.clear()
-
-        if (isPlaySound) {
-            runCatching { mediaPlayer?.stop() }
-                .onSuccess { isPlaySound = false }
+        runCatching {
+            mediaPlayer?.takeIf { it.isPlaying }?.stop()
         }
+        compositeDisposable.clear()
     }
 
     override fun onDestroy() {
         super.onDestroy()
-
         compositeDisposable1.clear()
 
+        runCatching {
+            mediaPlayer?.takeIf { it.isPlaying }?.stop()
+        }
         // free memory
         mediaPlayer?.release()
         mediaPlayer = null
@@ -228,6 +231,7 @@ class MainActivity : AppCompatActivity() {
         return when (item?.itemId) {
             android.R.id.home -> true.also { startActivity<LocationActivity>() }
             R.id.action_settings -> true.also { startActivity<SettingsActivity>() }
+            R.id.action_map -> true.also { startActivity<MapActivity>() }
             else -> super.onOptionsItemSelected(item)
         }
     }
