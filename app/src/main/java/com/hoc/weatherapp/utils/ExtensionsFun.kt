@@ -73,25 +73,26 @@ fun Context.receivesLocal(intentFilter: IntentFilter): Flowable<Intent> {
     return Flowable.create({ emitter: FlowableEmitter<Intent> ->
         val receiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent) {
-                debug("onReceive $intent", "Context::receivesLocal")
+                debug("onReceive $intent", this::class.java.simpleName)
                 emitter.onNext(intent)
             }
         }
 
         LocalBroadcastManager.getInstance(this)
             .registerReceiver(receiver, intentFilter)
+        debug(Looper.getMainLooper() == Looper.myLooper(), this::class.java.simpleName)
 
         emitter.setCancellable {
             if (Looper.getMainLooper() == Looper.myLooper()) {
                 LocalBroadcastManager.getInstance(this)
                     .unregisterReceiver(receiver)
-                debug("unregisterReceiver1", "Context::receivesLocal")
+                debug("unregisterReceiver1", this::class.java.simpleName)
             } else {
                 val worker = AndroidSchedulers.mainThread().createWorker()
                 worker.schedule {
                     LocalBroadcastManager.getInstance(this)
                         .unregisterReceiver(receiver)
-                    debug("unregisterReceiver2", "Context::receivesLocal")
+                    debug("unregisterReceiver2", this::class.java.simpleName)
                     worker.dispose()
                 }
             }

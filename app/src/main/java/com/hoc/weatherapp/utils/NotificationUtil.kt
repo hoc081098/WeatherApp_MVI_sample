@@ -7,12 +7,14 @@ import android.content.Intent
 import androidx.core.app.NotificationCompat
 import androidx.core.text.HtmlCompat
 import com.hoc.weatherapp.App
+import com.hoc.weatherapp.R
 import com.hoc.weatherapp.data.models.entity.CurrentWeather
 import com.hoc.weatherapp.data.remote.TemperatureUnit
 import com.hoc.weatherapp.ui.main.CurrentWeatherFragment
 import com.hoc.weatherapp.ui.main.MainActivity
 
-const val NOTIFICATION_ID = 2
+const val WEATHER_NOTIFICATION_ID = 2
+const val ACTION_CANCEL_NOTIFICATION = "com.hoc.weatherapp.CancelNotificationReceiver"
 
 fun Context.showOrUpdateNotification(weather: CurrentWeather, unit: TemperatureUnit) {
     val temperature = unit.format(weather.temperature)
@@ -24,10 +26,20 @@ fun Context.showOrUpdateNotification(weather: CurrentWeather, unit: TemperatureU
         HtmlCompat.FROM_HTML_MODE_LEGACY
     )
     val builder = NotificationCompat.Builder(this, App.CHANNEL_ID)
-        .setSmallIcon(getIconDrawableFromIconString(weather.icon))
+        .setSmallIcon(getIconDrawableFromCurrentWeather(weather))
         .setContentTitle("${weather.city.name} - ${weather.city.country}")
         .setContentText(temperature)
         .setStyle(NotificationCompat.BigTextStyle().bigText(text))
+        .addAction(
+            R.drawable.ic_close,
+            "Dismiss",
+            PendingIntent.getBroadcast(
+                this,
+                0,
+                Intent(ACTION_CANCEL_NOTIFICATION),
+                PendingIntent.FLAG_CANCEL_CURRENT
+            )
+        )
         .setAutoCancel(false)
         .setOngoing(true)
         .setWhen(System.currentTimeMillis())
@@ -41,7 +53,7 @@ fun Context.showOrUpdateNotification(weather: CurrentWeather, unit: TemperatureU
     )
     builder.setContentIntent(resultPendingIntent)
     (getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).notify(
-        NOTIFICATION_ID,
+        WEATHER_NOTIFICATION_ID,
         builder.build()
     )
 }

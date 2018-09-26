@@ -11,8 +11,8 @@ import com.hoc.weatherapp.R
 import com.hoc.weatherapp.data.WeatherRepository
 import com.hoc.weatherapp.ui.LocationActivity.Companion.ACTION_UPDATE_CURRENT_WEATHER
 import com.hoc.weatherapp.ui.LocationActivity.Companion.EXTRA_CURRENT_WEATHER
-import com.hoc.weatherapp.utils.NOTIFICATION_ID
 import com.hoc.weatherapp.utils.SharedPrefUtil
+import com.hoc.weatherapp.utils.WEATHER_NOTIFICATION_ID
 import com.hoc.weatherapp.utils.cancelNotificationById
 import com.hoc.weatherapp.utils.debug
 import com.hoc.weatherapp.utils.showOrUpdateNotification
@@ -118,10 +118,10 @@ class SettingsActivity : AppCompatActivity() {
                         )
                         .addTo(compositeDisposable)
                 } else {
-                    requireContext().cancelNotificationById(NOTIFICATION_ID)
+                    requireContext().cancelNotificationById(WEATHER_NOTIFICATION_ID)
                 }
             } else {
-                requireContext().cancelNotificationById(NOTIFICATION_ID)
+                requireContext().cancelNotificationById(WEATHER_NOTIFICATION_ID)
             }
         }
 

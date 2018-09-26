@@ -101,5 +101,10 @@ data class CurrentWeather(
     /**
      * Sunset time, unix, UTC
      */
-    val sunset: Date
+    val sunset: Date,
+
+    /**
+     * Weather condition id
+     */
+    val weatherConditionId: Long
 ) : Parcelable

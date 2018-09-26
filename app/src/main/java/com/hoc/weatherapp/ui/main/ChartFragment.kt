@@ -14,7 +14,7 @@ import com.db.chart.model.LineSet
 import com.db.chart.util.Tools
 import com.db.chart.view.LineChartView
 import com.hoc.weatherapp.R
-import com.hoc.weatherapp.data.local.DailyWeatherDao
+import com.hoc.weatherapp.data.local.LocalDataSource
 import com.hoc.weatherapp.data.models.entity.City
 import com.hoc.weatherapp.data.models.entity.DailyWeather
 import com.hoc.weatherapp.data.remote.TemperatureUnit
@@ -39,9 +39,11 @@ import kotlinx.android.synthetic.main.fragment_chart.*
 import org.koin.android.ext.android.inject
 import java.util.Calendar
 import java.util.Locale
+import kotlin.math.ceil
+import kotlin.math.floor
 
 class ChartFragment : Fragment() {
-    private val dailyWeatherDao by inject<DailyWeatherDao>()
+    private val localDataSource by inject<LocalDataSource>()
     private val sharedPrefUtil by inject<SharedPrefUtil>()
 
     private val compositeDisposable = CompositeDisposable()
@@ -80,7 +82,7 @@ class ChartFragment : Fragment() {
 
         selectedCityFlowable
             .switchMap { city ->
-                dailyWeatherDao.getAllDailyWeathersByCityId(city.id)
+                localDataSource.getAllDailyWeathersByCityId(city.id)
                     .subscribeOn(Schedulers.io())
                     .filter { it.isNotEmpty() }
             }
@@ -185,10 +187,10 @@ class ChartFragment : Fragment() {
                 strokeWidth = 1f
             }
 
-            val min = map.min()!!
-            val max = map.max()!!
+            val min = floor(map.min()!!) - 1
+            val max = ceil(map.max()!!)
 
-            setGrid((max - min + 1).toInt(), 0, paint)
+            setGrid(ceil(max - min).toInt(), 0, paint)
                 .setBorderSpacing(Tools.fromDpToPx(8f).toInt())
                 .setAxisBorderValues(min, max)
                 .setStep(2)

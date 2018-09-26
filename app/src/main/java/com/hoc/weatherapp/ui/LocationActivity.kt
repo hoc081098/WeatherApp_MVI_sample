@@ -37,7 +37,7 @@ import com.hoc.weatherapp.utils.SharedPrefUtil
 import com.hoc.weatherapp.utils.SwipeController
 import com.hoc.weatherapp.utils.SwipeControllerActions
 import com.hoc.weatherapp.utils.debug
-import com.hoc.weatherapp.utils.getIconDrawableFromIconString
+import com.hoc.weatherapp.utils.getIconDrawableFromCurrentWeather
 import com.hoc.weatherapp.utils.snackBar
 import com.hoc.weatherapp.utils.startActivity
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -116,16 +116,14 @@ class CityAdapter(
             radioButtonSelectedCity.isChecked = weather.city.id == selectedCityId
 
             Glide.with(itemView.context)
-                .load(getIconDrawableFromIconString(weather.icon))
+                .load(itemView.context.getIconDrawableFromCurrentWeather(weather))
                 .apply(fitCenterTransform().centerCrop())
                 .transition(DrawableTransitionOptions.withCrossFade())
                 .apply(
                     ContextCompat.getColor(
                         itemView.context,
                         R.color.colorPrimaryDark
-                    )
-                        .let(::ColorDrawable)
-                        .let(::placeholderOf)
+                    ).let(::ColorDrawable).let(::placeholderOf)
                 )
                 .into(imageIconCityItem)
         }
@@ -216,6 +214,7 @@ class LocationActivity : AppCompatActivity() {
     private fun deleteWeather(city: City, adapterPosition: Int) {
         val newSelectedCity = weathers.getOrNull(adapterPosition + 1)?.city
             ?: weathers.getOrNull(adapterPosition - 1)?.city
+        val selectedId = cityAdapter.selectedCityId
 
         weatherRepository.deleteCityById(city.id)
             .subscribeOn(Schedulers.io())
@@ -228,7 +227,7 @@ class LocationActivity : AppCompatActivity() {
                     /**
                      * If selected city is deleted, then newSelectedCity will be selected city
                      */
-                    if (cityAdapter.selectedCityId == city.id) {
+                    if (selectedId == city.id) {
                         onChangeSelectedCity(newSelectedCity)
                     }
 
@@ -243,7 +242,9 @@ class LocationActivity : AppCompatActivity() {
                             .subscribeBy(
                                 onError = { root_location_activity.snackBar("Undo error: ${it.message}") },
                                 onNext = {
-                                    onChangeSelectedCity(it)
+                                    if (it.id == selectedId) {
+                                        onChangeSelectedCity(it)
+                                    }
                                     root_location_activity.snackBar("Undo successfully!")
                                 }
                             )

@@ -10,3 +10,8 @@ fun <T : Any> T?.toOptional(): Optional<T> = when (this) {
     null -> None
     else -> Some(this)
 }
+
+fun <T> Optional<T>.getOrNull(): T? = when (this) {
+    is Some -> value
+    else -> null
+}
