@@ -99,4 +99,10 @@
     <string name="key_temperature_unit">temperature_unit</string>
     <string name="pref_title_select_temperature_unit">Select temperature unit</string>
     <string name="no_selected_city">No selected city</string>
+
+    <string name="app_id">24ddc04fbdc34946bea8c12a327dd17c</string>
+    <string name="rain">Rain</string>
+    <string name="wind">Wind</string>
+    <string name="temperature">Temperature</string>
+    <string name="weather_map">Weather map</string>
 </resources>

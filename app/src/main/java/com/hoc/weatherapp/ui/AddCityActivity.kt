@@ -4,7 +4,6 @@ import android.Manifest.permission.ACCESS_COARSE_LOCATION
 import android.Manifest.permission.ACCESS_FINE_LOCATION
 import android.app.Activity
 import android.content.Intent
-import android.content.IntentSender
 import android.content.pm.PackageManager.PERMISSION_GRANTED
 import android.location.Location
 import android.os.Bundle
@@ -198,7 +197,7 @@ class AddCityActivity : AppCompatActivity() {
         val publishProcessor = PublishProcessor.create<Location>()
 
         val locationRequest = LocationRequest().apply {
-            interval = 5_000
+            interval = 2_000
             fastestInterval = 1_000
             priority = LocationRequest.PRIORITY_HIGH_ACCURACY
             numUpdates = 1
@@ -215,7 +214,6 @@ class AddCityActivity : AppCompatActivity() {
             // All location settings are satisfied. The client can initialize
             // location requests here.
             // ...
-
             if (checkSelfPermission(this, ACCESS_FINE_LOCATION) != PERMISSION_GRANTED
                 && checkSelfPermission(this, ACCESS_COARSE_LOCATION) != PERMISSION_GRANTED
             ) return@addOnSuccessListener
@@ -226,9 +224,9 @@ class AddCityActivity : AppCompatActivity() {
                     object : LocationCallback() {
                         override fun onLocationResult(locationResult: LocationResult?) {
                             locationResult?.lastLocation?.let {
+                                fusedLocationProviderClient.removeLocationUpdates(this)
                                 publishProcessor.onNext(it)
                                 publishProcessor.onComplete()
-                                fusedLocationProviderClient.removeLocationUpdates(this)
                             }
                         }
                     },
@@ -239,15 +237,13 @@ class AddCityActivity : AppCompatActivity() {
             if (exception is ResolvableApiException) {
                 // Location settings are not satisfied, but this can be fixed
                 // by showing the user a dialog.
-                try {
+                runCatching {
                     // Show the dialog by calling startResolutionForResult(),
                     // and check the result in onActivityResult().
                     exception.startResolutionForResult(
                         this,
                         REQUEST_CHECK_SETTINGS
                     )
-                } catch (sendEx: IntentSender.SendIntentException) {
-                    // Ignore the error.
                 }
             }
         }
@@ -320,12 +316,8 @@ class AddCityActivity : AppCompatActivity() {
         private const val LOCATION_PERMISSION_RC = 2
         private const val COUNT_REQUEST_LOCATION_PERMISSION =
             "COUNT_REQUEST_LOCATION_PERMISSION"
-
-        // private const val LOCATION_PERMISSION_RC1 = 1
         private const val REQUEST_CHECK_SETTINGS = 3
-
         private const val MAX_NUMBER_REQUEST_PERMISSON = 2
-
         const val ACTION_CHANGED_LOCATION = "ACTION_CHANGED_LOCATION"
         const val EXTRA_SELECTED_CITY = "EXTRA_SELECTED_CITY"
     }

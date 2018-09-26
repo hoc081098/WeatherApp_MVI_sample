@@ -248,7 +248,7 @@ class LocationActivity : AppCompatActivity() {
                                     root_location_activity.snackBar("Undo successfully!")
                                 }
                             )
-                            .addTo(compositeDisposable)
+                            .addTo(compositeDisposeble1)
                     }.show()
                 }
             )
