@@ -8,9 +8,11 @@ import android.graphics.Canvas
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
@@ -25,7 +27,6 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.bumptech.glide.request.RequestOptions.fitCenterTransform
 import com.bumptech.glide.request.RequestOptions.placeholderOf
-import com.google.android.material.snackbar.Snackbar
 import com.hoc.weatherapp.R
 import com.hoc.weatherapp.data.WeatherRepository
 import com.hoc.weatherapp.data.models.entity.City
@@ -40,15 +41,19 @@ import com.hoc.weatherapp.utils.debug
 import com.hoc.weatherapp.utils.getIconDrawableFromCurrentWeather
 import com.hoc.weatherapp.utils.snackBar
 import com.hoc.weatherapp.utils.startActivity
+import com.hoc.weatherapp.utils.textChange
+import com.hoc.weatherapp.utils.toast
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.addTo
+import io.reactivex.rxkotlin.combineLatest
 import io.reactivex.rxkotlin.subscribeBy
 import io.reactivex.rxkotlin.zipWith
 import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_location.*
 import kotlinx.android.synthetic.main.city_item_layout.view.*
 import org.koin.android.ext.android.inject
+import java.util.concurrent.TimeUnit
 
 class CityAdapter(
     selectedCityId: Long?,
@@ -155,7 +160,7 @@ class LocationActivity : AppCompatActivity() {
         }
 
         fab.setOnClickListener { startActivity<AddCityActivity>() }
-
+        search_view.setHint("Search...")
         setupRecyclerViewCities()
 
         localBroadcastManager.registerReceiver(
@@ -198,8 +203,19 @@ class LocationActivity : AppCompatActivity() {
                 }
 
                 override fun onRightClicked(adapterPosition: Int) {
-                    weathers.getOrNull(adapterPosition)
-                        ?.let { deleteWeather(it.city, adapterPosition) }
+                    AlertDialog.Builder(this@LocationActivity)
+                        .setTitle("Delete city")
+                        .setMessage("Do you want to delete this city")
+                        .setIcon(R.drawable.ic_delete_black_24dp)
+                        .setNegativeButton("Cancel") { dialog, _ -> dialog.dismiss() }
+                        .setPositiveButton("Ok") { dialog, _ ->
+                            dialog.dismiss()
+                            deleteWeather(
+                                weathers.getOrNull(adapterPosition)?.city
+                                    ?: return@setPositiveButton, adapterPosition
+                            )
+                        }
+                        .show()
                 }
             })
             ItemTouchHelper(swipeController).attachToRecyclerView(this)
@@ -230,26 +246,7 @@ class LocationActivity : AppCompatActivity() {
                     if (selectedId == city.id) {
                         onChangeSelectedCity(newSelectedCity)
                     }
-
-                    Snackbar.make(
-                        root_location_activity,
-                        "Delete ${city.name} successfully",
-                        Snackbar.LENGTH_SHORT
-                    ).setAction("Undo") {
-                        weatherRepository.getCityInformationAndSaveToLocal(city.lat, city.lng)
-                            .subscribeOn(Schedulers.io())
-                            .observeOn(AndroidSchedulers.mainThread())
-                            .subscribeBy(
-                                onError = { root_location_activity.snackBar("Undo error: ${it.message}") },
-                                onNext = {
-                                    if (it.id == selectedId) {
-                                        onChangeSelectedCity(it)
-                                    }
-                                    root_location_activity.snackBar("Undo successfully!")
-                                }
-                            )
-                            .addTo(compositeDisposeble1)
-                    }.show()
+                    toast("Delete ${city.name} successfully")
                 }
             )
             .addTo(compositeDisposeble1)
@@ -326,12 +323,34 @@ class LocationActivity : AppCompatActivity() {
 
     override fun onStart() {
         super.onStart()
-        weatherRepository.getAllWeathers()
-            .subscribeOn(Schedulers.io())
+
+        search_view.textChange()
+            .startWith("")
+            .debounce(500, TimeUnit.MILLISECONDS)
+            .distinctUntilChanged()
+            .map { it.toLowerCase() }
+            .combineLatest(
+                weatherRepository.getAllWeathers()
+                    .subscribeOn(Schedulers.io())
+            )
+            .map { (searchString, weathers) ->
+                debug("Location: '$searchString' ${weathers.size}", "@@@")
+                if (searchString.isBlank()) {
+                    weathers
+                } else {
+                    weathers.filter {
+                        searchString in it.city.name.toLowerCase()
+                            || searchString in it.city.country.toLowerCase()
+                            || searchString in it.description.toLowerCase()
+                            || searchString in it.main.toLowerCase()
+                    }
+                }
+            }
             .observeOn(AndroidSchedulers.mainThread())
             .subscribeBy(
                 onError = {},
                 onNext = {
+                    debug("Location: ${it.size}", "@@@")
                     cityAdapter.submitList(it)
                     weathers = it
                 }
@@ -367,6 +386,20 @@ class LocationActivity : AppCompatActivity() {
                     }
                 }
             }
+        }
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.menu_location, menu)
+        menu?.findItem(R.id.action_search)?.let(search_view::setMenuItem)
+        return true
+    }
+
+    override fun onBackPressed() {
+        if (search_view.isSearchOpen) {
+            search_view.closeSearch()
+        } else {
+            super.onBackPressed()
         }
     }
 

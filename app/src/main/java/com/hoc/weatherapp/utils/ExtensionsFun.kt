@@ -14,10 +14,12 @@ import androidx.fragment.app.Fragment
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.google.android.gms.tasks.Task
 import com.google.android.material.snackbar.Snackbar
+import com.miguelcatalan.materialsearchview.MaterialSearchView
 import io.reactivex.BackpressureStrategy
 import io.reactivex.Flowable
 import io.reactivex.FlowableEmitter
 import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.processors.BehaviorProcessor
 
 @IntDef(value = [Toast.LENGTH_SHORT, Toast.LENGTH_LONG])
 @Retention(AnnotationRetention.SOURCE)
@@ -98,4 +100,18 @@ fun Context.receivesLocal(intentFilter: IntentFilter): Flowable<Intent> {
             }
         }
     }, BackpressureStrategy.LATEST)
+}
+
+fun MaterialSearchView.textChange(): Flowable<String> {
+    val processor = BehaviorProcessor.create<String>()
+    setOnQueryTextListener(object : MaterialSearchView.OnQueryTextListener {
+        override fun onQueryTextSubmit(query: String?) = true
+
+        override fun onQueryTextChange(newText: String?) =
+            newText?.let {
+                processor.onNext(it)
+                true
+            } == true
+    })
+    return processor.onBackpressureLatest().hide()
 }

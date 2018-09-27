@@ -3,6 +3,8 @@ package com.hoc.weatherapp.ui
 import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.WindowManager
+import android.webkit.WebView
+import android.webkit.WebViewClient
 import androidx.appcompat.app.AppCompatActivity
 import com.hoc.weatherapp.R
 import com.hoc.weatherapp.data.models.entity.City
@@ -47,6 +49,13 @@ class MapActivity : AppCompatActivity() {
             setInitialScale(1)
             settings.loadWithOverviewMode = true
             settings.useWideViewPort = true
+            webViewClient = object: WebViewClient() {
+                @Suppress("OverridingDeprecatedMember")
+                override fun shouldOverrideUrlLoading(view: WebView?, url: String): Boolean {
+                    view?.loadUrl(url)
+                    return true
+                }
+            }
         }
     }
 }
