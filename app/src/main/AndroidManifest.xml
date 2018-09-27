@@ -65,9 +65,7 @@
         <receiver
             android:name=".CancelNotificationReceiver"
             android:exported="false">
-            <intent-filter>
-                <action android:name="com.hoc.weatherapp.CancelNotificationReceiver" />
-            </intent-filter>
+
         </receiver>
 
     </application>

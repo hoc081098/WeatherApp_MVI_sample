@@ -1,22 +1,32 @@
 package com.hoc.weatherapp.ui.main
 
 import android.content.IntentFilter
+import android.graphics.Bitmap
+import android.graphics.drawable.Drawable
 import android.media.MediaPlayer
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.view.WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS
+import android.view.WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS
+import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentPagerAdapter
 import androidx.lifecycle.Observer
+import androidx.palette.graphics.Palette
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.resource.bitmap.BitmapTransitionOptions
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.bumptech.glide.request.RequestOptions
+import com.bumptech.glide.request.target.CustomViewTarget
+import com.bumptech.glide.request.transition.Transition
 import com.hoc.weatherapp.R
 import com.hoc.weatherapp.data.local.LocalDataSource
 import com.hoc.weatherapp.data.models.entity.City
@@ -67,6 +77,10 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        window.addFlags(FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
+        window.clearFlags(FLAG_TRANSLUCENT_STATUS)
+
         setContentView(R.layout.activity_main)
 
         setSupportActionBar(toolbar)
@@ -78,6 +92,7 @@ class MainActivity : AppCompatActivity() {
 
         setupViewPager()
 
+        @Suppress("UnstableApiUsage")
         receivesLocal(
             IntentFilter().apply {
                 addAction(ACTION_CHANGED_LOCATION)
@@ -238,11 +253,34 @@ class MainActivity : AppCompatActivity() {
 
     private fun updateBackground(weather: CurrentWeather) {
         Glide.with(this)
+            .asBitmap()
             .load(getBackgroundDrawableFromWeather(weather))
-            .transition(DrawableTransitionOptions.withCrossFade())
-            .apply(RequestOptions.fitCenterTransform().centerCrop())
-            .apply(RequestOptions.bitmapTransform(GlideBlurTransformation(this, 25f)))
-            .into(image_background)
+            .apply(
+                RequestOptions
+                    .bitmapTransform(GlideBlurTransformation(this, 25f))
+                    .fitCenter()
+                    .centerCrop()
+            )
+            .transition(BitmapTransitionOptions.withCrossFade())
+            .into(object : CustomViewTarget<ImageView, Bitmap>(image_background) {
+                override fun onLoadFailed(errorDrawable: Drawable?) = Unit
+
+                override fun onResourceCleared(placeholder: Drawable?) = Unit
+
+                override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
+                    view.setImageBitmap(resource)
+                    Palette.from(resource)
+                        .generate {
+                            it ?: return@generate
+                            window.statusBarColor = it.getDarkVibrantColor(
+                                ContextCompat.getColor(
+                                    this@MainActivity,
+                                    R.color.colorPrimaryDark
+                                )
+                            ).also { debug("Color $it", "@@@") }
+                        }
+                }
+            })
     }
 
     fun updateUi(weather: CurrentWeather?) {

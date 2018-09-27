@@ -7,6 +7,7 @@ import android.content.Intent
 import androidx.core.app.NotificationCompat
 import androidx.core.text.HtmlCompat
 import com.hoc.weatherapp.App
+import com.hoc.weatherapp.CancelNotificationReceiver
 import com.hoc.weatherapp.R
 import com.hoc.weatherapp.data.models.entity.CurrentWeather
 import com.hoc.weatherapp.data.remote.TemperatureUnit
@@ -36,14 +37,16 @@ fun Context.showOrUpdateNotification(weather: CurrentWeather, unit: TemperatureU
             PendingIntent.getBroadcast(
                 this,
                 0,
-                Intent(ACTION_CANCEL_NOTIFICATION),
+                Intent(this, CancelNotificationReceiver::class.java).apply {
+                    action = ACTION_CANCEL_NOTIFICATION
+                },
                 PendingIntent.FLAG_CANCEL_CURRENT
             )
         )
         .setAutoCancel(false)
         .setOngoing(true)
         .setWhen(System.currentTimeMillis())
-        .setPriority(NotificationCompat.PRIORITY_HIGH)
+        .setPriority(NotificationCompat.PRIORITY_DEFAULT)
 
     val resultPendingIntent = PendingIntent.getActivity(
         this,

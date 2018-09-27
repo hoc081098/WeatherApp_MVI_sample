@@ -105,4 +105,5 @@
     <string name="wind">Wind</string>
     <string name="temperature">Temperature</string>
     <string name="weather_map">Weather map</string>
+    <string name="search">Search</string>
 </resources>
