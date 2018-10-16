@@ -1,35 +1,11 @@
 package com.hoc.weatherapp.data.local
 
-import com.hoc.weatherapp.data.models.entity.CurrentWeather
 import com.hoc.weatherapp.data.models.entity.DailyWeather
 import io.reactivex.Completable
 import io.reactivex.Flowable
 import io.reactivex.Single
 
-class LocalDataSource(
-    private val weatherDao: WeatherDao,
-    private val dailyWeatherDao: DailyWeatherDao
-) {
-    fun getCurrentWeatherById(id: Long): Flowable<CurrentWeather> {
-        return weatherDao.getCurrentWeatherById(id)
-    }
-
-    fun insertOrCurrentWeather(weather: CurrentWeather): Completable {
-        return Completable.fromCallable {
-            weatherDao.upsert(weather)
-        }
-    }
-
-    fun getAllWeathers(): Flowable<List<CurrentWeather>> {
-        return weatherDao.getAllWeathers()
-    }
-
-    fun deleteWeatherById(id: Long): Completable {
-        return Completable.fromAction {
-            weatherDao.deleteWeatherById(id)
-        }
-    }
-
+class DailyWeatherLocalDataSource(private val dailyWeatherDao: DailyWeatherDao) {
     fun getAllDailyWeathersByCityId(id: Long): Flowable<List<DailyWeather>> {
         return dailyWeatherDao.getAllDailyWeathersByCityId(id)
     }
@@ -47,10 +23,6 @@ class LocalDataSource(
         return Completable.fromAction {
             dailyWeatherDao.deleteAllDailyWeathersByCityId(id)
         }
-    }
-
-    fun getCurrentWeatherByIdSingle(id: Long): Single<CurrentWeather> {
-        return weatherDao.getCurrentWeatherByIdSingle(id)
     }
 
     fun getAllDailyWeathersByCityIdSingle(id: Long): Single<List<DailyWeather>> {

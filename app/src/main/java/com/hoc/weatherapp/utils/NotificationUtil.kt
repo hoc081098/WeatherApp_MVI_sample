@@ -17,7 +17,12 @@ import com.hoc.weatherapp.ui.main.MainActivity
 const val WEATHER_NOTIFICATION_ID = 2
 const val ACTION_CANCEL_NOTIFICATION = "com.hoc.weatherapp.CancelNotificationReceiver"
 
-fun Context.showOrUpdateNotification(weather: CurrentWeather, unit: TemperatureUnit) {
+fun Context.showOrUpdateNotification(
+    weather: CurrentWeather,
+    cityName: String,
+    cityCountry: String,
+    unit: TemperatureUnit
+) {
     val temperature = unit.format(weather.temperature)
 
     val text = HtmlCompat.fromHtml(
@@ -28,7 +33,7 @@ fun Context.showOrUpdateNotification(weather: CurrentWeather, unit: TemperatureU
     )
     val builder = NotificationCompat.Builder(this, App.CHANNEL_ID)
         .setSmallIcon(getIconDrawableFromCurrentWeather(weather))
-        .setContentTitle("${weather.city.name} - ${weather.city.country}")
+        .setContentTitle("$cityName - $cityCountry")
         .setContentText(temperature)
         .setStyle(NotificationCompat.BigTextStyle().bigText(text))
         .addAction(

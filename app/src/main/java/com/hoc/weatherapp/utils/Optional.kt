@@ -3,8 +3,10 @@ package com.hoc.weatherapp.utils
 @Suppress("unused")
 sealed class Optional<out T>
 
-class Some<T : Any>(val value: T) : Optional<T>()
-object None : Optional<Nothing>()
+data class Some<T : Any>(val value: T) : Optional<T>()
+object None : Optional<Nothing>() {
+    override fun toString() = "None"
+}
 
 fun <T : Any> T?.toOptional(): Optional<T> = when (this) {
     null -> None
