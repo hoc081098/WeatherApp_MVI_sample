@@ -5,7 +5,7 @@ import com.squareup.moshi.Json
 class Sys(
     @Json(name = "type")
     val type: Long? = null,
-    @Json(name = "id")
+    @Json(name = "weatherId")
     val id: Long? = null,
     @Json(name = "message")
     val message: Double? = null,

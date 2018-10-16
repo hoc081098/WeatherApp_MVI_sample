@@ -7,7 +7,7 @@ class City(
     /**
      * City ID
      */
-    @Json(name = "id")
+    @Json(name = "weatherId")
     val id: Long? = null,
     /**
      * City name

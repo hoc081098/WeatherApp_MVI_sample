@@ -30,32 +30,22 @@ class SharedPrefUtil(
             R.string.key_show_notification
         ), default = true
     )
-    private var hasSelectedCity by sharedPreferences.delegate<Boolean>()
     private var selectedCityJsonString by sharedPreferences.delegate<String>()
 
     var selectedCity: City?
-        get() = when {
-            !hasSelectedCity -> null
-            else -> try {
-                moshi.adapter(City::class.java).fromJson(selectedCityJsonString)
-            } catch (e: IOException) {
+        get() = try {
+            moshi.adapter(City::class.java).fromJson(selectedCityJsonString)
+        } catch (e: IOException) {
+            null
+        }
+        set(value) {
+            val json = try {
+                moshi.adapter(City::class.java).toJson(value)
+            } catch (e: Exception) {
                 null
             }
-        }
-        set(value) = when (value) {
-            null -> hasSelectedCity = false
-            else -> {
-                val json = try {
-                    moshi.adapter(City::class.java).toJson(value)
-                } catch (e: Exception) {
-                    null
-                }
-                if (json == null) {
-                    hasSelectedCity = false
-                } else {
-                    hasSelectedCity = true
-                    selectedCityJsonString = json
-                }
+            if (json != null) {
+                selectedCityJsonString = json
             }
         }
 }

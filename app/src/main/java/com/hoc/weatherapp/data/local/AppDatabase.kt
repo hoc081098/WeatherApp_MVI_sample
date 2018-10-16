@@ -28,7 +28,8 @@ object Converters {
 )
 @TypeConverters(value = [Converters::class])
 abstract class AppDatabase : RoomDatabase() {
-    abstract fun weatherDao(): WeatherDao
+    abstract fun cityDao(): CityDao
+    abstract fun weatherDao(): CurrentWeatherDao
     abstract fun dailyWeatherDao(): DailyWeatherDao
 
     companion object {

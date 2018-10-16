@@ -55,13 +55,20 @@ dependencies {
     implementation 'com.google.android.gms:play-services-maps:15.0.1'
 
     // roomdb
+    def roomVersion =
     implementation 'androidx.room:room-runtime:2.0.0-rc01'
     kapt 'androidx.room:room-compiler:2.0.0-rc01'
     implementation 'androidx.room:room-rxjava2:2.0.0-rc01'
 
     // work manager
-    def work_version = "1.0.0-alpha09"
-    implementation "android.arch.work:work-runtime-ktx:$work_version"
+    def workVersion = '1.0.0-alpha09'
+    implementation "android.arch.work:work-runtime-ktx:$workVersion"
+
+    def mosbyVersion = '3.1.0'
+    implementation("com.hannesdorfmann.mosby3:mvi:$mosbyVersion") {
+        exclude group: 'com.hannesdorfmann.mosby3', module: 'utils-fragment'
+    }
+
 
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test:runner:1.1.0-alpha4'

@@ -69,7 +69,7 @@ data class DailyWeather(
     val description: String,
 
     /**
-     * Weather icon id
+     * Weather icon weatherId
      */
     val icon: String,
 
