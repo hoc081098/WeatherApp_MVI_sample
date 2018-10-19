@@ -4,22 +4,13 @@ import android.graphics.Canvas
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.util.Log
-import android.view.LayoutInflater
-import android.view.Menu
-import android.view.MenuItem
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
-import androidx.recyclerview.widget.DiffUtil
-import androidx.recyclerview.widget.DividerItemDecoration
+import androidx.recyclerview.widget.*
 import androidx.recyclerview.widget.DividerItemDecoration.VERTICAL
-import androidx.recyclerview.widget.ItemTouchHelper
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.ListAdapter
-import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.bumptech.glide.request.RequestOptions.fitCenterTransform
@@ -29,13 +20,7 @@ import com.hoc.weatherapp.data.Repository
 import com.hoc.weatherapp.data.models.entity.City
 import com.hoc.weatherapp.data.models.entity.CityAndCurrentWeather
 import com.hoc.weatherapp.data.remote.TemperatureUnit
-import com.hoc.weatherapp.utils.None
-import com.hoc.weatherapp.utils.SharedPrefUtil
-import com.hoc.weatherapp.utils.SwipeController
-import com.hoc.weatherapp.utils.SwipeControllerActions
-import com.hoc.weatherapp.utils.debug
-import com.hoc.weatherapp.utils.getIconDrawableFromCurrentWeather
-import com.hoc.weatherapp.utils.toast
+import com.hoc.weatherapp.utils.*
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.addTo
@@ -112,7 +97,7 @@ class CityAdapter(
                 weather.city.country
             )
             textWeather.text =
-                "${weather.currentWeather.description.capitalize()}, $temperatureMin ~ $temperatureMax"
+                    "${weather.currentWeather.description.capitalize()}, $temperatureMin ~ $temperatureMax"
             radioButtonSelectedCity.isChecked = weather.city.id == selectedCityId
 
             Glide.with(itemView.context)
@@ -160,7 +145,7 @@ class LocationsActivity : AppCompatActivity() {
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribeBy(
                     onError = { toast(it.message.toString());Log.d("@@@", it.message, it) },
-                    onComplete = { toast("Add done") }
+                    onSuccess = { toast("Add done") }
                 )
         }
         search_view.setHint("Search...")

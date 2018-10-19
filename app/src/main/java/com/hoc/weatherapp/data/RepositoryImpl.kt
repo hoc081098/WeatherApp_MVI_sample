@@ -9,22 +9,19 @@ import com.hoc.weatherapp.data.models.entity.CityAndCurrentWeather
 import com.hoc.weatherapp.data.models.entity.DailyWeather
 import com.hoc.weatherapp.data.models.forecastweather.FiveDayForecastResponse
 import com.hoc.weatherapp.data.remote.WeatherApiService
-import com.hoc.weatherapp.utils.None
-import com.hoc.weatherapp.utils.Optional
-import com.hoc.weatherapp.utils.SharedPrefUtil
-import com.hoc.weatherapp.utils.Some
-import com.hoc.weatherapp.utils.debug
-import com.hoc.weatherapp.utils.getOrNull
-import com.hoc.weatherapp.utils.toOptional
+import com.hoc.weatherapp.utils.*
 import io.reactivex.Completable
 import io.reactivex.Flowable
+import io.reactivex.Single
 import io.reactivex.processors.BehaviorProcessor
 import io.reactivex.rxkotlin.ofType
 import io.reactivex.schedulers.Schedulers
 
 private const val TAG = "$#"
 
-object NoSelectedCity : Exception()
+object NoSelectedCityException : Exception() {
+    override val message = "No selected city"
+}
 
 class RepositoryImpl(
     private val weatherApiService: WeatherApiService,
@@ -40,12 +37,12 @@ class RepositoryImpl(
     override fun deleteSelectedCity(): Completable {
         return when (val city: Optional<City>? = selectedCityProcessor.value) {
             null -> Completable.error(IllegalStateException("BehaviorProcessor::value is null"))
-            is None -> Completable.error(NoSelectedCity)
+            is None -> Completable.error(NoSelectedCityException)
             is Some<City> -> deleteCity(city.value)
         }.doOnComplete { debug("::doOnComplete::refreshCurrentWeather", TAG) }
     }
 
-    private fun saveCityAndCurrentWeather(response: CurrentWeatherResponse): Completable {
+    private fun saveCityAndCurrentWeather(response: CurrentWeatherResponse): Single<CityAndCurrentWeather> {
         val city = Mapper.responseToCity(response)
         val weather = Mapper.responseToCurrentWeatherEntity(response)
 
@@ -75,21 +72,27 @@ class RepositoryImpl(
                     )
                 },
             changeSelectedCity(city)
-        ).subscribeOn(Schedulers.io())
+        ).subscribeOn(Schedulers.io()).toSingle {
+            CityAndCurrentWeather().apply {
+                this.city = city
+                this.currentWeather = weather
+            }
+        }
     }
 
     private fun saveFiveDayForecaseWeather(response: FiveDayForecastResponse): Completable {
         TODO()
     }
 
-    override fun refreshCurrentWeather(): Completable {
+    override fun refreshCurrentWeather(): Single<CityAndCurrentWeather> {
         return when (val city: Optional<City>? = selectedCityProcessor.value) {
-            null -> Completable.error(IllegalStateException("BehaviorProcessor::value is null"))
-            is None -> Completable.error(NoSelectedCity)
+            null -> Single.error(IllegalStateException("BehaviorProcessor::value is null"))
+            is None -> Single.error(NoSelectedCityException)
             is Some<City> -> weatherApiService.getCurrentWeatherByCityId(city.value.id)
                 .subscribeOn(Schedulers.io())
-                .flatMapCompletable(::saveCityAndCurrentWeather)
-        }.doOnComplete { debug("::doOnComplete::refreshCurrentWeather", TAG) }
+                .flatMap(::saveCityAndCurrentWeather)
+
+        }.doOnSuccess { debug("::doOnSuccess::refreshCurrentWeather", TAG) }
     }
 
     override fun getCityAndCurrentWeatherByCity(): Flowable<Optional<CityAndCurrentWeather>> {
@@ -118,10 +121,11 @@ class RepositoryImpl(
             .doOnComplete { debug("::doOnComplete::changeSelectedCity $city", TAG) }
     }
 
-    override fun getCityInformationByLatLng(latitude: Double, longitude: Double): Completable {
+    override fun getCityInformationByLatLng(latitude: Double, longitude: Double): Single<City> {
         return weatherApiService.getCurrentWeatherByLatLng(latitude, longitude)
             .subscribeOn(Schedulers.io())
-            .flatMapCompletable(::saveCityAndCurrentWeather)
+            .flatMap(::saveCityAndCurrentWeather)
+            .map { it.city }
     }
 
     override fun deleteCity(city: City): Completable {
@@ -162,7 +166,7 @@ class RepositoryImpl(
             .onErrorReturn { None }
             .flatMapCompletable {
                 when (it) {
-                    is None -> Completable.error(NoSelectedCity)
+                    is None -> Completable.error(NoSelectedCityException)
                     is Some<City> -> weatherApiService.get5DayEvery3HourForecastByCityId(it.value.id)
                         .subscribeOn(Schedulers.io())
                         .flatMapCompletable(::saveFiveDayForecaseWeather)

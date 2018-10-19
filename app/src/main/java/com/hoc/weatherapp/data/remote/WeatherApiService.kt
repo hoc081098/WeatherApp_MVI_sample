@@ -4,6 +4,7 @@ import com.hoc.weatherapp.data.models.currentweather.CurrentWeatherResponse
 import com.hoc.weatherapp.data.models.forecastweather.FiveDayForecastResponse
 import com.hoc.weatherapp.utils.UnitConvertor
 import io.reactivex.Flowable
+import io.reactivex.Single
 import retrofit2.http.GET
 import retrofit2.http.Query
 import java.text.DecimalFormat
@@ -62,12 +63,12 @@ interface WeatherApiService {
     fun getCurrentWeatherByLatLng(
         @Query("lat") lat: Double,
         @Query("lon") lon: Double
-    ): Flowable<CurrentWeatherResponse>
+    ): Single<CurrentWeatherResponse>
 
     @GET("weather")
     fun getCurrentWeatherByCityId(
         @Query("id") id: Long
-    ): Flowable<CurrentWeatherResponse>
+    ): Single<CurrentWeatherResponse>
 
     @GET("weather")
     fun getCurrentWeatherByCityName(

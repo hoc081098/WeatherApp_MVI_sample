@@ -4,7 +4,7 @@ import android.os.Parcelable
 import androidx.room.Embedded
 import androidx.room.Entity
 import kotlinx.android.parcel.Parcelize
-import java.util.Date
+import java.util.*
 
 @Parcelize
 @Entity(tableName = "five_day_forecast", primaryKeys = ["id", "timeOfDataForecasted"])

@@ -1,12 +1,8 @@
 package com.hoc.weatherapp.data.local
 
 import android.database.sqlite.SQLiteConstraintException
-import androidx.room.Dao
-import androidx.room.Delete
-import androidx.room.Insert
+import androidx.room.*
 import androidx.room.OnConflictStrategy.FAIL
-import androidx.room.Query
-import androidx.room.Update
 import com.hoc.weatherapp.data.models.entity.City
 import com.hoc.weatherapp.utils.debug
 import io.reactivex.Flowable

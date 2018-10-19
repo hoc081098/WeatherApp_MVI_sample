@@ -5,7 +5,7 @@ import androidx.annotation.DrawableRes
 import com.hoc.weatherapp.R
 import com.hoc.weatherapp.data.models.entity.CurrentWeather
 import com.hoc.weatherapp.data.models.entity.DailyWeather
-import java.util.Calendar
+import java.util.*
 
 /**
  * 01d, 01n -> clear sky
@@ -30,8 +30,8 @@ private fun isDay(w: CurrentWeather): Boolean {
 fun getBackgroundDrawableFromWeather(weather: CurrentWeather): Int {
     return when {
         weather.weatherConditionId == 800L
-            && isDay(weather)
-            && weather.temperature > 35 + 273.15 /* 35℃ */ -> {
+                && isDay(weather)
+                && weather.temperature > 35 + 273.15 /* 35℃ */ -> {
             R.drawable.hot_bg
         }
 
