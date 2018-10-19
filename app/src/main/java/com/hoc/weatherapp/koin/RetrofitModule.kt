@@ -1,12 +1,7 @@
 package com.hoc.weatherapp.koin
 
 import com.hoc.weatherapp.BuildConfig
-import com.hoc.weatherapp.data.remote.APP_ID
-import com.hoc.weatherapp.data.remote.BASE_URL
-import com.hoc.weatherapp.data.remote.BASE_URL_HELPER
-import com.hoc.weatherapp.data.remote.HelperApiService
-import com.hoc.weatherapp.data.remote.TemperatureUnit
-import com.hoc.weatherapp.data.remote.WeatherApiService
+import com.hoc.weatherapp.data.remote.*
 import com.squareup.moshi.Moshi
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor

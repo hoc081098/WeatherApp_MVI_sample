@@ -6,6 +6,7 @@ import com.hoc.weatherapp.data.models.entity.DailyWeather
 import com.hoc.weatherapp.utils.Optional
 import io.reactivex.Completable
 import io.reactivex.Flowable
+import io.reactivex.Single
 
 interface Repository {
     /**
@@ -19,7 +20,7 @@ interface Repository {
      */
     fun changeSelectedCity(city: City?): Completable
 
-    fun getCityInformationByLatLng(latitude: Double, longitude: Double): Completable
+    fun getCityInformationByLatLng(latitude: Double, longitude: Double): Single<City>
 
     fun deleteCity(city: City): Completable
 
@@ -33,7 +34,7 @@ interface Repository {
      * *********************************************************************************************
      */
 
-    fun refreshCurrentWeather(): Completable
+    fun refreshCurrentWeather(): Single<CityAndCurrentWeather>
 
     fun getCityAndCurrentWeatherByCity(): Flowable<Optional<CityAndCurrentWeather>>
 

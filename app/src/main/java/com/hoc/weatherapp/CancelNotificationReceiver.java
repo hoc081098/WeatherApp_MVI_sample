@@ -11,10 +11,10 @@ import static com.hoc.weatherapp.utils.NotificationUtilKt.WEATHER_NOTIFICATION_I
 import static com.hoc.weatherapp.utils.NotificationUtilKt.cancelNotificationById;
 
 public class CancelNotificationReceiver extends BroadcastReceiver {
-    @Override
-    public void onReceive(Context context, Intent intent) {
-        if (Objects.equals(intent.getAction(), ACTION_CANCEL_NOTIFICATION)) {
-            cancelNotificationById(context, WEATHER_NOTIFICATION_ID);
-        }
+  @Override
+  public void onReceive(Context context, Intent intent) {
+    if (Objects.equals(intent.getAction(), ACTION_CANCEL_NOTIFICATION)) {
+      cancelNotificationById(context, WEATHER_NOTIFICATION_ID);
     }
+  }
 }

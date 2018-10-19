@@ -7,57 +7,104 @@ import android.view.ViewGroup
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.bumptech.glide.request.RequestOptions
+import com.google.android.material.snackbar.Snackbar
 import com.hannesdorfmann.mosby3.mvi.MviFragment
 import com.hoc.weatherapp.R
 import com.hoc.weatherapp.data.models.WindDirection
 import com.hoc.weatherapp.data.models.entity.CurrentWeather
 import com.hoc.weatherapp.data.remote.TemperatureUnit.Companion.NUMBER_FORMAT
 import com.hoc.weatherapp.ui.LiveWeatherActivity
-import com.hoc.weatherapp.utils.SharedPrefUtil
-import com.hoc.weatherapp.utils.UnitConvertor
-import com.hoc.weatherapp.utils.getIconDrawableFromCurrentWeather
-import com.hoc.weatherapp.utils.refreshes
-import com.hoc.weatherapp.utils.snackBar
-import com.hoc.weatherapp.utils.startActivity
-import com.hoc.weatherapp.utils.toast
+import com.hoc.weatherapp.ui.main.CurrentWeatherContract.ViewState
+import com.hoc.weatherapp.ui.main.CurrentWeatherContract.ViewState.*
+import com.hoc.weatherapp.utils.*
 import io.reactivex.Observable
 import kotlinx.android.synthetic.main.fragment_current_weather.*
 import org.koin.android.ext.android.get
 import org.koin.android.ext.android.inject
 import java.text.SimpleDateFormat
-import java.util.Locale
+import java.util.*
 
 class CurrentWeatherFragment : MviFragment<CurrentWeatherContract.View, CurrentWeatherPresenter>(),
     CurrentWeatherContract.View {
     private val sharedPrefUtil by inject<SharedPrefUtil>()
 
+    private var errorSnackbar: Snackbar? = null
+
+    private var weatherSnackBar: Snackbar? = null
+
+    private var noSelectedCitySnackbar: Snackbar? = null
+
     override fun refreshCurrentWeatherIntent(): Observable<Unit> {
         return swipe_refresh_layout.refreshes()
     }
 
-    override fun render(state: CurrentWeatherContract.ViewState) {
-        if (!state.hasSelectedCity) {
-            toast("No selected city")
-            renderNoSelectedCity()
-            return
+    override fun render(state: ViewState) {
+        when (state) {
+            is Loading -> renderLoading()
+            is Weather -> renderWeather(state)
+            is Error -> renderError(state)
+            is NoSelectedCity -> renderNoSelectedCity(state)
         }
-        if (state.error != null) {
-            renderError(state.error)
-        }
-        if (state.weather != null) {
-            renderCityAndWeather(state.weather)
-        }
-        swipe_refresh_layout.post { swipe_refresh_layout.isRefreshing = state.isLoading }
     }
 
-    private fun renderError(throwable: Throwable) {
+    private fun renderError(error: Error) {
         setRefreshingSwipeLayout(false)
-        view?.snackBar(throwable.message ?: "An error occurred")
+        if (error.showMessage) {
+            errorSnackbar = view?.snackBar(error.throwable.message ?: "An error occurred!")
+        } else {
+            errorSnackbar?.dismiss()
+        }
     }
 
-    private fun renderNoSelectedCity() {
+    private fun renderWeather(weather: Weather) {
         setRefreshingSwipeLayout(false)
-        view?.snackBar("Please select a city!")
+        if (weather.showMessage) {
+            weatherSnackBar =
+                    view?.snackBar("Weather has been updated!", Snackbar.LENGTH_INDEFINITE)
+        } else {
+            weatherSnackBar?.dismiss()
+        }
+
+        val temperature = UnitConvertor.convertTemperature(
+            weather.weather.temperature,
+            sharedPrefUtil.temperatureUnit
+        )
+        updateWeatherIcon(weather.weather)
+        text_temperature.text =
+                getString(R.string.temperature_degree, NUMBER_FORMAT.format(temperature))
+        text_main_weather.text = weather.weather.description.capitalize()
+        text_last_update.text =
+                getString(
+                    R.string.last_updated,
+                    SIMPLE_DATE_FORMAT.format(weather.weather.dataTime)
+                )
+        button_live.visibility = View.VISIBLE
+        card_view1.visibility = View.VISIBLE
+        text_pressure.text = "${weather.weather.pressure}hPa"
+        text_humidity.text = getString(R.string.humidity, weather.weather.humidity)
+        text_rain.text = "${"%.1f".format(weather.weather.rainVolumeForThe3Hours)}mm"
+        text_visibility.text = "${"%.1f".format(weather.weather.visibility / 1_000)}km"
+        card_view2.visibility = View.VISIBLE
+        windmill1.winSpeed = weather.weather.winSpeed
+        windmill2.winSpeed = weather.weather.winSpeed
+        text_wind_dir.text = getString(
+            R.string.wind_direction,
+            WindDirection.fromDegrees(weather.weather.winDegrees)
+        )
+        text_wind_speed.text = "Speed: ${weather.weather.winSpeed}m/s"
+    }
+
+    private fun renderLoading() {
+        setRefreshingSwipeLayout(true)
+    }
+
+    private fun renderNoSelectedCity(state: NoSelectedCity) {
+        setRefreshingSwipeLayout(false)
+        if (state.showMessage) {
+            noSelectedCitySnackbar = view?.snackBar("Please select a city!")
+        } else {
+            noSelectedCitySnackbar?.dismiss()
+        }
 
         image_icon.setImageDrawable(null)
         text_temperature.text = ""
@@ -72,38 +119,6 @@ class CurrentWeatherFragment : MviFragment<CurrentWeatherContract.View, CurrentW
         swipe_refresh_layout.post {
             swipe_refresh_layout.isRefreshing = isRefreshing
         }
-    }
-
-    private fun renderCityAndWeather(weather: CurrentWeather) {
-        setRefreshingSwipeLayout(false)
-        view?.snackBar("Get current weather successfully")
-
-        val temperature = UnitConvertor.convertTemperature(
-            weather.temperature,
-            sharedPrefUtil.temperatureUnit
-        )
-        updateWeatherIcon(weather)
-        text_temperature.text =
-            getString(R.string.temperature_degree, NUMBER_FORMAT.format(temperature))
-        text_main_weather.text = weather.description.capitalize()
-        text_last_update.text =
-            getString(R.string.last_updated, SIMPLE_DATE_FORMAT.format(weather.dataTime))
-        button_live.visibility = View.VISIBLE
-
-        card_view1.visibility = View.VISIBLE
-        text_pressure.text = "${weather.pressure}hPa"
-        text_humidity.text = getString(R.string.humidity, weather.humidity)
-        text_rain.text = "${"%.1f".format(weather.rainVolumeForThe3Hours)}mm"
-        text_visibility.text = "${"%.1f".format(weather.visibility / 1_000)}km"
-
-        card_view2.visibility = View.VISIBLE
-        windmill1.winSpeed = weather.winSpeed
-        windmill2.winSpeed = weather.winSpeed
-        text_wind_dir.text = getString(
-            R.string.wind_direction,
-            WindDirection.fromDegrees(weather.winDegrees)
-        )
-        text_wind_speed.text = "Speed: ${weather.winSpeed}m/s"
     }
 
     override fun createPresenter(): CurrentWeatherPresenter {

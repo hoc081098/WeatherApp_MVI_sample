@@ -5,7 +5,7 @@ import com.hoc.weatherapp.data.models.entity.City
 import com.hoc.weatherapp.data.models.entity.CurrentWeather
 import com.hoc.weatherapp.data.models.entity.DailyWeather
 import com.hoc.weatherapp.data.models.forecastweather.FiveDayForecastResponse
-import java.util.Date
+import java.util.*
 
 object Mapper {
     @JvmStatic

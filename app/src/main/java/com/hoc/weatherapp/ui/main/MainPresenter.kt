@@ -3,6 +3,7 @@ package com.hoc.weatherapp.ui.main
 import com.hannesdorfmann.mosby3.mvi.MviBasePresenter
 import com.hoc.weatherapp.data.Repository
 import com.hoc.weatherapp.data.models.entity.CityAndCurrentWeather
+import com.hoc.weatherapp.ui.main.MainContract.ViewState.*
 import com.hoc.weatherapp.utils.None
 import com.hoc.weatherapp.utils.Some
 import io.reactivex.Observable
@@ -14,21 +15,22 @@ class MainPresenter(private val repository: Repository) :
     override fun bindIntents() {
         val cityAndCurrentWeather = repository.getCityAndCurrentWeatherByCity()
             .toObservable()
-            .publish {
+            .publish { shared ->
                 Observable.merge(
-                    it.ofType<Some<CityAndCurrentWeather>>()
+                    shared.ofType<Some<CityAndCurrentWeather>>()
                         .map { it.value }
                         .map {
-                            MainContract.ViewState.CityAndWeather(
+                            CityAndWeather(
                                 it.city,
                                 it.currentWeather
                             )
                         },
-                    it.ofType<None>().map { MainContract.ViewState.NoSelectedCity }
+                    shared.ofType<None>().map { NoSelectedCity }
                 )
             }
             .distinctUntilChanged()
             .observeOn(AndroidSchedulers.mainThread())
+
         subscribeViewState(cityAndCurrentWeather, MainContract.View::render)
     }
 }
