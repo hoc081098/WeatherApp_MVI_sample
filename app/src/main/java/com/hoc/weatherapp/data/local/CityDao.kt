@@ -9,25 +9,25 @@ import io.reactivex.Flowable
 
 @Dao
 abstract class CityDao {
-    @Insert(onConflict = FAIL)
-    abstract fun insertCity(city: City)
+  @Insert(onConflict = FAIL)
+  abstract fun insertCity(city: City)
 
-    @Query("SELECT * FROM cities WHERE id = :id")
-    abstract fun getCityById(id: Long): Flowable<City>
+  @Query("SELECT * FROM cities WHERE id = :id")
+  abstract fun getCityById(id: Long): Flowable<City>
 
-    @Update
-    abstract fun updateCity(city: City)
+  @Update
+  abstract fun updateCity(city: City)
 
-    @Delete
-    abstract fun deleteCity(city: City)
+  @Delete
+  abstract fun deleteCity(city: City)
 
-    open fun upsert(city: City) {
-        try {
-            debug("Insert city=$city", "@@@")
-            insertCity(city)
-        } catch (e: SQLiteConstraintException) {
-            debug("Insert fail --> update city=$city", "@@@")
-            updateCity(city)
-        }
+  open fun upsert(city: City) {
+    try {
+      debug("Insert city=$city", "@@@")
+      insertCity(city)
+    } catch (e: SQLiteConstraintException) {
+      debug("Insert fail --> update city=$city", "@@@")
+      updateCity(city)
     }
+  }
 }

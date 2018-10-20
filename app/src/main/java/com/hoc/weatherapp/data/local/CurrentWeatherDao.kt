@@ -10,31 +10,38 @@ import io.reactivex.Single
 
 @Dao
 abstract class CurrentWeatherDao {
-    @Query("SELECT * FROM current_weathers, cities WHERE city_id = :cityId")
-    abstract fun getCityAndCurrentWeatherByCityId(cityId: Long): Flowable<CityAndCurrentWeather>
+  @Query("SELECT * FROM current_weathers, cities WHERE city_id = :cityId")
+  abstract fun getCityAndCurrentWeatherByCityId(cityId: Long): Flowable<CityAndCurrentWeather>
 
-    @Query("SELECT * FROM current_weathers, cities ORDER BY city_id")
-    abstract fun getAllCityAndCurrentWeathers(): Flowable<List<CityAndCurrentWeather>>
+  @Query(
+    """SELECT * FROM current_weathers, cities
+            WHERE cities.name LIKE '%' || :querySearch || '%'
+                   OR cities.country LIKE '%' || :querySearch || '%'
+                   OR current_weathers.description LIKE '%' || :querySearch || '%'
+                   OR current_weathers.main LIKE '%' || :querySearch || '%'
+            ORDER BY city_id"""
+  )
+  abstract fun getAllCityAndCurrentWeathers(querySearch: String): Flowable<List<CityAndCurrentWeather>>
 
-    @Insert(onConflict = OnConflictStrategy.FAIL)
-    abstract fun insertCurrentWeather(currentWeather: CurrentWeather)
+  @Insert(onConflict = OnConflictStrategy.FAIL)
+  abstract fun insertCurrentWeather(currentWeather: CurrentWeather)
 
-    @Update
-    abstract fun updateCurrentWeather(currentWeather: CurrentWeather)
+  @Update
+  abstract fun updateCurrentWeather(currentWeather: CurrentWeather)
 
-    @Delete
-    abstract fun deleteCurrentWeather(currentWeather: CurrentWeather)
+  @Delete
+  abstract fun deleteCurrentWeather(currentWeather: CurrentWeather)
 
-    open fun upsert(currentWeather: CurrentWeather) {
-        try {
-            debug("Insert currentWeather=$currentWeather", "@@@")
-            insertCurrentWeather(currentWeather)
-        } catch (e: SQLiteConstraintException) {
-            debug("Insert fail --> update currentWeather=$currentWeather", "@@@")
-            updateCurrentWeather(currentWeather)
-        }
+  open fun upsert(currentWeather: CurrentWeather) {
+    try {
+      debug("Insert currentWeather=$currentWeather", "@@@")
+      insertCurrentWeather(currentWeather)
+    } catch (e: SQLiteConstraintException) {
+      debug("Insert fail --> update currentWeather=$currentWeather", "@@@")
+      updateCurrentWeather(currentWeather)
     }
+  }
 
-    @Query("SELECT * FROM current_weathers, cities WHERE city_id = :cityId")
-    abstract fun getCityAndCurrentWeatherByCityIdAsSingle(cityId: Long): Single<CityAndCurrentWeather>
+  @Query("SELECT * FROM current_weathers, cities WHERE city_id = :cityId")
+  abstract fun getCityAndCurrentWeatherByCityIdAsSingle(cityId: Long): Single<CityAndCurrentWeather>
 }

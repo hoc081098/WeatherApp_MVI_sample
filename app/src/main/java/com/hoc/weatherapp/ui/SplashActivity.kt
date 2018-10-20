@@ -6,9 +6,9 @@ import com.hoc.weatherapp.ui.main.MainActivity
 import com.hoc.weatherapp.utils.startActivity
 
 class SplashActivity : AppCompatActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        startActivity<MainActivity>()
-        finish()
-    }
+  override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
+    startActivity<MainActivity>()
+    finish()
+  }
 }

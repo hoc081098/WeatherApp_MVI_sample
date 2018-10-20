@@ -8,18 +8,18 @@ import androidx.room.Embedded
  */
 
 class CityAndCurrentWeather {
-    @Embedded
-    lateinit var city: City
+  @Embedded
+  lateinit var city: City
 
-    @Embedded
-    lateinit var currentWeather: CurrentWeather
+  @Embedded
+  lateinit var currentWeather: CurrentWeather
 
-    override fun equals(other: Any?) = when {
-        this === other -> true
-        javaClass != other?.javaClass -> false
-        else -> other is CityAndCurrentWeather && city == other.city && currentWeather == other.currentWeather
-    }
+  override fun equals(other: Any?) = when {
+    this === other -> true
+    javaClass != other?.javaClass -> false
+    else -> other is CityAndCurrentWeather && city == other.city && currentWeather == other.currentWeather
+  }
 
-    override fun hashCode() = 31 * city.hashCode() + currentWeather.hashCode()
-    override fun toString() = "CityAndCurrentWeather(city=$city, currentWeather=$currentWeather)"
+  override fun hashCode() = 31 * city.hashCode() + currentWeather.hashCode()
+  override fun toString() = "CityAndCurrentWeather(city=$city, currentWeather=$currentWeather)"
 }

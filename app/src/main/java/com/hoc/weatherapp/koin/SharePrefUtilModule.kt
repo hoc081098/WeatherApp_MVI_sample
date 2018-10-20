@@ -6,11 +6,11 @@ import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module.module
 
 val sharePrefUtilModule = module {
-    single {
-        PreferenceManager.getDefaultSharedPreferences(androidContext())
-    }
+  single {
+    PreferenceManager.getDefaultSharedPreferences(androidContext())
+  }
 
-    single {
-        SharedPrefUtil(get(), androidContext(), get())
-    }
+  single {
+    SharedPrefUtil(get(), androidContext(), get())
+  }
 }

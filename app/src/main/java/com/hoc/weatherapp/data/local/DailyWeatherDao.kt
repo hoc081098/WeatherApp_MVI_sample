@@ -7,24 +7,24 @@ import io.reactivex.Single
 
 @Dao
 abstract class DailyWeatherDao {
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    abstract fun insertDailyWeathers(weathers: List<DailyWeather>)
+  @Insert(onConflict = OnConflictStrategy.REPLACE)
+  abstract fun insertDailyWeathers(weathers: List<DailyWeather>)
 
-    @Query("DELETE FROM five_day_forecast WHERE id = :id")
-    abstract fun deleteAllDailyWeathersByCityId(id: Long)
+  @Query("DELETE FROM five_day_forecast WHERE id = :id")
+  abstract fun deleteAllDailyWeathersByCityId(id: Long)
 
-    @Query("SELECT * FROM five_day_forecast WHERE id = :id ORDER BY timeOfDataForecasted")
-    abstract fun getAllDailyWeathersByCityId(id: Long): Flowable<List<DailyWeather>>
+  @Query("SELECT * FROM five_day_forecast WHERE id = :id ORDER BY timeOfDataForecasted")
+  abstract fun getAllDailyWeathersByCityId(id: Long): Flowable<List<DailyWeather>>
 
-    @Transaction
-    open fun deleteDailyWeathersByCityIdAndInsert(
-        id: Long,
-        weathers: List<DailyWeather>
-    ) {
-        deleteAllDailyWeathersByCityId(id)
-        insertDailyWeathers(weathers)
-    }
+  @Transaction
+  open fun deleteDailyWeathersByCityIdAndInsert(
+    id: Long,
+    weathers: List<DailyWeather>
+  ) {
+    deleteAllDailyWeathersByCityId(id)
+    insertDailyWeathers(weathers)
+  }
 
-    @Query("SELECT * FROM five_day_forecast WHERE id = :id ORDER BY timeOfDataForecasted")
-    abstract fun getAllDailyWeathersByCityIdSingle(id: Long): Single<List<DailyWeather>>
+  @Query("SELECT * FROM five_day_forecast WHERE id = :id ORDER BY timeOfDataForecasted")
+  abstract fun getAllDailyWeathersByCityIdSingle(id: Long): Single<List<DailyWeather>>
 }

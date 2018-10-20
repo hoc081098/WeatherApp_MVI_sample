@@ -14,67 +14,67 @@ const val WEATHER_RETROFIT = "WEATHER_RETROFIT"
 const val HELPER_RETROFIT = "HELPER_RETROFIT"
 
 val retrofitModule = module {
-    single<OkHttpClient> {
-        OkHttpClient.Builder()
-            .apply {
-                if (BuildConfig.DEBUG) {
-                    HttpLoggingInterceptor()
-                        .setLevel(HttpLoggingInterceptor.Level.BODY)
-                        .let(::addInterceptor)
-                }
-            }
-            .addInterceptor { chain ->
-                chain.request().let { originalRequest ->
-                    originalRequest
-                        .newBuilder()
-                        .url(
-                            originalRequest.url()
-                                .newBuilder()
-                                .addQueryParameter("units", TemperatureUnit.KELVIN.toString())
-                                .addQueryParameter("appid", APP_ID)
-                                .build()
-                        )
-                        .build()
-                        .let(chain::proceed)
-                }
-            }
+  single<OkHttpClient> {
+    OkHttpClient.Builder()
+      .apply {
+        if (BuildConfig.DEBUG) {
+          HttpLoggingInterceptor()
+            .setLevel(HttpLoggingInterceptor.Level.BODY)
+            .let(::addInterceptor)
+        }
+      }
+      .addInterceptor { chain ->
+        chain.request().let { originalRequest ->
+          originalRequest
+            .newBuilder()
+            .url(
+              originalRequest.url()
+                .newBuilder()
+                .addQueryParameter("units", TemperatureUnit.KELVIN.toString())
+                .addQueryParameter("appid", APP_ID)
+                .build()
+            )
             .build()
-    }
+            .let(chain::proceed)
+        }
+      }
+      .build()
+  }
 
-    single<Moshi> {
-        Moshi.Builder()
-            .add(com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory())
-            .build()
-    }
+  single<Moshi> {
+    Moshi.Builder()
+      .add(com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory())
+      .build()
+  }
 
-    single<Retrofit>(name = WEATHER_RETROFIT) {
-        Retrofit.Builder()
-            .baseUrl(BASE_URL)
-            .client(get())
-            .addConverterFactory(MoshiConverterFactory.create(get()))
-            .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
-            .build()
-    }
+  single<Retrofit>(name = WEATHER_RETROFIT) {
+    Retrofit.Builder()
+      .baseUrl(BASE_URL)
+      .client(get())
+      .addConverterFactory(MoshiConverterFactory.create(get()))
+      .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+      .build()
+  }
 
 
-    single<WeatherApiService> {
-        get<Retrofit>(name = WEATHER_RETROFIT).create(
-            WeatherApiService::class.java
-        )
-    }
+  single<WeatherApiService> {
+    get<Retrofit>(name = WEATHER_RETROFIT).create(
+      WeatherApiService::class.java
+    )
+  }
 
-    single<Retrofit>(name = HELPER_RETROFIT) {
-        Retrofit.Builder()
-            .baseUrl(BASE_URL_HELPER)
-            .client(get())
-            .addConverterFactory(MoshiConverterFactory.create(get()))
-            .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
-            .build()
-    }
+  single<Retrofit>(name = HELPER_RETROFIT) {
+    Retrofit.Builder()
+      .baseUrl(BASE_URL_HELPER)
+      .client(get())
+      .addConverterFactory(MoshiConverterFactory.create(get()))
+      .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+      .build()
+  }
 
-    single<HelperApiService> {
-        get<Retrofit>(name = HELPER_RETROFIT).create(
-            HelperApiService::class.java
-        )
-    }
+  single<HelperApiService> {
+    get<Retrofit>(name = HELPER_RETROFIT).create(
+      HelperApiService::class.java
+    )
+  }
 }

@@ -2,58 +2,61 @@ package com.hoc.weatherapp.utils
 
 import android.os.Looper
 import androidx.annotation.CheckResult
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout.OnRefreshListener
+import com.miguelcatalan.materialsearchview.MaterialSearchView
 import io.reactivex.Observable
 import io.reactivex.Observer
 import io.reactivex.android.MainThreadDisposable
 import io.reactivex.disposables.Disposables
 
 fun checkMainThread(observer: Observer<*>): Boolean {
-    if (Looper.myLooper() != Looper.getMainLooper()) {
-        observer.onSubscribe(Disposables.empty())
-        observer.onError(
-            IllegalStateException(
+  if (Looper.myLooper() != Looper.getMainLooper()) {
+    observer.onSubscribe(Disposables.empty())
+    observer.onError(
+      IllegalStateException(
 
-                "Expected to be called on the main thread but was " + Thread.currentThread().name
-            )
-        )
-        return false
-    }
-    return true
+        "Expected to be called on the main thread but was " + Thread.currentThread().name
+      )
+    )
+    return false
+  }
+  return true
 }
 
 @CheckResult
-fun SwipeRefreshLayout.refreshes(): Observable<Unit> {
-    return SwipeRefreshLayoutRefreshObservable(this)
+fun MaterialSearchView.textChanges(): Observable<String> {
+  return MaterialSearchViewObservable(this)
 }
 
-internal class SwipeRefreshLayoutRefreshObservable(private val view: SwipeRefreshLayout) :
-    Observable<Unit>() {
+internal class MaterialSearchViewObservable(private val view: MaterialSearchView) :
+  Observable<String>() {
+  override fun subscribeActual(observer: Observer<in String>) {
+    if (!checkMainThread(observer)) {
+      return
+    }
+    MaterialSearchViewObservable.Listener(view, observer).let { listener ->
+      observer.onSubscribe(listener)
+      view.setOnQueryTextListener(listener)
+    }
+  }
 
-    override fun subscribeActual(observer: Observer<in Unit>) {
-        if (!checkMainThread(observer)) {
-            return
+  private class Listener(
+    private val view: MaterialSearchView,
+    private val observer: Observer<in String>
+  ) :
+    MainThreadDisposable(), MaterialSearchView.OnQueryTextListener {
+    override fun onQueryTextChange(newText: String?): Boolean {
+      return newText?.let {
+        if (!isDisposed) {
+          observer.onNext(it)
         }
-        Listener(view, observer).let { listener ->
-            observer.onSubscribe(listener)
-            view.setOnRefreshListener(listener)
-        }
+        true
+      } == true
     }
 
-    internal class Listener(
-        private var view: SwipeRefreshLayout,
-        private val observer: Observer<in Unit>
-    ) : MainThreadDisposable(), OnRefreshListener {
 
-        override fun onRefresh() {
-            if (!isDisposed) {
-                observer.onNext(Unit)
-            }
-        }
+    override fun onQueryTextSubmit(query: String?) = true
 
-        override fun onDispose() {
-            view.setOnRefreshListener(null)
-        }
-    }
+    override fun onDispose() = view.setOnQueryTextListener(null)
+  }
+
 }

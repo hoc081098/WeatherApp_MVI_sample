@@ -5,16 +5,16 @@ import com.hoc.weatherapp.data.models.entity.City
 import com.hoc.weatherapp.data.models.entity.CurrentWeather
 
 interface MainContract {
-    sealed class ViewState {
-        data class CityAndWeather(
-            val city: City,
-            val weather: CurrentWeather
-        ) : ViewState()
+  sealed class ViewState {
+    data class CityAndWeather(
+      val city: City,
+      val weather: CurrentWeather
+    ) : ViewState()
 
-        object NoSelectedCity : ViewState()
-    }
+    object NoSelectedCity : ViewState()
+  }
 
-    interface View : MvpView {
-        fun render(state: ViewState)
-    }
+  interface View : MvpView {
+    fun render(state: ViewState)
+  }
 }

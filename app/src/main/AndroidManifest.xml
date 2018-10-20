@@ -33,7 +33,7 @@
             android:label="@string/app_name"
             android:theme="@style/AppTheme.NoActionBar" />
 
-        <activity android:name=".ui.LocationsActivity" />
+        <activity android:name=".ui.cities.CitiesActivity" />
 
         <activity android:name=".ui.AddCityActivity" />
 
