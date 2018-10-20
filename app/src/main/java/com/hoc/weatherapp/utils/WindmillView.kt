@@ -11,38 +11,38 @@ import com.hoc.weatherapp.R
 import kotlinx.android.synthetic.main.windmill_layout.view.*
 
 class WindmillView @JvmOverloads constructor(
-    context: Context?,
-    attrs: AttributeSet? = null,
-    defStyleAttr: Int = 0,
-    defStyleRes: Int = 0
+  context: Context?,
+  attrs: AttributeSet? = null,
+  defStyleAttr: Int = 0,
+  defStyleRes: Int = 0
 ) : RelativeLayout(context, attrs, defStyleAttr, defStyleRes) {
-    private val bladeImageView: ImageView
-    var winSpeed: Double = 0.0
-        set(value) {
-            val anim = AnimationUtils.loadAnimation(context, R.anim.windmill)
-                .apply {
-                    interpolator = LinearInterpolator()
-                    duration = calculateDuration(value)
-                }
-            bladeImageView.startAnimation(anim)
+  private val bladeImageView: ImageView
+  var winSpeed: Double = 0.0
+    set(value) {
+      val anim = AnimationUtils.loadAnimation(context, R.anim.windmill)
+        .apply {
+          interpolator = LinearInterpolator()
+          duration = calculateDuration(value)
         }
-
-    private fun calculateDuration(value: Double): Long {
-        return ((1 - value / 10.0) * MAX_ANIM_DURATION).toLong()
+      bladeImageView.startAnimation(anim)
     }
 
-    init {
-        LayoutInflater.from(context).inflate(R.layout.windmill_layout, this)
-        bladeImageView = blade
-        val anim = AnimationUtils.loadAnimation(context, R.anim.windmill)
-            .apply {
-                interpolator = LinearInterpolator()
-                duration = calculateDuration(winSpeed)
-            }
-        bladeImageView.startAnimation(anim)
-    }
+  private fun calculateDuration(value: Double): Long {
+    return ((1 - value / 10.0) * MAX_ANIM_DURATION).toLong()
+  }
 
-    companion object {
-        const val MAX_ANIM_DURATION = 10_000
-    }
+  init {
+    LayoutInflater.from(context).inflate(R.layout.windmill_layout, this)
+    bladeImageView = blade
+    val anim = AnimationUtils.loadAnimation(context, R.anim.windmill)
+      .apply {
+        interpolator = LinearInterpolator()
+        duration = calculateDuration(winSpeed)
+      }
+    bladeImageView.startAnimation(anim)
+  }
+
+  companion object {
+    const val MAX_ANIM_DURATION = 10_000
+  }
 }

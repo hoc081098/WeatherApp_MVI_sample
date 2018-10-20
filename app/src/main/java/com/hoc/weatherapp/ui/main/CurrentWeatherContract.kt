@@ -5,19 +5,27 @@ import com.hoc.weatherapp.data.models.entity.CurrentWeather
 import io.reactivex.Observable
 
 interface CurrentWeatherContract {
-    sealed class ViewState {
-        object Loading : ViewState()
+  sealed class ViewState {
+    object Loading : ViewState()
 
-        data class NoSelectedCity(val showMessage: Boolean) : ViewState()
+    data class NoSelectedCity(val showMessage: Boolean) : ViewState()
 
-        data class Weather(val weather: CurrentWeather, val showMessage: Boolean) : ViewState()
+    data class RefreshWeatherSuccess(
+      val weather: CurrentWeather,
+      val showMessage: Boolean
+    ) : ViewState()
 
-        data class Error(val throwable: Throwable, val showMessage: Boolean) : ViewState()
-    }
+    data class Weather(val weather: CurrentWeather) : ViewState()
 
-    interface View : MvpView {
-        fun refreshCurrentWeatherIntent(): Observable<Unit>
+    data class Error(
+      val throwable: Throwable,
+      val showMessage: Boolean
+    ) : ViewState()
+  }
 
-        fun render(state: ViewState)
-    }
+  interface View : MvpView {
+    fun refreshCurrentWeatherIntent(): Observable<Unit>
+
+    fun render(state: ViewState)
+  }
 }

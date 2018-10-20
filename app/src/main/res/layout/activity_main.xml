@@ -1,76 +1,85 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main_content"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".ui.main.MainActivity">
 
-    <ImageView
-        android:id="@+id/image_background"
+    <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:id="@+id/main_content"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:contentDescription="@string/background_image"
-        android:fitsSystemWindows="true"
-        android:scaleType="centerCrop"
-        android:src="@drawable/default_bg" />
+        tools:context=".ui.main.MainActivity">
+
+        <ImageView
+            android:id="@+id/image_background"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:contentDescription="@string/background_image"
+            android:fitsSystemWindows="true"
+            android:scaleType="centerCrop"
+            android:src="@drawable/default_bg" />
 
 
-    <androidx.appcompat.widget.Toolbar
-        android:id="@+id/toolbar"
-        android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
-        android:layout_weight="1"
-        android:background="@null"
-        android:elevation="0dp"
-        android:theme="@style/AppTheme.AppBarOverlay"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:popupTheme="@style/AppTheme.PopupOverlay"
-        app:title="@string/app_name">
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:layout_weight="1"
+            android:background="@null"
+            android:elevation="0dp"
+            android:theme="@style/AppTheme.AppBarOverlay"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:popupTheme="@style/AppTheme.PopupOverlay"
+            app:title="@string/app_name">
 
-        <TextView
-            android:id="@+id/toolbar_title"
+            <TextView
+                android:id="@+id/toolbar_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:ellipsize="end"
+                android:fontFamily="@font/noto_sans"
+                android:gravity="center"
+                android:maxLines="2"
+                android:textAlignment="center"
+                android:textColor="@android:color/white"
+                android:textSize="18sp"
+                tools:layout_editor_absoluteX="16dp"
+                tools:layout_editor_absoluteY="13dp"
+                tools:text="Weather app" />
+
+        </androidx.appcompat.widget.Toolbar>
+
+        <com.hoc.weatherapp.utils.CustomViewPager
+            android:id="@+id/view_pager"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginBottom="8dp"
+            app:layout_constraintBottom_toTopOf="@+id/dots_indicator"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/toolbar" />
+
+        <com.tbuonomo.viewpagerdotsindicator.DotsIndicator
+            android:id="@+id/dots_indicator"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:ellipsize="end"
-            android:fontFamily="@font/noto_sans"
-            android:gravity="center"
-            android:maxLines="2"
-            android:layout_gravity="center_horizontal"
-            android:textAlignment="center"
-            android:textColor="@android:color/white"
-            android:textSize="18sp"
-            tools:layout_editor_absoluteX="16dp"
-            tools:layout_editor_absoluteY="13dp"
-            tools:text="Weather app" />
+            android:layout_marginBottom="8dp"
+            app:dotsColor="@color/colorAccent"
+            app:dotsCornerRadius="8dp"
+            app:dotsSize="12dp"
+            app:dotsSpacing="4dp"
+            app:dotsWidthFactor="2.5"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
 
-    </androidx.appcompat.widget.Toolbar>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <com.hoc.weatherapp.utils.CustomViewPager
-        android:id="@+id/view_pager"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginBottom="8dp"
-        app:layout_constraintBottom_toTopOf="@+id/dots_indicator"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/toolbar" />
-
-    <com.tbuonomo.viewpagerdotsindicator.DotsIndicator
-        android:id="@+id/dots_indicator"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        app:dotsColor="@color/colorAccent"
-        app:dotsCornerRadius="8dp"
-        app:dotsSize="12dp"
-        app:dotsSpacing="4dp"
-        app:dotsWidthFactor="2.5"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -10,7 +10,7 @@ import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module.module
 
 val dataSourceModule = module {
-    //    single { WeatherRepositoryImpl(get(), get()) }
+  //    single { WeatherRepositoryImpl(get(), get()) }
 //
 //    single {
 //        WeatherRepositoryImpl2(
@@ -20,19 +20,19 @@ val dataSourceModule = module {
 //        )
 //    } bind WeatherRepository::class
 
-    single { RepositoryImpl(get(), get(), get(), get(), get()) } bind Repository::class
+  single { RepositoryImpl(get(), get(), get(), get(), get()) } bind Repository::class
 
-    single { AppDatabase.getInstance(androidContext()) }
+  single { AppDatabase.getInstance(androidContext()) }
 
-    single { get<AppDatabase>().weatherDao() }
+  single { get<AppDatabase>().weatherDao() }
 
-    single { get<AppDatabase>().dailyWeatherDao() }
+  single { get<AppDatabase>().dailyWeatherDao() }
 
-    single { get<AppDatabase>().cityDao() }
+  single { get<AppDatabase>().cityDao() }
 
-    single { DailyWeatherLocalDataSource(get()) }
+  single { DailyWeatherLocalDataSource(get()) }
 
-    single { CurrentWeatherLocalDataSource(get()) }
+  single { CurrentWeatherLocalDataSource(get()) }
 
-    single { CityLocalDataSource(get()) }
+  single { CityLocalDataSource(get()) }
 }

@@ -7,21 +7,21 @@ import io.reactivex.Flowable
 import io.reactivex.Single
 
 class CurrentWeatherLocalDataSource(private val currentWeatherDao: CurrentWeatherDao) {
-    fun getCityAndCurrentWeatherByCityId(cityId: Long): Flowable<CityAndCurrentWeather> {
-        return currentWeatherDao.getCityAndCurrentWeatherByCityId(cityId)
-    }
+  fun getCityAndCurrentWeatherByCityId(cityId: Long): Flowable<CityAndCurrentWeather> {
+    return currentWeatherDao.getCityAndCurrentWeatherByCityId(cityId)
+  }
 
-    fun getAllCityAndCurrentWeathers(): Flowable<List<CityAndCurrentWeather>> {
-        return currentWeatherDao.getAllCityAndCurrentWeathers()
-    }
+  fun getAllCityAndCurrentWeathers(querySearch: String): Flowable<List<CityAndCurrentWeather>> {
+    return currentWeatherDao.getAllCityAndCurrentWeathers(querySearch)
+  }
 
-    fun insertOrUpdateCurrentWeather(weather: CurrentWeather): Completable {
-        return Completable.fromAction {
-            currentWeatherDao.upsert(weather)
-        }
+  fun insertOrUpdateCurrentWeather(weather: CurrentWeather): Completable {
+    return Completable.fromAction {
+      currentWeatherDao.upsert(weather)
     }
+  }
 
-    fun getCityAndCurrentWeatherByCityIdAsSingle(id: Long): Single<CityAndCurrentWeather> {
-        return currentWeatherDao.getCityAndCurrentWeatherByCityIdAsSingle(id)
-    }
+  fun getCityAndCurrentWeatherByCityIdAsSingle(id: Long): Single<CityAndCurrentWeather> {
+    return currentWeatherDao.getCityAndCurrentWeatherByCityIdAsSingle(id)
+  }
 }

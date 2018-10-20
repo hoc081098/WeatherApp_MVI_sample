@@ -9,44 +9,44 @@ import io.reactivex.Flowable
 import io.reactivex.Single
 
 interface Repository {
-    /**
-     * *********************************************************************************************
-     * City
-     * *********************************************************************************************
-     */
+  /**
+   * *********************************************************************************************
+   * City
+   * *********************************************************************************************
+   */
 
-    /**
-     * if [city] is null, indicates that have not selected city
-     */
-    fun changeSelectedCity(city: City?): Completable
+  /**
+   * if [city] is null, indicates that have not selected city
+   */
+  fun changeSelectedCity(city: City?): Completable
 
-    fun getCityInformationByLatLng(latitude: Double, longitude: Double): Single<City>
+  fun getCityInformationByLatLng(latitude: Double, longitude: Double): Single<City>
 
-    fun deleteCity(city: City): Completable
+  fun deleteCity(city: City): Completable
 
-    fun deleteSelectedCity(): Completable
+  fun deleteSelectedCity(): Completable
 
-    fun getSelectedCity(): Flowable<Optional<City>>
+  fun getSelectedCity(): Flowable<Optional<City>>
 
-    /**
-     * *********************************************************************************************
-     * Current weather
-     * *********************************************************************************************
-     */
+  /**
+   * *********************************************************************************************
+   * Current weather
+   * *********************************************************************************************
+   */
 
-    fun refreshCurrentWeather(): Single<CityAndCurrentWeather>
+  fun refreshCurrentWeather(): Single<CityAndCurrentWeather>
 
-    fun getCityAndCurrentWeatherByCity(): Flowable<Optional<CityAndCurrentWeather>>
+  fun getCityAndCurrentWeatherByCity(): Flowable<Optional<CityAndCurrentWeather>>
 
-    fun getAllCityAndCurrentWeathers(): Flowable<List<CityAndCurrentWeather>>
+  fun getAllCityAndCurrentWeathers(querySearch: String): Flowable<List<CityAndCurrentWeather>>
 
-    /**
-     * *********************************************************************************************
-     * Daily forecast weather
-     * *********************************************************************************************
-     */
+  /**
+   * *********************************************************************************************
+   * Daily forecast weather
+   * *********************************************************************************************
+   */
 
-    fun getFiveDayForecastByCity(): Flowable<Optional<List<DailyWeather>>>
+  fun getFiveDayForecastByCity(): Flowable<Optional<List<DailyWeather>>>
 
-    fun refreshFiveDayForecase(): Completable
+  fun refreshFiveDayForecase(): Completable
 }

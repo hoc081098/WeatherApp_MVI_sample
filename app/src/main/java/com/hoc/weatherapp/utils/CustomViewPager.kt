@@ -7,17 +7,17 @@ import android.view.MotionEvent
 import androidx.viewpager.widget.ViewPager
 
 class CustomViewPager @JvmOverloads constructor(
-    context: Context,
-    attrs: AttributeSet? = null
+  context: Context,
+  attrs: AttributeSet? = null
 ) : ViewPager(context, attrs) {
-    var pagingEnable = false
+  var pagingEnable = false
 
-    @SuppressLint("ClickableViewAccessibility")
-    override fun onTouchEvent(ev: MotionEvent?): Boolean {
-        return pagingEnable && super.onTouchEvent(ev)
-    }
+  @SuppressLint("ClickableViewAccessibility")
+  override fun onTouchEvent(ev: MotionEvent?): Boolean {
+    return pagingEnable && super.onTouchEvent(ev)
+  }
 
-    override fun onInterceptTouchEvent(ev: MotionEvent?): Boolean {
-        return pagingEnable && super.onInterceptTouchEvent(ev)
-    }
+  override fun onInterceptTouchEvent(ev: MotionEvent?): Boolean {
+    return pagingEnable && super.onInterceptTouchEvent(ev)
+  }
 }
