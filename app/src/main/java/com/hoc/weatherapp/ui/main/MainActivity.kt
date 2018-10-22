@@ -25,6 +25,7 @@ import com.hannesdorfmann.mosby3.mvi.MviActivity
 import com.hoc.weatherapp.R
 import com.hoc.weatherapp.data.models.entity.CurrentWeather
 import com.hoc.weatherapp.ui.cities.CitiesActivity
+import com.hoc.weatherapp.ui.main.currentweather.CurrentWeatherFragment
 import com.hoc.weatherapp.utils.*
 import com.hoc.weatherapp.utils.blur.GlideBlurTransformation
 import kotlinx.android.synthetic.main.activity_main.*
@@ -32,6 +33,8 @@ import org.koin.android.ext.android.get
 import org.koin.android.ext.android.inject
 
 class MainActivity : MviActivity<MainContract.View, MainPresenter>(), MainContract.View {
+  private val tag = "####"
+
   private val sharedPrefUtil by inject<SharedPrefUtil>()
   private var pagerAdapter: SectionsPagerAdapter? = null
   private var mediaPlayer: MediaPlayer? = null
@@ -224,6 +227,7 @@ class MainActivity : MviActivity<MainContract.View, MainPresenter>(), MainContra
   }
 
   private fun renderCityAndWeather(state: MainContract.ViewState.CityAndWeather) {
+    debug(state.city.name, tag)
     updateBackground(state.weather)
     toolbar_title.text = getString(
       R.string.city_name_and_country,

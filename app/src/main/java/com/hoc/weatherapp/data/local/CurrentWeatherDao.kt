@@ -10,11 +10,12 @@ import io.reactivex.Single
 
 @Dao
 abstract class CurrentWeatherDao {
-  @Query("SELECT * FROM current_weathers, cities WHERE city_id = :cityId")
+  @Query("""SELECT * FROM current_weathers INNER JOIN cities ON current_weathers.city_id = cities.id
+                WHERE city_id = :cityId LIMIT 1""")
   abstract fun getCityAndCurrentWeatherByCityId(cityId: Long): Flowable<CityAndCurrentWeather>
 
   @Query(
-    """SELECT * FROM current_weathers, cities
+    """SELECT * FROM current_weathers INNER JOIN cities ON current_weathers.city_id = cities.id
             WHERE cities.name LIKE '%' || :querySearch || '%'
                    OR cities.country LIKE '%' || :querySearch || '%'
                    OR current_weathers.description LIKE '%' || :querySearch || '%'

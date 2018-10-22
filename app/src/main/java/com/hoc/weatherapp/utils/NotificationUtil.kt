@@ -11,7 +11,7 @@ import com.hoc.weatherapp.CancelNotificationReceiver
 import com.hoc.weatherapp.R
 import com.hoc.weatherapp.data.models.entity.CurrentWeather
 import com.hoc.weatherapp.data.remote.TemperatureUnit
-import com.hoc.weatherapp.ui.main.CurrentWeatherFragment
+import com.hoc.weatherapp.ui.main.currentweather.CurrentWeatherFragment
 import com.hoc.weatherapp.ui.main.MainActivity
 
 const val WEATHER_NOTIFICATION_ID = 2
