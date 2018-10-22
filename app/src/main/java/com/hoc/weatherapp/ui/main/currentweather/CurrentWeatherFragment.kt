@@ -1,4 +1,4 @@
-package com.hoc.weatherapp.ui.main
+package com.hoc.weatherapp.ui.main.currentweather
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -10,12 +10,12 @@ import com.bumptech.glide.request.RequestOptions
 import com.google.android.material.snackbar.Snackbar
 import com.hannesdorfmann.mosby3.mvi.MviFragment
 import com.hoc.weatherapp.R
+import com.hoc.weatherapp.data.NoSelectedCityException
 import com.hoc.weatherapp.data.models.WindDirection
 import com.hoc.weatherapp.data.models.entity.CurrentWeather
 import com.hoc.weatherapp.data.remote.TemperatureUnit.Companion.NUMBER_FORMAT
 import com.hoc.weatherapp.ui.LiveWeatherActivity
-import com.hoc.weatherapp.ui.main.CurrentWeatherContract.ViewState
-import com.hoc.weatherapp.ui.main.CurrentWeatherContract.ViewState.*
+import com.hoc.weatherapp.ui.main.currentweather.CurrentWeatherContract.ViewState
 import com.hoc.weatherapp.utils.*
 import com.jakewharton.rxbinding3.swiperefreshlayout.refreshes
 import io.reactivex.Observable
@@ -32,48 +32,52 @@ class CurrentWeatherFragment : MviFragment<CurrentWeatherContract.View, CurrentW
   private val sharedPrefUtil by inject<SharedPrefUtil>()
   private var errorSnackBar: Snackbar? = null
   private var refreshSnackBar: Snackbar? = null
-  private var noSelectedCitySnackBar: Snackbar? = null
 
   override fun refreshCurrentWeatherIntent(): Observable<Unit> {
     return swipe_refresh_layout.refreshes()
-      .doOnNext { debug("swipe_refresh_layout refreshes", TAG) }
+      .doOnNext { debug("swipe_refresh_layout.refreshes", TAG) }
   }
 
   override fun render(state: ViewState) {
-    when (state) {
-      is Loading -> renderLoading()
-      is Weather -> renderWeather(state)
-      is Error -> renderError(state)
-      is NoSelectedCity -> renderNoSelectedCity(state)
-      is RefreshWeatherSuccess -> renderRefreshWeatherSuccess(state)
-    }
-  }
+    swipe_refresh_layout.isRefreshing = false
 
-  private fun renderRefreshWeatherSuccess(state: RefreshWeatherSuccess) {
-    if (state.showMessage) {
-      refreshSnackBar =
-          view?.snackBar("Weather has been updated!", Snackbar.LENGTH_INDEFINITE)
+    if (state.weather != null) {
+      updateUi(state.weather)
     } else {
-      refreshSnackBar?.dismiss()
+      noSelectedCity()
     }
-    updateUi(state.weather)
-  }
-
-  private fun renderError(error: Error) {
-    setRefreshingSwipeLayout(false)
-    if (error.showMessage) {
-      errorSnackBar = view?.snackBar(
-        error.throwable.message ?: "An error occurred!",
+    if (state.error != null) {
+      if (state.showError) {
+        errorSnackBar = view?.snackBar(
+          state.error.message ?: "An error occurred!",
+          Snackbar.LENGTH_INDEFINITE
+        )
+      }
+      if (state.error is NoSelectedCityException) {
+        noSelectedCity()
+      }
+    }
+    if (!state.showError) {
+      errorSnackBar?.dismiss()
+    }
+    if (state.showRefreshSuccessfully) {
+      refreshSnackBar = view?.snackBar(
+        "Weather has been updated!",
         Snackbar.LENGTH_INDEFINITE
       )
     } else {
-      errorSnackBar?.dismiss()
+      refreshSnackBar?.dismiss()
     }
   }
 
-  private fun renderWeather(weather: Weather) {
-    setRefreshingSwipeLayout(false)
-    updateUi(weather.weather)
+  private fun noSelectedCity() {
+    image_icon.setImageDrawable(null)
+    text_temperature.text = ""
+    text_main_weather.text = ""
+    text_last_update.text = ""
+    button_live.visibility = View.INVISIBLE
+    card_view1.visibility = View.INVISIBLE
+    card_view2.visibility = View.INVISIBLE
   }
 
   private fun updateUi(currentWeather: CurrentWeather) {
@@ -106,34 +110,6 @@ class CurrentWeatherFragment : MviFragment<CurrentWeatherContract.View, CurrentW
     text_wind_speed.text = "Speed: ${currentWeather.winSpeed}m/s"
   }
 
-  private fun renderLoading() {
-    setRefreshingSwipeLayout(true)
-  }
-
-  private fun renderNoSelectedCity(state: NoSelectedCity) {
-    setRefreshingSwipeLayout(false)
-    if (state.showMessage) {
-      noSelectedCitySnackBar =
-          view?.snackBar("Please select a city!", Snackbar.LENGTH_INDEFINITE)
-    } else {
-      noSelectedCitySnackBar?.dismiss()
-    }
-
-    image_icon.setImageDrawable(null)
-    text_temperature.text = ""
-    text_main_weather.text = ""
-    text_last_update.text = ""
-    button_live.visibility = View.INVISIBLE
-    card_view1.visibility = View.INVISIBLE
-    card_view2.visibility = View.INVISIBLE
-  }
-
-  private fun setRefreshingSwipeLayout(isRefreshing: Boolean) {
-    swipe_refresh_layout.post {
-      swipe_refresh_layout.isRefreshing = isRefreshing
-    }
-  }
-
   override fun createPresenter(): CurrentWeatherPresenter {
     return CurrentWeatherPresenter(get())
   }
@@ -148,7 +124,6 @@ class CurrentWeatherFragment : MviFragment<CurrentWeatherContract.View, CurrentW
     super.onViewCreated(view, savedInstanceState)
 
     button_live.setOnClickListener { requireContext().startActivity<LiveWeatherActivity>() }
-    setRefreshingSwipeLayout(true)
   }
 
   private fun updateWeatherIcon(weather: CurrentWeather) {

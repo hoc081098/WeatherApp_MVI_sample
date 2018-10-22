@@ -42,42 +42,30 @@ class RepositoryImpl(
     }.doOnComplete { debug("::doOnComplete::refreshCurrentWeather", TAG) }
   }
 
-  private fun saveCityAndCurrentWeather(response: CurrentWeatherResponse): Single<CityAndCurrentWeather> {
+  private fun saveCityAndCurrentWeather(
+    response: CurrentWeatherResponse,
+    setCityAsSelected: Boolean = true
+  ): Single<CityAndCurrentWeather> {
     val city = Mapper.responseToCity(response)
     val weather = Mapper.responseToCurrentWeatherEntity(response)
 
-    return Completable.mergeArray(
-      cityLocalDataSource
-        .insertOrUpdateCity(city)
-        .doOnComplete {
-          debug(
-            "::doOnComplete::insertOrUpdateCity $city",
-            TAG
-          )
+    return cityLocalDataSource
+      .insertOrUpdateCity(city)
+      .andThen(currentWeatherLocalDataSource.insertOrUpdateCurrentWeather(weather))
+      .run {
+        if (setCityAsSelected) {
+          andThen(changeSelectedCity(city))
+        } else {
+          this
         }
-        .andThen(
-          currentWeatherLocalDataSource
-            .insertOrUpdateCurrentWeather(weather)
-            .doOnComplete {
-              debug(
-                "::doOnComplete::deleteWeatherByCityId::insertOrUpdateCurrentWeather $city",
-                TAG
-              )
-            }
-        )
-        .doOnComplete {
-          debug(
-            "::doOnComplete::insertOrUpdateCity::deleteWeatherByCityId::insertOrUpdateCurrentWeather $city",
-            TAG
-          )
-        },
-      changeSelectedCity(city)
-    ).subscribeOn(Schedulers.io()).toSingle {
-      CityAndCurrentWeather().apply {
-        this.city = city
-        this.currentWeather = weather
       }
-    }
+      .toSingle {
+        CityAndCurrentWeather().apply {
+          this.city = city
+          this.currentWeather = weather
+        }
+      }
+      .subscribeOn(Schedulers.io())
   }
 
   private fun saveFiveDayForecaseWeather(response: FiveDayForecastResponse): Completable {
@@ -90,12 +78,12 @@ class RepositoryImpl(
       is None -> Single.error(NoSelectedCityException)
       is Some<City> -> weatherApiService.getCurrentWeatherByCityId(city.value.id)
         .subscribeOn(Schedulers.io())
-        .flatMap(::saveCityAndCurrentWeather)
+        .flatMap { saveCityAndCurrentWeather(it) }
 
     }.doOnSuccess { debug("::doOnSuccess::refreshCurrentWeather", TAG) }
   }
 
-  override fun getCityAndCurrentWeatherByCity(): Flowable<Optional<CityAndCurrentWeather>> {
+  override fun getSelectedCityAndCurrentWeather(): Flowable<Optional<CityAndCurrentWeather>> {
     return Flowable.merge(
       noneCity,
       city.switchMap {
@@ -104,7 +92,7 @@ class RepositoryImpl(
           .subscribeOn(Schedulers.io())
           .map { it.toOptional() }
       }
-    ).doOnNext { debug("::doOnNext::getCityAndCurrentWeatherByCity $it", TAG) }
+    ).doOnNext { debug("::doOnNext::getSelectedCityAndCurrentWeather $it", TAG) }
   }
 
   private val selectedCityProcessor =
@@ -121,10 +109,10 @@ class RepositoryImpl(
       .doOnComplete { debug("::doOnComplete::changeSelectedCity $city", TAG) }
   }
 
-  override fun getCityInformationByLatLng(latitude: Double, longitude: Double): Single<City> {
+  override fun addCityByLatLng(latitude: Double, longitude: Double): Single<City> {
     return weatherApiService.getCurrentWeatherByLatLng(latitude, longitude)
       .subscribeOn(Schedulers.io())
-      .flatMap(::saveCityAndCurrentWeather)
+      .flatMap { saveCityAndCurrentWeather(it, false) }
       .map { it.city }
   }
 

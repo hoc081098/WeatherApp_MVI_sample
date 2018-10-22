@@ -7,14 +7,17 @@ import com.hoc.weatherapp.ui.main.MainContract.ViewState.CityAndWeather
 import com.hoc.weatherapp.ui.main.MainContract.ViewState.NoSelectedCity
 import com.hoc.weatherapp.utils.None
 import com.hoc.weatherapp.utils.Some
+import com.hoc.weatherapp.utils.debug
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.rxkotlin.ofType
 
 class MainPresenter(private val repository: Repository) :
   MviBasePresenter<MainContract.View, MainContract.ViewState>() {
+  private val tag = "####"
+
   override fun bindIntents() {
-    val cityAndCurrentWeather = repository.getCityAndCurrentWeatherByCity()
+    val cityAndCurrentWeather = repository.getSelectedCityAndCurrentWeather()
       .toObservable()
       .publish { shared ->
         Observable.merge(
@@ -30,6 +33,7 @@ class MainPresenter(private val repository: Repository) :
         )
       }
       .distinctUntilChanged()
+      .doOnNext { debug("MainPresenter state=$it", tag) }
       .observeOn(AndroidSchedulers.mainThread())
 
     subscribeViewState(cityAndCurrentWeather, MainContract.View::render)

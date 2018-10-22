@@ -20,7 +20,7 @@ interface Repository {
    */
   fun changeSelectedCity(city: City?): Completable
 
-  fun getCityInformationByLatLng(latitude: Double, longitude: Double): Single<City>
+  fun addCityByLatLng(latitude: Double, longitude: Double): Single<City>
 
   fun deleteCity(city: City): Completable
 
@@ -36,7 +36,7 @@ interface Repository {
 
   fun refreshCurrentWeather(): Single<CityAndCurrentWeather>
 
-  fun getCityAndCurrentWeatherByCity(): Flowable<Optional<CityAndCurrentWeather>>
+  fun getSelectedCityAndCurrentWeather(): Flowable<Optional<CityAndCurrentWeather>>
 
   fun getAllCityAndCurrentWeathers(querySearch: String): Flowable<List<CityAndCurrentWeather>>
 

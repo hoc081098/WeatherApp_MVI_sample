@@ -13,6 +13,7 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.bumptech.glide.request.RequestOptions
 import com.hoc.weatherapp.R
+import com.hoc.weatherapp.data.models.entity.City
 import com.hoc.weatherapp.utils.getIconDrawableFromCurrentWeather
 import io.reactivex.subjects.PublishSubject
 import kotlinx.android.synthetic.main.city_item_layout.view.*
@@ -27,7 +28,7 @@ class CitiesAdapter : ListAdapter<CityListItem, CitiesAdapter.ViewHolder>(object
     return oldItem == newItem
   }
 }) {
-  private val _itemClickSubject = PublishSubject.create<Pair<Int, CityListItem>>()
+  private val _itemClickSubject = PublishSubject.create<City>()
   val itemClickObservable get() = _itemClickSubject.hide()
 
   override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) =
@@ -52,7 +53,7 @@ class CitiesAdapter : ListAdapter<CityListItem, CitiesAdapter.ViewHolder>(object
     override fun onClick(v: View) {
       val position = adapterPosition
       if (position != NO_POSITION) {
-        _itemClickSubject.onNext(position to getItem(position))
+        _itemClickSubject.onNext(getItem(position).city)
       }
     }
 
