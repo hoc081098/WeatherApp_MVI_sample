@@ -25,46 +25,24 @@ class CitiesPresenter(private val repository: Repository) : MviBasePresenter<Vie
   private val compositeDisposable = CompositeDisposable()
 
   override fun bindIntents() {
-    val selectedCity = repository.getSelectedCity().toObservable()
-
     val cityAndCurrentWeathers = intent(View::searchStringIntent)
       .switchMap {
         repository.getAllCityAndCurrentWeathers(it).toObservable()
       }
 
-    val cityListItems = combineLatest(selectedCity, cityAndCurrentWeathers)
-      .map { (city, list) ->
-        list.map {
-          CityListItem(
-            city = it.city,
-            weatherIcon = it.currentWeather.icon,
-            weatherConditionId = it.currentWeather.weatherConditionId,
-            isSelected = it.city.id == city.getOrNull()?.id,
-            temperatureMax = it.currentWeather.temperatureMax.toString(),
-            temperatureMin = it.currentWeather.temperatureMin.toString(),
-            weatherDescription = it.currentWeather.description
-          )
-        }
-      }
-    val cityListItemsPartialChange = cityListItems
-      .map(::CityListItems)
-      .cast<PartialChange>()
-      .onErrorResumeNext(::showError)
-      .doOnNext { debug("cityListItems $it", TAG) }
+    val cityListItemsPartialChange = cityListItemsPartialChange(cityAndCurrentWeathers)
+    val deleteCityPartialChange = deleteCityPartialChange(cityAndCurrentWeathers)
+    changeSelectedCity()
 
-    intent(View::changeSelectedCity)
-      .switchMapCompletable {
-        repository
-          .changeSelectedCity(it)
-          .andThen(repository.refreshCurrentWeather().ignoreElement())
-      }
-      .subscribeBy(
-        onError = { debug("changeSelectedCity error=$it", TAG) },
-        onComplete = { debug("changeSelectedCity onComplete", TAG) }
-      )
-      .addTo(compositeDisposable)
+    subscribeViewState(Observable.mergeArray(cityListItemsPartialChange, deleteCityPartialChange)
+      .scan(ViewState(), ::reduce)
+      .distinctUntilChanged()
+      .doOnNext { debug("CitiesPresenter ViewState = $it", TAG) }
+      .observeOn(AndroidSchedulers.mainThread()), View::render)
+  }
 
-    val deleteCityPartialChange = intent { it.deleteCityAtPosition() }
+  private fun deleteCityPartialChange(cityAndCurrentWeathers: Observable<List<CityAndCurrentWeather>>): Observable<PartialChange> {
+    return intent { it.deleteCityAtPosition() }
       .filter { it != RecyclerView.NO_POSITION }
       .withLatestFrom(cityAndCurrentWeathers)
       .map { (position, list) -> list.getOrNull(position).toOptional() }
@@ -79,20 +57,45 @@ class CitiesPresenter(private val repository: Repository) : MviBasePresenter<Vie
           .flatMap(::delete)
           .onErrorResumeNext(::showError)
       }
+  }
 
-    subscribeViewState(
-      Observable.mergeArray(cityListItemsPartialChange, deleteCityPartialChange)
-        .scan(ViewState(), ::reduce)
-        .distinctUntilChanged()
-        .doOnNext {
-          debug(
-            "CitiesPresenter ViewState = $it",
-            TAG
+  private fun changeSelectedCity() {
+    intent(View::changeSelectedCity)
+      .switchMap { city ->
+        repository
+          .changeSelectedCity(city)
+          .toSingleDefault(Result.success("changeSelectedCity $city successfully"))
+          .flatMap {
+            repository
+              .refreshCurrentWeather()
+              .map { Result.success("changeSelectedCity and refreshCurrentWeather $city successfully") }
+          }
+          .onErrorReturn { Result.failure(it) }
+          .toObservable()
+      }
+      .subscribeBy(onNext = { debug("changeSelectedCity onNext=$it", TAG) })
+      .addTo(compositeDisposable)
+  }
+
+  private fun cityListItemsPartialChange(cityAndCurrentWeathers: Observable<List<CityAndCurrentWeather>>): Observable<PartialChange> {
+    return combineLatest(repository.getSelectedCity().toObservable(), cityAndCurrentWeathers)
+      .map { (city, list) ->
+        list.map {
+          CityListItem(
+            city = it.city,
+            weatherIcon = it.currentWeather.icon,
+            weatherConditionId = it.currentWeather.weatherConditionId,
+            isSelected = it.city.id == city.getOrNull()?.id,
+            temperatureMax = it.currentWeather.temperatureMax.toString(),
+            temperatureMin = it.currentWeather.temperatureMin.toString(),
+            weatherDescription = it.currentWeather.description
           )
         }
-        .observeOn(AndroidSchedulers.mainThread()),
-      View::render
-    )
+      }
+      .map(::CityListItems)
+      .cast<PartialChange>()
+      .onErrorResumeNext(::showError)
+      .doOnNext { debug("cityListItems $it", TAG) }
   }
 
   override fun unbindIntents() {

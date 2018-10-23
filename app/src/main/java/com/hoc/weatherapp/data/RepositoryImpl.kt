@@ -96,7 +96,7 @@ class RepositoryImpl(
   }
 
   private val selectedCityProcessor =
-    BehaviorProcessor.createDefault<Optional<City>>(sharedPrefUtil.selectedCity.toOptional())!!
+    BehaviorProcessor.createDefault<Optional<City>>(sharedPrefUtil.selectedCity.toOptional())
   private val noneCity = selectedCityProcessor.ofType<None>().doOnNext { debug("NONE", TAG) }
   private val city = selectedCityProcessor.ofType<Some<City>>().map { it.value }
     .doOnNext { debug("CITY: $it", TAG) }

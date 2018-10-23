@@ -35,7 +35,7 @@
 
         <activity android:name=".ui.cities.CitiesActivity" />
 
-        <activity android:name=".ui.AddCityActivity" />
+        <activity android:name=".ui.addcity.AddCityActivity" />
 
         <activity android:name=".ui.LiveWeatherActivity" />
 
@@ -61,6 +61,7 @@
         <activity
             android:name=".ui.MapActivity"
             android:theme="@style/AppTheme.NoActionBar" />
+        <activity android:name=".ui.addcity.AddCityActivityTest" />
 
         <receiver
             android:name=".CancelNotificationReceiver"
