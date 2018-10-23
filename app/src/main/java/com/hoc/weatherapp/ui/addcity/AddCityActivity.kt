@@ -1,4 +1,4 @@
-package com.hoc.weatherapp.ui
+package com.hoc.weatherapp.ui.addcity
 
 import android.Manifest.permission.ACCESS_COARSE_LOCATION
 import android.Manifest.permission.ACCESS_FINE_LOCATION
@@ -25,6 +25,7 @@ import com.hoc.weatherapp.R
 import com.hoc.weatherapp.data.Repository
 import com.hoc.weatherapp.data.models.entity.City
 import com.hoc.weatherapp.utils.debug
+import com.hoc.weatherapp.utils.snackBar
 import com.hoc.weatherapp.utils.toast
 import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -33,12 +34,11 @@ import io.reactivex.processors.PublishProcessor
 import io.reactivex.rxkotlin.addTo
 import io.reactivex.rxkotlin.subscribeBy
 import io.reactivex.schedulers.Schedulers
+import kotlinx.android.synthetic.main.activity_add_city.*
+import kotlinx.android.synthetic.main.some_city_layout.*
 import org.koin.android.ext.android.inject
 import java.util.concurrent.TimeUnit
 import androidx.core.app.ActivityCompat.requestPermissions as requestPermissionsCompat
-import kotlinx.android.synthetic.main.activity_add_city.*
-import kotlinx.android.synthetic.main.some_city_layout.*
-import com.hoc.weatherapp.utils.snackBar
 
 class AddCityActivity : AppCompatActivity() {
   private val weatherRepository by inject<Repository>()

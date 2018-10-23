@@ -15,14 +15,14 @@ import com.google.android.material.snackbar.Snackbar
 import com.hannesdorfmann.mosby3.mvi.MviActivity
 import com.hoc.weatherapp.R
 import com.hoc.weatherapp.data.models.entity.City
-import com.hoc.weatherapp.ui.AddCityActivity
+import com.hoc.weatherapp.ui.addcity.AddCityActivityTest
 import com.hoc.weatherapp.ui.cities.CitiesContract.View
 import com.hoc.weatherapp.utils.*
 import io.reactivex.Observable
 import io.reactivex.subjects.PublishSubject
+import kotlinx.android.synthetic.main.activity_cities.*
 import org.koin.android.ext.android.get
 import java.util.concurrent.TimeUnit
-import kotlinx.android.synthetic.main.activity_cities.*
 
 class CitiesActivity : MviActivity<View, CitiesPresenter>(), View {
   override fun refreshCurrentWeatherAtPosition(): Observable<Int> {
@@ -91,7 +91,7 @@ class CitiesActivity : MviActivity<View, CitiesPresenter>(), View {
       setDisplayHomeAsUpEnabled(true)
       title = "City"
     }
-    fab.setOnClickListener { startActivity<AddCityActivity>() }
+    fab.setOnClickListener { startActivity<AddCityActivityTest>() }
 
     search_view.run {
       setHint("Search...")

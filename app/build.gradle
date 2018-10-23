@@ -55,7 +55,7 @@ dependencies {
     implementation 'com.google.android.gms:play-services-maps:15.0.1'
 
     // roomdb
-    implementation 'androidx.room:room-runtime:2.0.0-rc01'
+    implementation 'androidx.room:room-runtime:2.1.0-alpha01'
     kapt 'androidx.room:room-compiler:2.1.0-alpha01'
     implementation 'androidx.room:room-rxjava2:2.1.0-alpha01'
 
@@ -63,11 +63,11 @@ dependencies {
     def workVersion = '1.0.0-alpha10'
     implementation "android.arch.work:work-runtime-ktx:$workVersion"
 
+    // mosby
     def mosbyVersion = '3.1.0'
     implementation("com.hannesdorfmann.mosby3:mvi:$mosbyVersion") {
         exclude group: 'com.hannesdorfmann.mosby3', module: 'utils-fragment'
     }
-
 
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test:runner:1.1.0-alpha4'
@@ -77,7 +77,7 @@ dependencies {
     implementation 'com.squareup.retrofit2:retrofit:2.4.0'
     implementation 'com.squareup.retrofit2:converter-moshi:2.4.0'
     implementation 'com.squareup.retrofit2:adapter-rxjava2:2.4.0'
-    implementation 'com.squareup.okhttp3:logging-interceptor:3.10.0'
+    implementation 'com.squareup.okhttp3:logging-interceptor:3.11.0'
     implementation 'com.squareup.moshi:moshi-kotlin:1.6.0'
 
     // rxkotlin and rxandroid
@@ -89,7 +89,7 @@ dependencies {
     implementation 'com.jakewharton.rxbinding3:rxbinding-swiperefreshlayout:3.0.0-alpha1'
 
     // koin
-    implementation 'org.koin:koin-android:1.0.0'
+    implementation 'org.koin:koin-android:1.0.1'
 
     // view pager indicator
     implementation 'com.tbuonomo.andrui:viewpagerdotsindicator:2.1.2'
@@ -100,4 +100,7 @@ dependencies {
 
     implementation 'com.diogobernardino:williamchart:2.5.0'
     implementation 'com.miguelcatalan:materialsearchview:1.4.0'
+
+    // rxPermission
+    implementation 'com.github.tbruyelle:rxpermissions:0.10.2'
 }
