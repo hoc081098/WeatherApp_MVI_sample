@@ -1,6 +1,6 @@
 package com.hoc.weatherapp.utils
 
-import com.hoc.weatherapp.data.remote.TemperatureUnit
+import com.hoc.weatherapp.data.models.TemperatureUnit
 
 object UnitConvertor {
   /**

@@ -68,8 +68,20 @@ class RepositoryImpl(
       .subscribeOn(Schedulers.io())
   }
 
-  private fun saveFiveDayForecaseWeather(response: FiveDayForecastResponse): Completable {
-    TODO()
+  private fun saveFiveDayForecastWeather(response: FiveDayForecastResponse): Single<List<DailyWeather>> {
+    val city = Mapper.responseToCity(response)
+    val weathers = Mapper.responseToListDailyWeatherEntity(response)
+
+    val tag = "(^^)"
+    debug("city=$city", tag)
+    debug("weathers=$weathers", tag)
+    debug("response=$response", tag)
+
+    return dailyWeatherLocalDataSource
+      .deleteDailyWeathersByCityIdAndInsert(weathers = weathers, cityId = city.id)
+      .toSingle { weathers }
+      .subscribeOn(Schedulers.io())
+      .doOnSuccess { debug("doOnSuccess::saveFiveDayForecastWeather", tag) }
   }
 
   override fun refreshCurrentWeather(): Single<CityAndCurrentWeather> {
@@ -79,7 +91,6 @@ class RepositoryImpl(
       is Some<City> -> weatherApiService.getCurrentWeatherByCityId(city.value.id)
         .subscribeOn(Schedulers.io())
         .flatMap { saveCityAndCurrentWeather(it) }
-
     }.doOnSuccess { debug("::doOnSuccess::refreshCurrentWeather", TAG) }
   }
 
@@ -137,28 +148,25 @@ class RepositoryImpl(
       .subscribeOn(Schedulers.io())
   }
 
-  override fun getFiveDayForecastByCity(): Flowable<Optional<List<DailyWeather>>> {
+  override fun getFiveDayForecastOfSelectedCity(): Flowable<Optional<List<DailyWeather>>> {
     return Flowable.merge(
       noneCity,
-      city.switchMap {
+      city.switchMap { city ->
         dailyWeatherLocalDataSource
-          .getAllDailyWeathersByCityId(it.id)
+          .getAllDailyWeathersByCityId(city.id)
           .subscribeOn(Schedulers.io())
           .map { it.toOptional() }
       }
     )
   }
 
-  override fun refreshFiveDayForecase(): Completable {
-    return selectedCityProcessor.lastOrError()
-      .onErrorReturn { None }
-      .flatMapCompletable {
-        when (it) {
-          is None -> Completable.error(NoSelectedCityException)
-          is Some<City> -> weatherApiService.get5DayEvery3HourForecastByCityId(it.value.id)
-            .subscribeOn(Schedulers.io())
-            .flatMapCompletable(::saveFiveDayForecaseWeather)
-        }
-      }
+  override fun refreshFiveDayForecastOfSelectedCity(): Single<List<DailyWeather>> {
+    return when (val city: Optional<City>? = selectedCityProcessor.value) {
+      null -> Single.error(IllegalStateException("BehaviorProcessor::value is null"))
+      is None -> Single.error(NoSelectedCityException)
+      is Some<City> -> weatherApiService.get5DayEvery3HourForecastByCityId(city.value.id)
+        .subscribeOn(Schedulers.io())
+        .flatMap(::saveFiveDayForecastWeather)
+    }.doOnSuccess { debug("::doOnSuccess::refreshCurrentWeather", TAG) }
   }
 }

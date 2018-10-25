@@ -107,7 +107,8 @@ class CitiesPresenter(private val repository: Repository) : MviBasePresenter<Vie
     return when (partialChange) {
       is CityListItems -> viewState.copy(
         cityListItems = partialChange.items,
-        error = null
+        error = null,
+        deletedCity = null
       )
       is Error -> viewState.copy(
         showError = partialChange.showMessage,

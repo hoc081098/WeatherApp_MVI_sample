@@ -8,6 +8,9 @@ import android.location.Location
 import android.os.Bundle
 import android.view.MenuItem
 import android.view.View
+import android.view.animation.AccelerateDecelerateInterpolator
+import android.widget.Button
+import android.widget.ProgressBar
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
@@ -23,15 +26,16 @@ import com.google.android.gms.location.places.ui.PlaceSelectionListener
 import com.google.android.gms.location.places.ui.SupportPlaceAutocompleteFragment
 import com.hoc.weatherapp.R
 import com.hoc.weatherapp.data.Repository
+import com.hoc.weatherapp.data.models.entity.City
 import com.hoc.weatherapp.utils.debug
 import com.hoc.weatherapp.utils.toast
+import com.jakewharton.rxbinding3.view.clicks
 import com.tbruyelle.rxpermissions2.RxPermissions
 import io.reactivex.Observable
-import io.reactivex.Single
+import io.reactivex.ObservableTransformer
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.rxkotlin.addTo
-import io.reactivex.rxkotlin.subscribeBy
+import io.reactivex.rxkotlin.*
 import io.reactivex.subjects.PublishSubject
 import kotlinx.android.synthetic.main.activity_add_city.*
 import kotlinx.android.synthetic.main.some_city_layout.*
@@ -57,8 +61,8 @@ class AddCityActivityTest : AppCompatActivity() {
     setupAutoCompletePlace()
   }
 
-  private fun getCurrentLocation(): Single<Location> {
-    val publishProcessor = PublishSubject.create<Location>()
+  private fun getCurrentLocation(): Observable<Location> {
+    val publishSubject = PublishSubject.create<Location>()
 
     val locationRequest = LocationRequest()
       .setInterval(1000)
@@ -82,15 +86,15 @@ class AddCityActivityTest : AppCompatActivity() {
             Manifest.permission.ACCESS_COARSE_LOCATION
           ) != PackageManager.PERMISSION_GRANTED
         ) {
-          publishProcessor.onError(IllegalStateException("Need granted permission ACCESS_FINE_LOCATION or ACCESS_COARSE_LOCATION"))
+          publishSubject.onError(IllegalStateException("Need granted permission ACCESS_FINE_LOCATION or ACCESS_COARSE_LOCATION"))
           return@addOnSuccessListener
         }
 
         fusedLocationProviderClient.lastLocation
           .addOnSuccessListener { lastLocation ->
             if (lastLocation != null) {
-              publishProcessor.onNext(lastLocation)
-              publishProcessor.onComplete()
+              publishSubject.onNext(lastLocation)
+              publishSubject.onComplete()
             }
           }
 
@@ -102,7 +106,7 @@ class AddCityActivityTest : AppCompatActivity() {
             Manifest.permission.ACCESS_COARSE_LOCATION
           ) != PackageManager.PERMISSION_GRANTED
         ) {
-          publishProcessor.onError(IllegalStateException("Need granted permission ACCESS_FINE_LOCATION or ACCESS_COARSE_LOCATION"))
+          publishSubject.onError(IllegalStateException("Need granted permission ACCESS_FINE_LOCATION or ACCESS_COARSE_LOCATION"))
           return@addOnSuccessListener
         }
 
@@ -112,19 +116,19 @@ class AddCityActivityTest : AppCompatActivity() {
             override fun onLocationResult(locationResult: LocationResult?) {
               val lastLocation = locationResult?.lastLocation ?: return
               fusedLocationProviderClient.removeLocationUpdates(this)
-              publishProcessor.onNext(lastLocation)
-              publishProcessor.onComplete()
+              publishSubject.onNext(lastLocation)
+              publishSubject.onComplete()
             }
           },
-          null
+          null /* LOOPER */
         )
       }.addOnFailureListener {
         if (it is ResolvableApiException) {
           runCatching { it.startResolutionForResult(this, REQUEST_CHECK_SETTINGS) }
         }
-        publishProcessor.onError(IllegalStateException("Location settings are not satisfied"))
+        publishSubject.onError(IllegalStateException("Location settings are not satisfied"))
       }
-    return publishProcessor.take(1).singleOrError()
+    return publishSubject.take(1)
   }
 
   private fun setupAutoCompletePlace() {
@@ -138,96 +142,105 @@ class AddCityActivityTest : AppCompatActivity() {
           publishSubject.onNext(latitude to longitude)
         }
 
-        override fun onError(status: Status?) {
-          toast(status?.statusMessage ?: "An error occurred")
+        override fun onError(status: Status) {
+          toast(status.statusMessage ?: "An error occurred")
         }
       })
     }
-    publishSubject.addCity()
+    publishSubject
+      .compose(addCity)
+      .observeOn(AndroidSchedulers.mainThread())
+      .subscribeBy(
+        onError = {toast(it.toString())},
+        onNext = {
+          it.onSuccess {
+            toast("Added ${it.name}")
+          }.onFailure {
+            toast("Error ${it.message}")
+          }
+        },
+        onComplete = {toast("onComplete")}
+      )
   }
 
   private fun setupButtonMyLocation() {
-    val onClick = PublishSubject.create<Unit>()
-    button_my_loction.setOnClickListener { onClick.onNext(Unit) }
-
     Observable
       .mergeArray(
-        onClick
-          .throttleFirst(600, TimeUnit.MILLISECONDS),
-        triggerAddCurrentLocation
-      ).compose(
+        button_my_loction.clicks()
+          .throttleFirst(600, TimeUnit.MILLISECONDS)
+          .doOnNext { debug("button my location clicks", "789654") },
+          triggerAddCurrentLocation
+      )
+      .doOnNext { debug("oh yeah", "789654") }
+      .compose(
         RxPermissions(this).ensureEach(
           Manifest.permission.ACCESS_FINE_LOCATION
         )
       )
+      .doOnNext { debug("after compose $it", "789654") }
       .filter { it.granted }
-      .doOnNext { debug("permission $it", "789654") }
-      .flatMapSingle { getCurrentLocation() }
-      .map { it.latitude to it.longitude }
-      .addCity()
+      .doOnNext { debug("after filter { it.granted } $it", "789654") }
+      .flatMap {
+        getCurrentLocation()
+          .map { location -> location.latitude to location.longitude }
+          .compose(addCity)
+          .onErrorResumeNext { throwable: Throwable -> Observable.just(Result.failure(throwable)) }
+          .observeOn(AndroidSchedulers.mainThread())
+          .doOnSubscribe { showProgressbar() }
+      }
+      .subscribeBy(
+        onError = {toast(it.toString())},
+        onNext = {
+          it.onSuccess {
+            toast("Added ${it.name}")
+          }.onFailure {
+            toast("Error ${it.message}")
+          }
+          hideProgressbar()
+        },
+        onComplete = {toast("onComplete")}
+      )
   }
 
-  private fun Observable<Pair<Double, Double>>.addCity() {
-    flatMap { (latitude, longitude) ->
-      repository.addCityByLatLng(
-        latitude,
-        longitude
-      ).toObservable()
-        .observeOn(AndroidSchedulers.mainThread())
-        .doOnSubscribe { showProgressbar() }
-        .doOnTerminate { hideProgressbar() }
-    }.map { Result.success(it) }
-      .onErrorReturn { Result.failure(it) }
-      .subscribeBy(
-        onNext = {
-          it.onSuccess { toast("Added $it") }
-            .onFailure { toast(it.message ?: "An error occurred") }
-        }
-      ).addTo(compositeDisposable)
+  private val addCity = ObservableTransformer<Pair<Double, Double>, Result<City>>{
+      it.flatMap { (latitude, longitude) ->
+        repository.addCityByLatLng(latitude, longitude)
+          .toObservable()
+          .map { Result.success(it) }
+          .onErrorResumeNext { it: Throwable -> Observable.just(Result.failure(it)) }
+          .doOnSubscribe { debug("doOnSubscribe addCityByLatLng", "789654") }
+          .doOnNext { debug("doOnNext $it addCityByLatLng", "789654") }
+      }
   }
 
   private fun showProgressbar() {
-    val set1 = TransitionSet()
-      .addTransition(ChangeBounds())
-      .addTransition(Fade(Fade.OUT))
-      .addTarget(button_my_loction!!)
-      .setOrdering(TransitionSet.ORDERING_SEQUENTIAL)
-
     TransitionManager.beginDelayedTransition(
       findViewById(android.R.id.content),
       TransitionSet()
-        .addTransition(set1)
+        .addTransition(ChangeBounds().setInterpolator(AccelerateDecelerateInterpolator()))
         .addTransition(Fade(Fade.IN).addTarget(progress_bar))
-        .setDuration(300)
-        .setOrdering(TransitionSet.ORDERING_SEQUENTIAL)
     )
 
-    (button_my_loction.layoutParams as ConstraintLayout.LayoutParams).width =
-        ConstraintLayout.LayoutParams.WRAP_CONTENT
+    (button_my_loction.layoutParams as ConstraintLayout.LayoutParams).run {
+      width = height
+    }
     button_my_loction.visibility = View.INVISIBLE
     progress_bar.visibility = View.VISIBLE
   }
 
   private fun hideProgressbar() {
-    val set1 = TransitionSet()
-      .addTransition(Fade(Fade.IN))
-      .addTransition(ChangeBounds())
-      .addTarget(button_my_loction)
-      .setOrdering(TransitionSet.ORDERING_SEQUENTIAL)
-
     TransitionManager.beginDelayedTransition(
       findViewById(android.R.id.content),
       TransitionSet()
         .addTransition(Fade(Fade.OUT).addTarget(progress_bar))
-        .addTransition(set1)
-        .setDuration(300)
-        .setOrdering(TransitionSet.ORDERING_SEQUENTIAL)
+        .addTransition(ChangeBounds().setInterpolator(AccelerateDecelerateInterpolator()))
     )
 
     progress_bar.visibility = View.INVISIBLE
     button_my_loction.visibility = View.VISIBLE
-    (button_my_loction.layoutParams as ConstraintLayout.LayoutParams).width =
-        ConstraintLayout.LayoutParams.MATCH_CONSTRAINT
+    (button_my_loction.layoutParams as ConstraintLayout.LayoutParams).run {
+      width = ConstraintLayout.LayoutParams.MATCH_CONSTRAINT
+    }
   }
 
   override fun onOptionsItemSelected(item: MenuItem?): Boolean {
@@ -239,8 +252,10 @@ class AddCityActivityTest : AppCompatActivity() {
 
   override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
     super.onActivityResult(requestCode, resultCode, data)
+    debug("requestCode = [$requestCode], resultCode = [$resultCode], data = [$data]", "789654")
     when (requestCode) {
       REQUEST_CHECK_SETTINGS -> if (resultCode == Activity.RESULT_OK) {
+        debug("trigger", "789654")
         triggerAddCurrentLocation.onNext(Unit)
       }
     }

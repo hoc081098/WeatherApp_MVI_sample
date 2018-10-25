@@ -5,7 +5,8 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@color/colorCardBackground"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    tools:background="@drawable/clear_day_bg">
 
     <TextView
         android:id="@+id/text_weather"
@@ -19,11 +20,10 @@
         android:textColor="@android:color/white"
         android:textSize="16sp"
         app:layout_constraintBottom_toTopOf="@+id/textViewDataTime"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintEnd_toStartOf="@+id/text_temp_max"
         app:layout_constraintStart_toEndOf="@+id/card_view"
         app:layout_constraintTop_toTopOf="parent"
-        tools:text="Clouds, 20~35" />
+        tools:text="Clouds" />
 
     <androidx.cardview.widget.CardView
         android:id="@+id/card_view"
@@ -68,5 +68,36 @@
         app:layout_constraintStart_toStartOf="@+id/text_weather"
         app:layout_constraintTop_toBottomOf="@+id/text_weather"
         tools:text="09:05" />
+
+    <TextView
+        android:id="@+id/text_temp_max"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:fontFamily="@font/lato_light"
+        android:textColor="@android:color/white"
+        android:textSize="24sp"
+        app:layout_constraintBottom_toTopOf="@+id/text_temp_min"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_chainStyle="spread_inside"
+        tools:text="35℃" />
+
+    <TextView
+        android:id="@+id/text_temp_min"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
+        android:fontFamily="@font/lato_light"
+        android:textColor="@android:color/white"
+        android:textSize="18sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="@+id/text_temp_max"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="@+id/text_temp_max"
+        app:layout_constraintTop_toBottomOf="@+id/text_temp_max"
+        tools:text="20℃" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

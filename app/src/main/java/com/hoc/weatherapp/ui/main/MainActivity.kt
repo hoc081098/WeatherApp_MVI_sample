@@ -26,6 +26,7 @@ import com.hoc.weatherapp.R
 import com.hoc.weatherapp.data.models.entity.CurrentWeather
 import com.hoc.weatherapp.ui.cities.CitiesActivity
 import com.hoc.weatherapp.ui.main.currentweather.CurrentWeatherFragment
+import com.hoc.weatherapp.ui.main.fivedayforecast.DailyWeatherFragment
 import com.hoc.weatherapp.utils.*
 import com.hoc.weatherapp.utils.blur.GlideBlurTransformation
 import kotlinx.android.synthetic.main.activity_main.*
@@ -75,9 +76,9 @@ class MainActivity : MviActivity<MainContract.View, MainPresenter>(), MainContra
   private fun setupViewPager() {
     view_pager.run {
       val fragments = listOf(
-        CurrentWeatherFragment()
-//                DailyWeatherFragment()
-//                ChartFragment()
+        CurrentWeatherFragment(),
+        DailyWeatherFragment()
+//        ChartFragment()
       )
       adapter = SectionsPagerAdapter(
         supportFragmentManager,
