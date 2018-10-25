@@ -3,28 +3,21 @@ package com.hoc.weatherapp.data.local
 import androidx.room.*
 import com.hoc.weatherapp.data.models.entity.DailyWeather
 import io.reactivex.Flowable
-import io.reactivex.Single
 
 @Dao
 abstract class DailyWeatherDao {
   @Insert(onConflict = OnConflictStrategy.REPLACE)
   abstract fun insertDailyWeathers(weathers: List<DailyWeather>)
 
-  @Query("DELETE FROM five_day_forecast WHERE id = :id")
-  abstract fun deleteAllDailyWeathersByCityId(id: Long)
+  @Query("DELETE FROM five_day_forecast WHERE city_id = :cityId")
+  abstract fun deleteAllDailyWeathersByCityId(cityId: Long)
 
-  @Query("SELECT * FROM five_day_forecast WHERE id = :id ORDER BY timeOfDataForecasted")
-  abstract fun getAllDailyWeathersByCityId(id: Long): Flowable<List<DailyWeather>>
+  @Query("SELECT * FROM five_day_forecast WHERE city_id = :cityId ORDER BY data_time")
+  abstract fun getAllDailyWeathersByCityId(cityId: Long): Flowable<List<DailyWeather>>
 
   @Transaction
-  open fun deleteDailyWeathersByCityIdAndInsert(
-    id: Long,
-    weathers: List<DailyWeather>
-  ) {
-    deleteAllDailyWeathersByCityId(id)
+  open fun deleteDailyWeathersByCityIdAndInsert(cityId: Long, weathers: List<DailyWeather>) {
+    deleteAllDailyWeathersByCityId(cityId)
     insertDailyWeathers(weathers)
   }
-
-  @Query("SELECT * FROM five_day_forecast WHERE id = :id ORDER BY timeOfDataForecasted")
-  abstract fun getAllDailyWeathersByCityIdSingle(id: Long): Single<List<DailyWeather>>
 }

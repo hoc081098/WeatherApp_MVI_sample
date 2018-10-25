@@ -33,6 +33,7 @@ abstract class CurrentWeatherDao {
   @Delete
   abstract fun deleteCurrentWeather(currentWeather: CurrentWeather)
 
+  @Transaction
   open fun upsert(currentWeather: CurrentWeather) {
     try {
       debug("Insert currentWeather=$currentWeather", "@@@")

@@ -21,6 +21,7 @@ abstract class CityDao {
   @Delete
   abstract fun deleteCity(city: City)
 
+  @Transaction
   open fun upsert(city: City) {
     try {
       debug("Insert city=$city", "@@@")

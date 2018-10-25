@@ -4,7 +4,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import com.hoc.weatherapp.R
 import com.hoc.weatherapp.data.models.entity.City
-import com.hoc.weatherapp.data.remote.TemperatureUnit
+import com.hoc.weatherapp.data.models.TemperatureUnit
 import com.squareup.moshi.Moshi
 import java.io.IOException
 import kotlin.properties.ReadOnlyProperty

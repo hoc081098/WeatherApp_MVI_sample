@@ -46,7 +46,7 @@ interface Repository {
    * *********************************************************************************************
    */
 
-  fun getFiveDayForecastByCity(): Flowable<Optional<List<DailyWeather>>>
+  fun getFiveDayForecastOfSelectedCity(): Flowable<Optional<List<DailyWeather>>>
 
-  fun refreshFiveDayForecase(): Completable
+  fun refreshFiveDayForecastOfSelectedCity(): Single<List<DailyWeather>>
 }

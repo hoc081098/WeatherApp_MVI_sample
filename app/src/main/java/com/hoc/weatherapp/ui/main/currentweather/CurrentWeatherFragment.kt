@@ -13,7 +13,7 @@ import com.hoc.weatherapp.R
 import com.hoc.weatherapp.data.NoSelectedCityException
 import com.hoc.weatherapp.data.models.WindDirection
 import com.hoc.weatherapp.data.models.entity.CurrentWeather
-import com.hoc.weatherapp.data.remote.TemperatureUnit.Companion.NUMBER_FORMAT
+import com.hoc.weatherapp.data.models.TemperatureUnit.Companion.NUMBER_FORMAT
 import com.hoc.weatherapp.ui.LiveWeatherActivity
 import com.hoc.weatherapp.ui.main.currentweather.CurrentWeatherContract.ViewState
 import com.hoc.weatherapp.utils.*
