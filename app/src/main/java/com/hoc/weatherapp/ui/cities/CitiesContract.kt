@@ -5,18 +5,18 @@ import com.hoc.weatherapp.data.models.entity.City
 import io.reactivex.Observable
 
 interface CitiesContract {
-  sealed class PartialChange {
-    data class CityListItems(val items: List<CityListItem>) : PartialChange()
+  sealed class PartialStateChange {
+    data class CityListItems(val items: List<CityListItem>) : PartialStateChange()
 
     data class Error(
       val throwable: Throwable,
       val showMessage: Boolean
-    ) : PartialChange()
+    ) : PartialStateChange()
 
     data class DeleteCity(
       val showMessage: Boolean,
       val deletedCity: City
-    ): PartialChange()
+    ) : PartialStateChange()
   }
 
   data class ViewState(

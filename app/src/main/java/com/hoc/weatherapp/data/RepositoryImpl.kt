@@ -3,21 +3,22 @@ package com.hoc.weatherapp.data
 import com.hoc.weatherapp.data.local.CityLocalDataSource
 import com.hoc.weatherapp.data.local.CurrentWeatherLocalDataSource
 import com.hoc.weatherapp.data.local.DailyWeatherLocalDataSource
+import com.hoc.weatherapp.data.local.SharedPrefUtil
 import com.hoc.weatherapp.data.models.currentweather.CurrentWeatherResponse
 import com.hoc.weatherapp.data.models.entity.City
 import com.hoc.weatherapp.data.models.entity.CityAndCurrentWeather
 import com.hoc.weatherapp.data.models.entity.DailyWeather
 import com.hoc.weatherapp.data.models.forecastweather.FiveDayForecastResponse
 import com.hoc.weatherapp.data.remote.WeatherApiService
-import com.hoc.weatherapp.utils.*
+import com.hoc.weatherapp.utils.None
+import com.hoc.weatherapp.utils.Optional
+import com.hoc.weatherapp.utils.Some
+import com.hoc.weatherapp.utils.toOptional
 import io.reactivex.Completable
-import io.reactivex.Flowable
+import io.reactivex.Observable
 import io.reactivex.Single
-import io.reactivex.processors.BehaviorProcessor
 import io.reactivex.rxkotlin.ofType
 import io.reactivex.schedulers.Schedulers
-
-private const val TAG = "$#"
 
 object NoSelectedCityException : Exception() {
   override val message = "No selected city"
@@ -30,35 +31,21 @@ class RepositoryImpl(
   private val dailyWeatherLocalDataSource: DailyWeatherLocalDataSource,
   private val sharedPrefUtil: SharedPrefUtil
 ) : Repository {
-  override fun getSelectedCity(): Flowable<Optional<City>> {
-    return selectedCityProcessor.hide()
+  private val selectedCityProcessor = sharedPrefUtil.selectedCityObservable
+  private val noneCity = selectedCityProcessor.ofType<None>()
+  private val city = selectedCityProcessor.ofType<Some<City>>().map { it.value }
+
+  override fun getSelectedCity(): Observable<Optional<City>> {
+    return selectedCityProcessor
   }
 
-  override fun deleteSelectedCity(): Completable {
-    return when (val city: Optional<City>? = selectedCityProcessor.value) {
-      null -> Completable.error(IllegalStateException("BehaviorProcessor::value is null"))
-      is None -> Completable.error(NoSelectedCityException)
-      is Some<City> -> deleteCity(city.value)
-    }.doOnComplete { debug("::doOnComplete::refreshCurrentWeather", TAG) }
-  }
-
-  private fun saveCityAndCurrentWeather(
-    response: CurrentWeatherResponse,
-    setCityAsSelected: Boolean = true
-  ): Single<CityAndCurrentWeather> {
+  private fun saveCityAndCurrentWeather(response: CurrentWeatherResponse): Single<CityAndCurrentWeather> {
     val city = Mapper.responseToCity(response)
     val weather = Mapper.responseToCurrentWeatherEntity(response)
 
     return cityLocalDataSource
       .insertOrUpdateCity(city)
       .andThen(currentWeatherLocalDataSource.insertOrUpdateCurrentWeather(weather))
-      .run {
-        if (setCityAsSelected) {
-          andThen(changeSelectedCity(city))
-        } else {
-          this
-        }
-      }
       .toSingle {
         CityAndCurrentWeather().apply {
           this.city = city
@@ -72,30 +59,24 @@ class RepositoryImpl(
     val city = Mapper.responseToCity(response)
     val weathers = Mapper.responseToListDailyWeatherEntity(response)
 
-    val tag = "(^^)"
-    debug("city=$city", tag)
-    debug("weathers=$weathers", tag)
-    debug("response=$response", tag)
-
     return dailyWeatherLocalDataSource
       .deleteDailyWeathersByCityIdAndInsert(weathers = weathers, cityId = city.id)
       .toSingle { weathers }
       .subscribeOn(Schedulers.io())
-      .doOnSuccess { debug("doOnSuccess::saveFiveDayForecastWeather", tag) }
   }
 
   override fun refreshCurrentWeather(): Single<CityAndCurrentWeather> {
-    return when (val city: Optional<City>? = selectedCityProcessor.value) {
-      null -> Single.error(IllegalStateException("BehaviorProcessor::value is null"))
-      is None -> Single.error(NoSelectedCityException)
-      is Some<City> -> weatherApiService.getCurrentWeatherByCityId(city.value.id)
+    return when (val city = sharedPrefUtil.getSelectedCity()) {
+      null -> Single.error(NoSelectedCityException)
+      else -> weatherApiService
+        .getCurrentWeatherByCityId(city.id)
         .subscribeOn(Schedulers.io())
-        .flatMap { saveCityAndCurrentWeather(it) }
-    }.doOnSuccess { debug("::doOnSuccess::refreshCurrentWeather", TAG) }
+        .flatMap(::saveCityAndCurrentWeather)
+    }
   }
 
-  override fun getSelectedCityAndCurrentWeather(): Flowable<Optional<CityAndCurrentWeather>> {
-    return Flowable.merge(
+  override fun getSelectedCityAndCurrentWeather(): Observable<Optional<CityAndCurrentWeather>> {
+    return Observable.merge(
       noneCity,
       city.switchMap {
         currentWeatherLocalDataSource
@@ -103,53 +84,42 @@ class RepositoryImpl(
           .subscribeOn(Schedulers.io())
           .map { it.toOptional() }
       }
-    ).doOnNext { debug("::doOnNext::getSelectedCityAndCurrentWeather $it", TAG) }
+    )
   }
 
-  private val selectedCityProcessor =
-    BehaviorProcessor.createDefault<Optional<City>>(sharedPrefUtil.selectedCity.toOptional())
-  private val noneCity = selectedCityProcessor.ofType<None>().doOnNext { debug("NONE", TAG) }
-  private val city = selectedCityProcessor.ofType<Some<City>>().map { it.value }
-    .doOnNext { debug("CITY: $it", TAG) }
-
   override fun changeSelectedCity(city: City?): Completable {
-    return Completable.fromAction {
-      sharedPrefUtil.selectedCity = city
-      selectedCityProcessor.onNext(city.toOptional())
-    }.subscribeOn(Schedulers.io())
-      .doOnComplete { debug("::doOnComplete::changeSelectedCity $city", TAG) }
+    return Completable
+      .fromAction { sharedPrefUtil.setSelectedCity(city) }
+      .subscribeOn(Schedulers.io())
   }
 
   override fun addCityByLatLng(latitude: Double, longitude: Double): Single<City> {
     return weatherApiService.getCurrentWeatherByLatLng(latitude, longitude)
       .subscribeOn(Schedulers.io())
-      .flatMap { saveCityAndCurrentWeather(it, false) }
+      .flatMap(::saveCityAndCurrentWeather)
       .map { it.city }
   }
 
   override fun deleteCity(city: City): Completable {
     return cityLocalDataSource.deleteCity(city)
-      .doOnComplete { debug("::doOnComplete::deleteCity", TAG) }
       .subscribeOn(Schedulers.io())
       .andThen(
-        if (city == selectedCityProcessor.value?.getOrNull()) {
+        if (city == sharedPrefUtil.getSelectedCity()) {
           changeSelectedCity(null)
-            .doOnComplete { debug("changeSelectedCity to null", TAG) }
         } else {
           Completable.complete()
         }
       )
-      .doOnComplete { debug("::doOnComplete::deleteCity::changeSelectedCity", TAG) }
   }
 
-  override fun getAllCityAndCurrentWeathers(querySearch: String): Flowable<List<CityAndCurrentWeather>> {
+  override fun getAllCityAndCurrentWeathers(querySearch: String): Observable<List<CityAndCurrentWeather>> {
     return currentWeatherLocalDataSource
       .getAllCityAndCurrentWeathers(querySearch)
       .subscribeOn(Schedulers.io())
   }
 
-  override fun getFiveDayForecastOfSelectedCity(): Flowable<Optional<List<DailyWeather>>> {
-    return Flowable.merge(
+  override fun getFiveDayForecastOfSelectedCity(): Observable<Optional<List<DailyWeather>>> {
+    return Observable.merge(
       noneCity,
       city.switchMap { city ->
         dailyWeatherLocalDataSource
@@ -161,12 +131,12 @@ class RepositoryImpl(
   }
 
   override fun refreshFiveDayForecastOfSelectedCity(): Single<List<DailyWeather>> {
-    return when (val city: Optional<City>? = selectedCityProcessor.value) {
-      null -> Single.error(IllegalStateException("BehaviorProcessor::value is null"))
-      is None -> Single.error(NoSelectedCityException)
-      is Some<City> -> weatherApiService.get5DayEvery3HourForecastByCityId(city.value.id)
+    return when (val city = sharedPrefUtil.getSelectedCity()) {
+      null -> Single.error(NoSelectedCityException)
+      else -> weatherApiService
+        .get5DayEvery3HourForecastByCityId(city.id)
         .subscribeOn(Schedulers.io())
         .flatMap(::saveFiveDayForecastWeather)
-    }.doOnSuccess { debug("::doOnSuccess::refreshCurrentWeather", TAG) }
+    }
   }
 }

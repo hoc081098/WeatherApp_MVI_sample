@@ -26,7 +26,6 @@ class GlideBlurTransformation(private val context: Context, private val radius: 
 
   override fun hashCode(): Int = 31 * radius.hashCode() + ID.hashCode()
 
-
   companion object {
     private const val ID = "com.hoc.weatherapp.utils.blur.GlideBlurTransformation"
   }
