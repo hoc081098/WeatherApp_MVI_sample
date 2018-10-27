@@ -1,50 +1,80 @@
 package com.hoc.weatherapp.ui.addcity
 
-import android.Manifest.permission.ACCESS_COARSE_LOCATION
-import android.Manifest.permission.ACCESS_FINE_LOCATION
+import android.Manifest
 import android.app.Activity
 import android.content.Intent
-import android.content.pm.PackageManager.PERMISSION_GRANTED
-import android.location.Location
 import android.os.Bundle
 import android.view.MenuItem
 import android.view.View
-import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat.checkSelfPermission
+import android.view.animation.AccelerateDecelerateInterpolator
+import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.transition.ChangeBounds
 import androidx.transition.Fade
 import androidx.transition.TransitionManager
 import androidx.transition.TransitionSet
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.common.api.Status
-import com.google.android.gms.location.*
 import com.google.android.gms.location.places.Place
 import com.google.android.gms.location.places.ui.PlaceSelectionListener
 import com.google.android.gms.location.places.ui.SupportPlaceAutocompleteFragment
-import com.google.android.gms.tasks.Task
+import com.hannesdorfmann.mosby3.mvi.MviActivity
 import com.hoc.weatherapp.R
-import com.hoc.weatherapp.data.Repository
-import com.hoc.weatherapp.data.models.entity.City
 import com.hoc.weatherapp.utils.debug
-import com.hoc.weatherapp.utils.snackBar
 import com.hoc.weatherapp.utils.toast
-import io.reactivex.Single
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.processors.PublishProcessor
-import io.reactivex.rxkotlin.addTo
-import io.reactivex.rxkotlin.subscribeBy
-import io.reactivex.schedulers.Schedulers
+import com.jakewharton.rxbinding3.view.clicks
+import com.tbruyelle.rxpermissions2.RxPermissions
+import io.reactivex.Observable
+import io.reactivex.subjects.PublishSubject
 import kotlinx.android.synthetic.main.activity_add_city.*
 import kotlinx.android.synthetic.main.some_city_layout.*
-import org.koin.android.ext.android.inject
+import org.koin.android.ext.android.get
 import java.util.concurrent.TimeUnit
-import androidx.core.app.ActivityCompat.requestPermissions as requestPermissionsCompat
 
-class AddCityActivity : AppCompatActivity() {
-  private val weatherRepository by inject<Repository>()
+class AddCityActivity : MviActivity<AddCityContract.View, AddCityPresenter>(),
+  AddCityContract.View {
+  private val tag = "addcity"
+  private val publishSubjectAutoCompletePlace = PublishSubject.create<Pair<Double, Double>>()
 
-  private val compositeDisposable = CompositeDisposable()
-  private var countRequestLocationPermission = 0
+  override fun addCurrentLocationIntent(): Observable<Unit> {
+    return button_my_loction.clicks()
+      .throttleFirst(600, TimeUnit.MILLISECONDS)
+      .compose(
+        RxPermissions(this).ensureEach(
+          Manifest.permission.ACCESS_FINE_LOCATION
+        )
+      )
+      .filter { it.granted }
+      .map { Unit }
+      .doOnNext { debug("button my location clicks", tag) }
+  }
+
+  override fun addCityByLatLngIntent(): Observable<Pair<Double, Double>> {
+    return publishSubjectAutoCompletePlace
+      .doOnNext { debug("publishSubjectAutoCompletePlace $it", tag) }
+  }
+
+  override fun createPresenter() = get<AddCityPresenter>()
+
+  override fun render(state: AddCityContract.ViewState) {
+    when (state) {
+      AddCityContract.ViewState.Loading -> showProgressbar()
+      is AddCityContract.ViewState.AddCitySuccessfully -> {
+        hideProgressbar()
+        if (state.showMessage) toast("Added ${state.city.name}")
+      }
+      is AddCityContract.ViewState.Error -> {
+        hideProgressbar()
+        if (state.showMessage) {
+          toast("Error ${state.throwable.message}")
+          if (state.throwable is ResolvableApiException) {
+            runCatching {
+              state.throwable.startResolutionForResult(this, REQUEST_CHECK_SETTINGS)
+            }
+          }
+        }
+      }
+    }
+  }
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
@@ -56,10 +86,6 @@ class AddCityActivity : AppCompatActivity() {
       title = "Add a city"
     }
 
-    countRequestLocationPermission =
-        savedInstanceState?.getInt(COUNT_REQUEST_LOCATION_PERMISSION) ?: 0
-
-    setupButtonMyLocation()
     setupAutoCompletePlace()
   }
 
@@ -68,214 +94,47 @@ class AddCityActivity : AppCompatActivity() {
       setHint("Search city ...")
       setOnPlaceSelectedListener(object : PlaceSelectionListener {
         override fun onPlaceSelected(place: Place?) {
-          val latitude = place?.latLng?.latitude
-          val longitude = place?.latLng?.longitude
-
-          if (latitude != null && longitude != null) {
-            weatherRepository.addCityByLatLng(latitude, longitude)
-              .subscribeExtFunc()
-          }
+          val latitude = place?.latLng?.latitude ?: return
+          val longitude = place.latLng?.longitude ?: return
+          publishSubjectAutoCompletePlace.onNext(latitude to longitude)
         }
 
-        override fun onError(status: Status?) {}
+        override fun onError(status: Status) {
+          toast(status.statusMessage ?: "An error occurred")
+        }
       })
     }
   }
 
-  private fun setupButtonMyLocation() {
-    val processor = PublishProcessor.create<Unit>()
-    button_my_loction.setOnClickListener { processor.onNext(Unit) }
-    processor.hide()
-      .throttleFirst(600, TimeUnit.MILLISECONDS)
-      .observeOn(AndroidSchedulers.mainThread())
-      .subscribeBy(
-        onError = {},
-        onNext = { addCurrentLocation() }
-      )
-      .addTo(compositeDisposable)
-  }
-
-  override fun onSaveInstanceState(outState: Bundle?) {
-    super.onSaveInstanceState(outState)
-    outState?.putInt(
-      COUNT_REQUEST_LOCATION_PERMISSION,
-      countRequestLocationPermission
-    )
-  }
-
-  private fun Single<City>.subscribeExtFunc() {
-    subscribeOn(Schedulers.io())
-      .observeOn(AndroidSchedulers.mainThread())
-      .doOnSubscribe {
-        debug("doOnSubscribe")
-        TransitionManager.beginDelayedTransition(
-          root_add_city_activity,
-          TransitionSet()
-            .addTransition(Fade(Fade.OUT).addTarget(button_my_loction))
-            .addTransition(Fade(Fade.IN).addTarget(progress_bar))
-            .setDuration(300)
-        )
-        button_my_loction.visibility = View.INVISIBLE
-        progress_bar.visibility = View.VISIBLE
-      }
-      .subscribeBy(
-        onError = {
-          root_add_city_activity.snackBar("Add city error: ${it.message}")
-          hideProgressBar()
-        },
-        onSuccess = {
-          toast("Add city successfully!")
-          hideProgressBar()
-        }
-      )
-      .addTo(compositeDisposable)
-  }
-
-  private fun hideProgressBar() {
+  private fun showProgressbar() {
     TransitionManager.beginDelayedTransition(
-      root_add_city_activity,
+      findViewById(android.R.id.content),
       TransitionSet()
-        .addTransition(Fade(Fade.IN).addTarget(button_my_loction))
-        .addTransition(Fade(Fade.OUT).addTarget(progress_bar))
-        .setDuration(300)
+        .addTransition(ChangeBounds())
+        .addTransition(Fade(Fade.IN).addTarget(progress_bar))
+        .setInterpolator(AccelerateDecelerateInterpolator())
     )
+
+    (button_my_loction.layoutParams as ConstraintLayout.LayoutParams).run {
+      width = height
+    }
+    button_my_loction.visibility = View.INVISIBLE
+    progress_bar.visibility = View.VISIBLE
+  }
+
+  private fun hideProgressbar() {
+    TransitionManager.beginDelayedTransition(
+      findViewById(android.R.id.content),
+      TransitionSet()
+        .addTransition(Fade(Fade.OUT).addTarget(progress_bar))
+        .addTransition(ChangeBounds())
+        .setInterpolator(AccelerateDecelerateInterpolator())
+    )
+
     progress_bar.visibility = View.INVISIBLE
     button_my_loction.visibility = View.VISIBLE
-  }
-
-  private fun addCurrentLocation() {
-    when {
-      checkSelfPermission(this, ACCESS_FINE_LOCATION) != PERMISSION_GRANTED
-          && checkSelfPermission(this, ACCESS_COARSE_LOCATION) != PERMISSION_GRANTED -> {
-        if (countRequestLocationPermission < MAX_NUMBER_REQUEST_PERMISSON) {
-          ++countRequestLocationPermission
-
-          requestPermissionsCompat(
-            this,
-            arrayOf(ACCESS_FINE_LOCATION, ACCESS_COARSE_LOCATION),
-            LOCATION_PERMISSION_RC
-          )
-        } else {
-          root_add_city_activity.snackBar("Go to setting to grant location permission")
-        }
-      }
-      else -> {
-        getCurrentLocation()
-          .flatMap {
-            weatherRepository.addCityByLatLng(
-              it.latitude,
-              it.longitude
-            ).subscribeOn(Schedulers.io())
-          }
-          .subscribeExtFunc()
-      }
-    }
-  }
-
-  private fun getCurrentLocation(): Single<Location> {
-    val publishProcessor = PublishProcessor.create<Location>()
-
-    val locationRequest = LocationRequest().apply {
-      interval = 2_000
-      fastestInterval = 1_000
-      priority = LocationRequest.PRIORITY_HIGH_ACCURACY
-      numUpdates = 1
-    }
-    val fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
-
-    val builder = LocationSettingsRequest.Builder()
-      .addLocationRequest(locationRequest)
-
-    val client: SettingsClient = LocationServices.getSettingsClient(this)
-    val task: Task<LocationSettingsResponse> = client.checkLocationSettings(builder.build())
-
-    task.addOnSuccessListener {
-      // All location settings are satisfied. The client can initialize
-      // location requests here.
-      // ...
-      if (checkSelfPermission(this, ACCESS_FINE_LOCATION) != PERMISSION_GRANTED
-        && checkSelfPermission(this, ACCESS_COARSE_LOCATION) != PERMISSION_GRANTED
-      ) return@addOnSuccessListener
-
-      fusedLocationProviderClient
-        .requestLocationUpdates(
-          locationRequest,
-          object : LocationCallback() {
-            override fun onLocationResult(locationResult: LocationResult?) {
-              locationResult?.lastLocation?.let {
-                fusedLocationProviderClient.removeLocationUpdates(this)
-                publishProcessor.onNext(it)
-                publishProcessor.onComplete()
-              }
-            }
-          },
-          null
-        )
-
-    }.addOnFailureListener { exception ->
-      if (exception is ResolvableApiException) {
-        // Location settings are not satisfied, but this can be fixed
-        // by showing the user a dialog.
-        runCatching {
-          // Show the dialog by calling startResolutionForResult(),
-          // and check the result in onActivityResult().
-          exception.startResolutionForResult(
-            this,
-            REQUEST_CHECK_SETTINGS
-          )
-        }
-      }
-    }
-
-    return publishProcessor.hide().singleOrError()
-  }
-
-  /*private fun getNearCity() {
-      if (ContextCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) != PERMISSION_GRANTED
-          && ContextCompat.checkSelfPermission(this, ACCESS_COARSE_LOCATION) != PERMISSION_GRANTED
-      ) return
-
-      fusedLocationProviderClient.lastLocation
-          .addOnSuccessListener {
-              when (it) {
-                  null -> toast("Can't get location. Please enable GPS")
-                  else -> {
-                      Geocoder(this, Locale.getDefault())
-                          .getFromLocation(
-                              it.latitude,
-                              it.longitude,
-                              1
-                          )
-                          .firstOrNull()
-                          ?.countryCode
-                          ?.let(::getCityByCountryCode)
-                  }
-              }
-          }
-          .addOnFailureListener {
-
-          }
-  }
-
-  private fun getCityByCountryCode(country: String) {}*/
-
-  override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-    super.onActivityResult(requestCode, resultCode, data)
-    when (requestCode) {
-      REQUEST_CHECK_SETTINGS -> if (resultCode == Activity.RESULT_OK) {
-        addCurrentLocation()
-      }
-    }
-  }
-
-  override fun onRequestPermissionsResult(
-    requestCode: Int,
-    permissions: Array<out String>,
-    grantResults: IntArray
-  ) {
-    super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-    when (requestCode) {
-      LOCATION_PERMISSION_RC -> addCurrentLocation()
+    (button_my_loction.layoutParams as ConstraintLayout.LayoutParams).run {
+      width = ConstraintLayout.LayoutParams.MATCH_CONSTRAINT
     }
   }
 
@@ -286,16 +145,17 @@ class AddCityActivity : AppCompatActivity() {
     }
   }
 
-  override fun onDestroy() {
-    super.onDestroy()
-    compositeDisposable.clear()
+  override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+    super.onActivityResult(requestCode, resultCode, data)
+    debug("requestCode = [$requestCode], resultCode = [$resultCode], data = [$data]", "789654")
+    when (requestCode) {
+      REQUEST_CHECK_SETTINGS -> if (resultCode == Activity.RESULT_OK) {
+
+      }
+    }
   }
 
   companion object {
-    private const val LOCATION_PERMISSION_RC = 2
-    private const val COUNT_REQUEST_LOCATION_PERMISSION =
-      "COUNT_REQUEST_LOCATION_PERMISSION"
-    private const val REQUEST_CHECK_SETTINGS = 3
-    private const val MAX_NUMBER_REQUEST_PERMISSON = 2
+    const val REQUEST_CHECK_SETTINGS = 1
   }
 }

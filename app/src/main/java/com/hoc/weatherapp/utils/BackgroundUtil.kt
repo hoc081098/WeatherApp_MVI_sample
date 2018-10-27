@@ -5,7 +5,7 @@ import androidx.annotation.DrawableRes
 import com.hoc.weatherapp.R
 import com.hoc.weatherapp.data.models.entity.CurrentWeather
 import com.hoc.weatherapp.data.models.entity.DailyWeather
-import java.util.*
+import java.util.Calendar
 
 /**
  * 01d, 01n -> clear sky

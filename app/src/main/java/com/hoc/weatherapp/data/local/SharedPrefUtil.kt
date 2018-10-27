@@ -1,12 +1,14 @@
-package com.hoc.weatherapp.utils
+package com.hoc.weatherapp.data.local
 
 import android.content.Context
 import android.content.SharedPreferences
 import com.hoc.weatherapp.R
-import com.hoc.weatherapp.data.models.entity.City
 import com.hoc.weatherapp.data.models.TemperatureUnit
+import com.hoc.weatherapp.data.models.entity.City
+import com.hoc.weatherapp.utils.Optional
+import com.hoc.weatherapp.utils.toOptional
 import com.squareup.moshi.Moshi
-import java.io.IOException
+import io.reactivex.subjects.BehaviorSubject
 import kotlin.properties.ReadOnlyProperty
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
@@ -32,22 +34,33 @@ class SharedPrefUtil(
   )
   private var selectedCityJsonString by sharedPreferences.delegate<String>()
 
-  var selectedCity: City?
-    get() = try {
+  /**
+   *************************************************************************************************
+   */
+
+  private var _selectedCity: City?
+    get() = runCatching {
       moshi.adapter(City::class.java).fromJson(selectedCityJsonString)
-    } catch (e: IOException) {
-      null
-    }
+    }.getOrNull()
     set(value) {
-      val json = try {
+      runCatching {
         moshi.adapter(City::class.java).toJson(value)
-      } catch (e: Exception) {
-        null
-      }
-      if (json != null) {
-        selectedCityJsonString = json
+      }.onSuccess {
+        selectedCityJsonString = it ?: return@onSuccess
       }
     }
+
+  private val _selectedCitySubject =
+    BehaviorSubject.createDefault<Optional<City>>(_selectedCity.toOptional())
+
+  val selectedCityObservable = _selectedCitySubject.hide()!!
+
+  fun setSelectedCity(city: City?) {
+    _selectedCity = city
+    _selectedCitySubject.onNext(city.toOptional())
+  }
+
+  fun getSelectedCity() = _selectedCity
 }
 
 @Suppress("UNCHECKED_CAST")

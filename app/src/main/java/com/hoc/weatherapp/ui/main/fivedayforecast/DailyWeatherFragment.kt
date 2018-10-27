@@ -18,10 +18,15 @@ import com.bumptech.glide.request.RequestOptions
 import com.hoc.weatherapp.R
 import com.hoc.weatherapp.data.NoSelectedCityException
 import com.hoc.weatherapp.data.Repository
+import com.hoc.weatherapp.data.local.SharedPrefUtil
 import com.hoc.weatherapp.data.models.TemperatureUnit
 import com.hoc.weatherapp.data.models.entity.DailyWeather
-import com.hoc.weatherapp.utils.*
-import io.reactivex.Flowable
+import com.hoc.weatherapp.utils.None
+import com.hoc.weatherapp.utils.Some
+import com.hoc.weatherapp.utils.getIconDrawableFromDailyWeather
+import com.hoc.weatherapp.utils.toast
+import com.hoc.weatherapp.utils.trim
+import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.addTo
@@ -33,7 +38,8 @@ import kotlinx.android.synthetic.main.fragment_daily_weather.*
 import org.koin.android.ext.android.inject
 import java.text.DateFormat
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Calendar
+import java.util.Date
 
 class DailyWeatherAdapter(
   temperatureUnit: TemperatureUnit,
@@ -200,8 +206,8 @@ class DailyWeatherFragment : Fragment() {
         .doOnSuccess { swipe_refresh_layout.isRefreshing = false }
         .doOnError { swipe_refresh_layout.isRefreshing = false }
         .subscribeBy(
-          onError = {toast(it.message ?: "An error occurred")},
-          onSuccess = {toast("Refresh successfully")}
+          onError = { toast(it.message ?: "An error occurred") },
+          onSuccess = { toast("Refresh successfully") }
         )
     }
     getDailyWeather()
@@ -215,7 +221,7 @@ class DailyWeatherFragment : Fragment() {
   private fun getDailyWeather() {
     weatherRepository.getFiveDayForecastOfSelectedCity()
       .publish { shared ->
-        Flowable.mergeArray(
+        Observable.mergeArray(
           shared.ofType<None>().map { throw NoSelectedCityException },
           shared.ofType<Some<List<DailyWeather>>>()
             .map { it.value }

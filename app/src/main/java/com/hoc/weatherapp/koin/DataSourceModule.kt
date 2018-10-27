@@ -10,16 +10,6 @@ import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module.module
 
 val dataSourceModule = module {
-  //    single { WeatherRepositoryImpl(get(), get()) }
-//
-//    single {
-//        WeatherRepositoryImpl2(
-//            get(),
-//            get(),
-//            get()
-//        )
-//    } bind WeatherRepository::class
-
   single { RepositoryImpl(get(), get(), get(), get(), get()) } bind Repository::class
 
   single { AppDatabase.getInstance(androidContext()) }

@@ -5,7 +5,7 @@ import com.hoc.weatherapp.data.models.entity.CityAndCurrentWeather
 import com.hoc.weatherapp.data.models.entity.DailyWeather
 import com.hoc.weatherapp.utils.Optional
 import io.reactivex.Completable
-import io.reactivex.Flowable
+import io.reactivex.Observable
 import io.reactivex.Single
 
 interface Repository {
@@ -24,9 +24,7 @@ interface Repository {
 
   fun deleteCity(city: City): Completable
 
-  fun deleteSelectedCity(): Completable
-
-  fun getSelectedCity(): Flowable<Optional<City>>
+  fun getSelectedCity(): Observable<Optional<City>>
 
   /**
    * *********************************************************************************************
@@ -36,9 +34,9 @@ interface Repository {
 
   fun refreshCurrentWeather(): Single<CityAndCurrentWeather>
 
-  fun getSelectedCityAndCurrentWeather(): Flowable<Optional<CityAndCurrentWeather>>
+  fun getSelectedCityAndCurrentWeather(): Observable<Optional<CityAndCurrentWeather>>
 
-  fun getAllCityAndCurrentWeathers(querySearch: String): Flowable<List<CityAndCurrentWeather>>
+  fun getAllCityAndCurrentWeathers(querySearch: String): Observable<List<CityAndCurrentWeather>>
 
   /**
    * *********************************************************************************************
@@ -46,7 +44,7 @@ interface Repository {
    * *********************************************************************************************
    */
 
-  fun getFiveDayForecastOfSelectedCity(): Flowable<Optional<List<DailyWeather>>>
+  fun getFiveDayForecastOfSelectedCity(): Observable<Optional<List<DailyWeather>>>
 
   fun refreshFiveDayForecastOfSelectedCity(): Single<List<DailyWeather>>
 }

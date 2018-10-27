@@ -8,7 +8,9 @@ import android.graphics.RectF
 import android.view.MotionEvent
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.ItemTouchHelper
-import androidx.recyclerview.widget.ItemTouchHelper.*
+import androidx.recyclerview.widget.ItemTouchHelper.ACTION_STATE_SWIPE
+import androidx.recyclerview.widget.ItemTouchHelper.LEFT
+import androidx.recyclerview.widget.ItemTouchHelper.RIGHT
 import androidx.recyclerview.widget.RecyclerView
 import com.hoc.weatherapp.R
 
@@ -49,7 +51,6 @@ class SwipeController(private val buttonsActions: SwipeControllerActions) :
   override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
   }
 
-
   override fun convertToAbsoluteDirection(flags: Int, layoutDirection: Int): Int {
     if (swipeBack) {
       swipeBack = buttonShowedState != ButtonState.GONE
@@ -57,7 +58,6 @@ class SwipeController(private val buttonsActions: SwipeControllerActions) :
     }
     return super.convertToAbsoluteDirection(flags, layoutDirection)
   }
-
 
   override fun onChildDraw(
     c: Canvas,
@@ -100,7 +100,6 @@ class SwipeController(private val buttonsActions: SwipeControllerActions) :
       super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
     }
     currentViewHolder = viewHolder
-
   }
 
   @SuppressLint("ClickableViewAccessibility")
@@ -209,7 +208,6 @@ class SwipeController(private val buttonsActions: SwipeControllerActions) :
       recyclerView.getChildAt(i).isClickable = isClickable
     }
   }
-
 
   private fun drawButtons(c: Canvas, viewHolder: RecyclerView.ViewHolder) {
     val buttonWidthWithoutPadding = buttonWidth - 16
