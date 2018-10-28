@@ -1,33 +1,24 @@
 package com.hoc.weatherapp.utils
 
 import android.Manifest
-import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.location.Location
-import android.os.Looper
 import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.annotation.IntDef
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.LocationSettingsRequest
-import com.google.android.gms.tasks.Task
 import com.google.android.material.snackbar.Snackbar
-import io.reactivex.BackpressureStrategy
-import io.reactivex.Flowable
-import io.reactivex.FlowableEmitter
 import io.reactivex.Observable
 import io.reactivex.Single
-import io.reactivex.android.schedulers.AndroidSchedulers
 
 @IntDef(value = [Toast.LENGTH_SHORT, Toast.LENGTH_LONG])
 @Retention(AnnotationRetention.SOURCE)
@@ -60,63 +51,14 @@ inline fun <reified T : Any> T.debug(msg: Any?, tag: String? = null) {
   Log.d(tag ?: this::class.java.simpleName, msg.toString())
 }
 
-fun <T : Any?> Task<T>.toFlowable(): Flowable<T> {
-  return Flowable.create({ emitter: FlowableEmitter<T> ->
-    addOnSuccessListener {
-      if (!emitter.isCancelled) {
-        if (it === null) {
-          emitter.onError(NullPointerException("Result of task is null"))
-        } else {
-          emitter.onNext(it)
-          emitter.onComplete()
-        }
-      }
-    }.addOnFailureListener {
-      if (!emitter.isCancelled) {
-        emitter.onError(it)
-      }
-    }
-  }, BackpressureStrategy.LATEST)
-}
-
-fun Context.receivesLocal(intentFilter: IntentFilter): Flowable<Intent> {
-  return Flowable.create({ emitter: FlowableEmitter<Intent> ->
-    val receiver = object : BroadcastReceiver() {
-      override fun onReceive(context: Context?, intent: Intent) {
-        debug("onReceive $intent", this::class.java.simpleName)
-        emitter.onNext(intent)
-      }
-    }
-
-    LocalBroadcastManager.getInstance(this)
-      .registerReceiver(receiver, intentFilter)
-    debug(Looper.getMainLooper() == Looper.myLooper(), this::class.java.simpleName)
-
-    emitter.setCancellable {
-      if (Looper.getMainLooper() == Looper.myLooper()) {
-        LocalBroadcastManager.getInstance(this)
-          .unregisterReceiver(receiver)
-        debug("unregisterReceiver1", this::class.java.simpleName)
-      } else {
-        val worker = AndroidSchedulers.mainThread().createWorker()
-        worker.schedule {
-          LocalBroadcastManager.getInstance(this)
-            .unregisterReceiver(receiver)
-          debug("unregisterReceiver2", this::class.java.simpleName)
-          worker.dispose()
-        }
-      }
-    }
-  }, BackpressureStrategy.LATEST)
-}
-
 fun Context.checkLocationSettingAndGetCurrentLocation(): Single<Location> {
-  return Observable.generate<Location> { emitter ->
+  return Observable.create<Location> { emitter ->
     val locationRequest = LocationRequest()
-      .setInterval(1000)
+      .setInterval(500)
       .setFastestInterval(500)
       .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
       .setNumUpdates(1)
+
     val fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
 
     LocationServices.getSettingsClient(this)
@@ -166,6 +108,7 @@ fun Context.checkLocationSettingAndGetCurrentLocation(): Single<Location> {
               fusedLocationProviderClient.removeLocationUpdates(this)
               emitter.onNext(lastLocation)
               emitter.onComplete()
+              toast("Get location successfully: $lastLocation")
             }
           },
           null /* LOOPER */
@@ -174,4 +117,8 @@ fun Context.checkLocationSettingAndGetCurrentLocation(): Single<Location> {
   }.take(1).singleOrError()
 }
 
-
+/**
+ * Filters the items emitted by an Observable, only emitting those of the specified type.
+ */
+inline fun <reified R : Any> Observable<*>.notOfType(): Observable<out Any> =
+  filter { !R::class.java.isInstance(it) }

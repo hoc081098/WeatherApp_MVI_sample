@@ -61,7 +61,7 @@ class RepositoryImpl(
 
     return dailyWeatherLocalDataSource
       .deleteDailyWeathersByCityIdAndInsert(weathers = weathers, cityId = city.id)
-      .toSingle { weathers }
+      .toSingleDefault(weathers)
       .subscribeOn(Schedulers.io())
   }
 

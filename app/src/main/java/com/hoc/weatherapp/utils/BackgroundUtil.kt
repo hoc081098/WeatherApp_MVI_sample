@@ -4,7 +4,6 @@ import android.content.Context
 import androidx.annotation.DrawableRes
 import com.hoc.weatherapp.R
 import com.hoc.weatherapp.data.models.entity.CurrentWeather
-import com.hoc.weatherapp.data.models.entity.DailyWeather
 import java.util.Calendar
 
 /**
@@ -88,9 +87,9 @@ fun Context.getIconDrawableFromCurrentWeather(
 }
 
 @DrawableRes
-fun Context.getIconDrawableFromDailyWeather(weather: DailyWeather): Int {
+fun Context.getIconDrawableFromDailyWeather(icon: String): Int {
   return resources.getIdentifier(
-    "weather_icon_${weather.icon}",
+    "weather_icon_$icon",
     "drawable",
     packageName
   ).takeIf { it != 0 } ?: R.drawable.weather_icon_null

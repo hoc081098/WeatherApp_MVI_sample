@@ -26,8 +26,10 @@ interface CurrentWeatherContract {
     val showRefreshSuccessfully: Boolean = false
   )
 
+  object InitialRefreshIntent
+
   interface View : MvpView {
-    fun refreshCurrentWeatherIntent(): Observable<Unit>
+    fun refreshCurrentWeatherIntent(): Observable<Any>
 
     fun render(state: ViewState)
   }

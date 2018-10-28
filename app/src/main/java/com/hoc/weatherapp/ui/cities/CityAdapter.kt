@@ -29,7 +29,7 @@ class CitiesAdapter : ListAdapter<CityListItem, CitiesAdapter.ViewHolder>(object
   }
 }) {
   private val _itemClickSubject = PublishSubject.create<City>()
-  val itemClickObservable get() = _itemClickSubject.hide()
+  val itemClickObservable get() = _itemClickSubject.hide()!!
 
   override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) =
     LayoutInflater.from(parent.context)
@@ -42,9 +42,9 @@ class CitiesAdapter : ListAdapter<CityListItem, CitiesAdapter.ViewHolder>(object
   inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView),
     View.OnClickListener {
     private val textName = itemView.text_name!!
-    private val textWeather = itemView.text_weather
-    private val imageIconCityItem = itemView.image_icon_city_item
-    private val radioButtonSelectedCity = itemView.radio_button_selected_city
+    private val textWeather = itemView.text_weather!!
+    private val imageIconCityItem = itemView.image_icon_city_item!!
+    private val radioButtonSelectedCity = itemView.radio_button_selected_city!!
 
     init {
       itemView.setOnClickListener(this)
