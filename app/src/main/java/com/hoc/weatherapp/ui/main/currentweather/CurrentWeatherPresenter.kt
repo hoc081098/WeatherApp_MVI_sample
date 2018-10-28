@@ -4,12 +4,14 @@ import com.hannesdorfmann.mosby3.mvi.MviBasePresenter
 import com.hoc.weatherapp.data.NoSelectedCityException
 import com.hoc.weatherapp.data.Repository
 import com.hoc.weatherapp.data.models.entity.CityAndCurrentWeather
+import com.hoc.weatherapp.ui.main.currentweather.CurrentWeatherContract.InitialRefreshIntent
 import com.hoc.weatherapp.ui.main.currentweather.CurrentWeatherContract.PartialStateChange
 import com.hoc.weatherapp.ui.main.currentweather.CurrentWeatherContract.View
 import com.hoc.weatherapp.ui.main.currentweather.CurrentWeatherContract.ViewState
 import com.hoc.weatherapp.utils.None
 import com.hoc.weatherapp.utils.Some
 import com.hoc.weatherapp.utils.debug
+import com.hoc.weatherapp.utils.notOfType
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.rxkotlin.cast
@@ -23,6 +25,13 @@ class CurrentWeatherPresenter(private val repository: Repository) :
   override fun bindIntents() {
 
     val refresh = intent(View::refreshCurrentWeatherIntent)
+      .publish { shared ->
+        Observable.mergeArray(
+          shared.ofType<InitialRefreshIntent>().take(1),
+          shared.notOfType<InitialRefreshIntent>()
+        )
+      }
+      .doOnNext { debug("refresh intent $it") }
       .switchMap {
         repository.refreshCurrentWeather()
           .toObservable()

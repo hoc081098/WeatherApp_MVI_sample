@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.Fragment
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.bumptech.glide.request.RequestOptions
@@ -24,7 +25,9 @@ import com.hoc.weatherapp.utils.snackBar
 import com.hoc.weatherapp.utils.startActivity
 import com.jakewharton.rxbinding3.swiperefreshlayout.refreshes
 import io.reactivex.Observable
+import io.reactivex.rxkotlin.cast
 import io.reactivex.subjects.BehaviorSubject
+import io.reactivex.subjects.PublishSubject
 import kotlinx.android.synthetic.main.fragment_current_weather.*
 import org.koin.android.ext.android.get
 import org.koin.android.ext.android.inject
@@ -38,12 +41,13 @@ class CurrentWeatherFragment : MviFragment<CurrentWeatherContract.View, CurrentW
   private val sharedPrefUtil by inject<SharedPrefUtil>()
   private var errorSnackBar: Snackbar? = null
   private var refreshSnackBar: Snackbar? = null
-  private val refreshInitial = BehaviorSubject.create<Unit>()
+  private val refreshInitial = PublishSubject.create<CurrentWeatherContract.InitialRefreshIntent>()
 
-  override fun refreshCurrentWeatherIntent(): Observable<Unit> {
+  override fun refreshCurrentWeatherIntent(): Observable<Any> {
     return swipe_refresh_layout.refreshes()
-      .mergeWith(refreshInitial.take(1))
-      .doOnNext { debug("swipe_refresh_layout.refreshes", TAG) }
+      .cast<Any>()
+      .mergeWith(refreshInitial.doOnNext { debug("refreshes initial", TAG) })
+      .doOnNext { debug("refreshes", TAG) }
   }
 
   override fun render(state: ViewState) {
@@ -132,8 +136,11 @@ class CurrentWeatherFragment : MviFragment<CurrentWeatherContract.View, CurrentW
     super.onViewCreated(view, savedInstanceState)
 
     button_live.setOnClickListener { requireContext().startActivity<LiveWeatherActivity>() }
+  }
 
-    refreshInitial.onNext(Unit)
+  override fun onResume() {
+    super.onResume()
+    refreshInitial.onNext(CurrentWeatherContract.InitialRefreshIntent)
   }
 
   private fun updateWeatherIcon(weather: CurrentWeather) {

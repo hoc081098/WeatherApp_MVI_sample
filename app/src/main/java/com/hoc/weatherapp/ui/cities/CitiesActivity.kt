@@ -16,6 +16,8 @@ import com.hannesdorfmann.mosby3.mvi.MviActivity
 import com.hoc.weatherapp.R
 import com.hoc.weatherapp.data.models.entity.City
 import com.hoc.weatherapp.ui.addcity.AddCityActivity
+import com.hoc.weatherapp.ui.cities.CitiesContract.SearchStringIntent
+import com.hoc.weatherapp.ui.cities.CitiesContract.SearchStringIntent.InitialSearchStringIntent
 import com.hoc.weatherapp.ui.cities.CitiesContract.View
 import com.hoc.weatherapp.utils.SwipeController
 import com.hoc.weatherapp.utils.SwipeControllerActions
@@ -24,8 +26,10 @@ import com.hoc.weatherapp.utils.snackBar
 import com.hoc.weatherapp.utils.startActivity
 import com.hoc.weatherapp.utils.textChanges
 import io.reactivex.Observable
+import io.reactivex.rxkotlin.cast
 import io.reactivex.subjects.BehaviorSubject
 import io.reactivex.subjects.PublishSubject
+import io.reactivex.subjects.PublishSubject.create
 import kotlinx.android.synthetic.main.activity_cities.*
 import org.koin.android.ext.android.get
 import java.util.concurrent.TimeUnit
@@ -35,9 +39,9 @@ class CitiesActivity : MviActivity<View, CitiesPresenter>(), View {
 
   private var deleteSnackBar: Snackbar? = null
   private val cityAdapter = CitiesAdapter()
-  private val deletePositionPublishSubject = PublishSubject.create<Int>()
-  private val refreshPositionPublishSubject = PublishSubject.create<Int>()
-  private val searchStringInitial = BehaviorSubject.create<String>()
+  private val deletePositionPublishSubject = create<Int>()
+  private val refreshPositionPublishSubject = create<Int>()
+  private val searchStringInitial = create<InitialSearchStringIntent>()
   override fun createPresenter() = get<CitiesPresenter>()
 
   override fun refreshCurrentWeatherAtPosition() =
@@ -49,10 +53,12 @@ class CitiesActivity : MviActivity<View, CitiesPresenter>(), View {
     return cityAdapter.itemClickObservable.throttleFirst(500, TimeUnit.MILLISECONDS)
   }
 
-  override fun searchStringIntent(): Observable<String> {
+  override fun searchStringIntent(): Observable<SearchStringIntent> {
     return search_view.textChanges()
       .debounce(500, TimeUnit.MILLISECONDS)
-      .mergeWith(searchStringInitial.take(1))
+      .map { SearchStringIntent.UserSearchStringIntent(it) }
+      .cast<SearchStringIntent>()
+      .mergeWith(searchStringInitial)
       .distinctUntilChanged()
       .doOnNext { debug("searchStringIntent '$it'") }
   }
@@ -102,8 +108,11 @@ class CitiesActivity : MviActivity<View, CitiesPresenter>(), View {
       )
     }
     setupRecyclerViewCities()
+  }
 
-    searchStringInitial.onNext("")
+  override fun onStart() {
+    super.onStart()
+    searchStringInitial.onNext(InitialSearchStringIntent)
   }
 
   private fun setupRecyclerViewCities() {

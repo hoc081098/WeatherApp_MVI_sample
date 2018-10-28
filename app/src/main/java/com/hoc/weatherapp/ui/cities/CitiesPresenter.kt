@@ -9,6 +9,8 @@ import com.hoc.weatherapp.data.models.entity.CityAndCurrentWeather
 import com.hoc.weatherapp.ui.cities.CitiesContract.PartialStateChange
 import com.hoc.weatherapp.ui.cities.CitiesContract.PartialStateChange.CityListItems
 import com.hoc.weatherapp.ui.cities.CitiesContract.PartialStateChange.Error
+import com.hoc.weatherapp.ui.cities.CitiesContract.SearchStringIntent.InitialSearchStringIntent
+import com.hoc.weatherapp.ui.cities.CitiesContract.SearchStringIntent.UserSearchStringIntent
 import com.hoc.weatherapp.ui.cities.CitiesContract.View
 import com.hoc.weatherapp.ui.cities.CitiesContract.ViewState
 import com.hoc.weatherapp.utils.debug
@@ -19,6 +21,7 @@ import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.Observables.combineLatest
 import io.reactivex.rxkotlin.addTo
 import io.reactivex.rxkotlin.cast
+import io.reactivex.rxkotlin.ofType
 import io.reactivex.rxkotlin.subscribeBy
 import io.reactivex.rxkotlin.withLatestFrom
 import io.reactivex.rxkotlin.zipWith
@@ -34,6 +37,14 @@ class CitiesPresenter(
 
   override fun bindIntents() {
     val cityAndCurrentWeathers = intent(View::searchStringIntent)
+      .publish { shared->
+        Observable.mergeArray(
+          shared.ofType<InitialSearchStringIntent>().take(1),
+          shared.ofType<UserSearchStringIntent>()
+        )
+      }
+      .map { it.value }
+      .doOnNext { debug("searchStringIntent '$it'", TAG) }
       .switchMap(repository::getAllCityAndCurrentWeathers)
 
     val cityListItemsPartialChange = cityListItemsPartialChange(cityAndCurrentWeathers)

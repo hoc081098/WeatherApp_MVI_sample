@@ -12,13 +12,15 @@ import io.reactivex.ObservableTransformer
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.rxkotlin.cast
 import io.reactivex.rxkotlin.toObservable
+import java.util.concurrent.TimeUnit
 
 class AddCityPresenter(private val repository: Repository, private val application: Application) :
   MviBasePresenter<View, ViewState>() {
-  private val tag = "addcity"
+  private val tag = "_add_city_"
   private val addCityTransformer = ObservableTransformer<Pair<Double, Double>, ViewState> {
     it.flatMap { (latitude, longitude) ->
       repository.addCityByLatLng(latitude, longitude)
+        .doOnSubscribe { debug("addCityByLatLng...", tag) }
         .toObservable()
         .flatMapIterable {
           listOf(
@@ -35,6 +37,7 @@ class AddCityPresenter(private val repository: Repository, private val applicati
         }
         .observeOn(AndroidSchedulers.mainThread())
         .startWith(ViewState.Loading)
+        .doOnNext { debug("addCityTransformer $it", tag) }
     }
   }
 
@@ -42,7 +45,10 @@ class AddCityPresenter(private val repository: Repository, private val applicati
     val addCurrentLocation = intent(View::addCurrentLocationIntent)
       .flatMap {
         application.checkLocationSettingAndGetCurrentLocation()
+          .subscribeOn(AndroidSchedulers.mainThread())
+          .timeout(3_000, TimeUnit.MILLISECONDS)//TODO
           .toObservable()
+          .doOnNext { debug("CurrentLocation $it", tag) }
           .map { it.latitude to it.longitude }
           .compose(addCityTransformer)
           .onErrorResumeNext { throwable: Throwable ->
@@ -51,7 +57,13 @@ class AddCityPresenter(private val repository: Repository, private val applicati
               ViewState.Error(showMessage = false, throwable = throwable)
             ).toObservable()
           }
+          .observeOn(AndroidSchedulers.mainThread())
+          .doOnNext { debug("ViewState $it", tag) }
+          .startWith(ViewState.Loading)
       }
+      .doOnNext { debug("addCurrentLocation $it", tag) }
+      .doOnError { debug("addCurrentLocation $it", tag) }
+      .doOnComplete { debug("addCurrentLocation", tag) }
 
     val addCityByLatLng = intent(View::addCityByLatLngIntent)
       .compose(addCityTransformer)
@@ -59,7 +71,7 @@ class AddCityPresenter(private val repository: Repository, private val applicati
     subscribeViewState(
       Observable.mergeArray(addCityByLatLng, addCurrentLocation)
         .distinctUntilChanged()
-        .doOnNext { debug("VS = $it", tag) }
+        .doOnNext { debug("ViewState = $it", tag) }
         .observeOn(AndroidSchedulers.mainThread()),
       View::render
     )

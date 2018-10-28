@@ -27,8 +27,18 @@ interface CitiesContract {
     val deletedCity: City? = null
   )
 
+  sealed class SearchStringIntent() {
+    abstract val value: String
+
+    object InitialSearchStringIntent : SearchStringIntent() {
+      override val value = ""
+    }
+
+    data class UserSearchStringIntent(override val value: String) : SearchStringIntent()
+  }
+
   interface View : MvpView {
-    fun searchStringIntent(): Observable<String>
+    fun searchStringIntent(): Observable<SearchStringIntent>
 
     fun changeSelectedCity(): Observable<City>
 
