@@ -5,18 +5,18 @@ import com.hoc.weatherapp.data.models.entity.CurrentWeather
 import io.reactivex.Observable
 
 interface CurrentWeatherContract {
-  sealed class PartialChange {
+  sealed class PartialStateChange {
     data class Error(
       val throwable: Throwable,
       val showMessage: Boolean
-    ) : PartialChange()
+    ) : PartialStateChange()
 
-    data class Weather(val weather: CurrentWeather) : PartialChange()
+    data class Weather(val weather: CurrentWeather) : PartialStateChange()
 
     data class RefreshWeatherSuccess(
       val weather: CurrentWeather,
       val showMessage: Boolean
-    ) : PartialChange()
+    ) : PartialStateChange()
   }
 
   data class ViewState(

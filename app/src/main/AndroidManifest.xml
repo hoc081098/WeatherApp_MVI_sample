@@ -35,8 +35,6 @@
 
         <activity android:name=".ui.cities.CitiesActivity" />
 
-        <activity android:name=".ui.addcity.AddCityActivity" />
-
         <activity android:name=".ui.LiveWeatherActivity" />
 
         <meta-data
@@ -58,10 +56,9 @@
             android:name=".ui.SettingsActivity"
             android:theme="@style/AppTheme" />
 
-        <activity
-            android:name=".ui.MapActivity"
-            android:theme="@style/AppTheme.NoActionBar" />
-        <activity android:name=".ui.addcity.AddCityActivityTest" />
+        <activity android:name=".ui.MapActivity" />
+
+        <activity android:name=".ui.addcity.AddCityActivity" />
 
         <receiver
             android:name=".CancelNotificationReceiver"

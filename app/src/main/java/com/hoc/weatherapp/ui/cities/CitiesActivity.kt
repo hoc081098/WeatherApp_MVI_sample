@@ -15,42 +15,44 @@ import com.google.android.material.snackbar.Snackbar
 import com.hannesdorfmann.mosby3.mvi.MviActivity
 import com.hoc.weatherapp.R
 import com.hoc.weatherapp.data.models.entity.City
-import com.hoc.weatherapp.ui.addcity.AddCityActivityTest
+import com.hoc.weatherapp.ui.addcity.AddCityActivity
 import com.hoc.weatherapp.ui.cities.CitiesContract.View
-import com.hoc.weatherapp.utils.*
+import com.hoc.weatherapp.utils.SwipeController
+import com.hoc.weatherapp.utils.SwipeControllerActions
+import com.hoc.weatherapp.utils.debug
+import com.hoc.weatherapp.utils.snackBar
+import com.hoc.weatherapp.utils.startActivity
+import com.hoc.weatherapp.utils.textChanges
 import io.reactivex.Observable
+import io.reactivex.subjects.BehaviorSubject
 import io.reactivex.subjects.PublishSubject
 import kotlinx.android.synthetic.main.activity_cities.*
 import org.koin.android.ext.android.get
 import java.util.concurrent.TimeUnit
 
 class CitiesActivity : MviActivity<View, CitiesPresenter>(), View {
-  override fun refreshCurrentWeatherAtPosition(): Observable<Int> {
-    return refreshPositionPublishSubject.hide()
-  }
+  private var snackBar: Snackbar? = null
 
-  override fun deleteCityAtPosition(): Observable<Int> {
-    return deletePositionPublishSubject.hide()
-  }
+  private var deleteSnackBar: Snackbar? = null
+  private val cityAdapter = CitiesAdapter()
+  private val deletePositionPublishSubject = PublishSubject.create<Int>()
+  private val refreshPositionPublishSubject = PublishSubject.create<Int>()
+  private val searchStringInitial = BehaviorSubject.create<String>()
+  override fun createPresenter() = get<CitiesPresenter>()
+
+  override fun refreshCurrentWeatherAtPosition() =
+    refreshPositionPublishSubject.hide()!!
+
+  override fun deleteCityAtPosition() = deletePositionPublishSubject.hide()!!
 
   override fun changeSelectedCity(): Observable<City> {
     return cityAdapter.itemClickObservable.throttleFirst(500, TimeUnit.MILLISECONDS)
   }
 
-  private var snackBar: Snackbar? = null
-  private var deleteSnackBar: Snackbar? = null
-  private val cityAdapter = CitiesAdapter()
-  private val deletePositionPublishSubject = PublishSubject.create<Int>()
-  private val refreshPositionPublishSubject = PublishSubject.create<Int>()
-
-  override fun createPresenter(): CitiesPresenter {
-    return CitiesPresenter(get())
-  }
-
   override fun searchStringIntent(): Observable<String> {
     return search_view.textChanges()
       .debounce(500, TimeUnit.MILLISECONDS)
-      .startWith("")
+      .mergeWith(searchStringInitial.take(1))
       .distinctUntilChanged()
       .doOnNext { debug("searchStringIntent '$it'") }
   }
@@ -91,7 +93,7 @@ class CitiesActivity : MviActivity<View, CitiesPresenter>(), View {
       setDisplayHomeAsUpEnabled(true)
       title = "City"
     }
-    fab.setOnClickListener { startActivity<AddCityActivityTest>() }
+    fab.setOnClickListener { startActivity<AddCityActivity>() }
 
     search_view.run {
       setHint("Search...")
@@ -100,6 +102,8 @@ class CitiesActivity : MviActivity<View, CitiesPresenter>(), View {
       )
     }
     setupRecyclerViewCities()
+
+    searchStringInitial.onNext("")
   }
 
   private fun setupRecyclerViewCities() {

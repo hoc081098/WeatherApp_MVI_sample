@@ -85,6 +85,5 @@ class CitiesAdapter : ListAdapter<CityListItem, CitiesAdapter.ViewHolder>(object
         .into(imageIconCityItem)
       Unit
     }
-
   }
 }

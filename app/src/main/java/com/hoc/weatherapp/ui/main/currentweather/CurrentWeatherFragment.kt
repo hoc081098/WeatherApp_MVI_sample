@@ -11,30 +11,38 @@ import com.google.android.material.snackbar.Snackbar
 import com.hannesdorfmann.mosby3.mvi.MviFragment
 import com.hoc.weatherapp.R
 import com.hoc.weatherapp.data.NoSelectedCityException
+import com.hoc.weatherapp.data.local.SharedPrefUtil
+import com.hoc.weatherapp.data.models.TemperatureUnit.Companion.NUMBER_FORMAT
 import com.hoc.weatherapp.data.models.WindDirection
 import com.hoc.weatherapp.data.models.entity.CurrentWeather
-import com.hoc.weatherapp.data.models.TemperatureUnit.Companion.NUMBER_FORMAT
 import com.hoc.weatherapp.ui.LiveWeatherActivity
 import com.hoc.weatherapp.ui.main.currentweather.CurrentWeatherContract.ViewState
-import com.hoc.weatherapp.utils.*
+import com.hoc.weatherapp.utils.UnitConvertor
+import com.hoc.weatherapp.utils.debug
+import com.hoc.weatherapp.utils.getIconDrawableFromCurrentWeather
+import com.hoc.weatherapp.utils.snackBar
+import com.hoc.weatherapp.utils.startActivity
 import com.jakewharton.rxbinding3.swiperefreshlayout.refreshes
 import io.reactivex.Observable
+import io.reactivex.subjects.BehaviorSubject
 import kotlinx.android.synthetic.main.fragment_current_weather.*
 import org.koin.android.ext.android.get
 import org.koin.android.ext.android.inject
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Locale
 
-private const val TAG = "@#$%"
+private const val TAG = "currentweather"
 
 class CurrentWeatherFragment : MviFragment<CurrentWeatherContract.View, CurrentWeatherPresenter>(),
   CurrentWeatherContract.View {
   private val sharedPrefUtil by inject<SharedPrefUtil>()
   private var errorSnackBar: Snackbar? = null
   private var refreshSnackBar: Snackbar? = null
+  private val refreshInitial = BehaviorSubject.create<Unit>()
 
   override fun refreshCurrentWeatherIntent(): Observable<Unit> {
     return swipe_refresh_layout.refreshes()
+      .mergeWith(refreshInitial.take(1))
       .doOnNext { debug("swipe_refresh_layout.refreshes", TAG) }
   }
 
@@ -124,6 +132,8 @@ class CurrentWeatherFragment : MviFragment<CurrentWeatherContract.View, CurrentW
     super.onViewCreated(view, savedInstanceState)
 
     button_live.setOnClickListener { requireContext().startActivity<LiveWeatherActivity>() }
+
+    refreshInitial.onNext(Unit)
   }
 
   private fun updateWeatherIcon(weather: CurrentWeather) {
