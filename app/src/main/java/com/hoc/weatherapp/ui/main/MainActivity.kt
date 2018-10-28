@@ -23,18 +23,26 @@ import com.bumptech.glide.request.target.CustomViewTarget
 import com.bumptech.glide.request.transition.Transition
 import com.hannesdorfmann.mosby3.mvi.MviActivity
 import com.hoc.weatherapp.R
+import com.hoc.weatherapp.data.local.SharedPrefUtil
 import com.hoc.weatherapp.data.models.entity.CurrentWeather
 import com.hoc.weatherapp.ui.cities.CitiesActivity
 import com.hoc.weatherapp.ui.main.currentweather.CurrentWeatherFragment
 import com.hoc.weatherapp.ui.main.fivedayforecast.DailyWeatherFragment
-import com.hoc.weatherapp.utils.*
+import com.hoc.weatherapp.utils.WEATHER_NOTIFICATION_ID
+import com.hoc.weatherapp.utils.ZoomOutPageTransformer
 import com.hoc.weatherapp.utils.blur.GlideBlurTransformation
+import com.hoc.weatherapp.utils.cancelNotificationById
+import com.hoc.weatherapp.utils.debug
+import com.hoc.weatherapp.utils.getBackgroundDrawableFromWeather
+import com.hoc.weatherapp.utils.getSoundUriFromCurrentWeather
+import com.hoc.weatherapp.utils.showOrUpdateNotification
+import com.hoc.weatherapp.utils.startActivity
 import kotlinx.android.synthetic.main.activity_main.*
 import org.koin.android.ext.android.get
 import org.koin.android.ext.android.inject
 
 class MainActivity : MviActivity<MainContract.View, MainPresenter>(), MainContract.View {
-  private val tag = "####"
+  private val tag = "main"
 
   private val sharedPrefUtil by inject<SharedPrefUtil>()
   private var pagerAdapter: SectionsPagerAdapter? = null
@@ -187,7 +195,7 @@ class MainActivity : MviActivity<MainContract.View, MainPresenter>(), MainContra
               window.statusBarColor = it.getDarkVibrantColor(
                 ContextCompat.getColor(
                   this@MainActivity,
-                  R.color.colorPrimaryDark
+                  R.color.colorDeepPurpleAccent700
                 )
               ).also { debug("Color $it", "@@@") }
             }
@@ -221,6 +229,7 @@ class MainActivity : MviActivity<MainContract.View, MainPresenter>(), MainContra
   }
 
   override fun render(state: MainContract.ViewState) {
+    debug("render state=$state", tag)
     when (state) {
       MainContract.ViewState.NoSelectedCity -> renderNoSelectedCity()
       is MainContract.ViewState.CityAndWeather -> renderCityAndWeather(state)

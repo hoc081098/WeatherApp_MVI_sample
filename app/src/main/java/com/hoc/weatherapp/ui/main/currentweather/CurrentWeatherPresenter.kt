@@ -4,7 +4,9 @@ import com.hannesdorfmann.mosby3.mvi.MviBasePresenter
 import com.hoc.weatherapp.data.NoSelectedCityException
 import com.hoc.weatherapp.data.Repository
 import com.hoc.weatherapp.data.models.entity.CityAndCurrentWeather
-import com.hoc.weatherapp.ui.main.currentweather.CurrentWeatherContract.*
+import com.hoc.weatherapp.ui.main.currentweather.CurrentWeatherContract.PartialStateChange
+import com.hoc.weatherapp.ui.main.currentweather.CurrentWeatherContract.View
+import com.hoc.weatherapp.ui.main.currentweather.CurrentWeatherContract.ViewState
 import com.hoc.weatherapp.utils.None
 import com.hoc.weatherapp.utils.Some
 import com.hoc.weatherapp.utils.debug
@@ -14,7 +16,7 @@ import io.reactivex.rxkotlin.cast
 import io.reactivex.rxkotlin.ofType
 import java.util.concurrent.TimeUnit
 
-private const val TAG = "^^&"
+private const val TAG = "currrentweather"
 
 class CurrentWeatherPresenter(private val repository: Repository) :
   MviBasePresenter<View, ViewState>() {
@@ -30,15 +32,14 @@ class CurrentWeatherPresenter(private val repository: Repository) :
       .doOnNext { debug("refreshWeather $it", TAG) }
 
     val cityAndWeather = repository.getSelectedCityAndCurrentWeather()
-      .toObservable()
       .publish { shared ->
         Observable.mergeArray(
           shared.ofType<None>().switchMap { showError(NoSelectedCityException) },
           shared.ofType<Some<CityAndCurrentWeather>>()
             .map { it.value }
             .map { it.currentWeather }
-            .map { PartialChange.Weather(weather = it) }
-            .cast<PartialChange>()
+            .map { PartialStateChange.Weather(weather = it) }
+            .cast<PartialStateChange>()
             .onErrorResumeNext(::showError)
         )
       }
@@ -59,50 +60,50 @@ class CurrentWeatherPresenter(private val repository: Repository) :
     )
   }
 
-  private fun reduce(viewState: ViewState, partialChange: PartialChange): ViewState {
-    return when (partialChange) {
-      is PartialChange.Error -> viewState.copy(
-        showError = partialChange.showMessage,
-        error = partialChange.throwable,
-        weather = if (partialChange.throwable is NoSelectedCityException) {
+  private fun reduce(viewState: ViewState, partialStateChange: PartialStateChange): ViewState {
+    return when (partialStateChange) {
+      is PartialStateChange.Error -> viewState.copy(
+        showError = partialStateChange.showMessage,
+        error = partialStateChange.throwable,
+        weather = if (partialStateChange.throwable is NoSelectedCityException) {
           null
         } else {
           viewState.weather
         }
       )
-      is PartialChange.Weather -> viewState.copy(
-        weather = partialChange.weather,
+      is PartialStateChange.Weather -> viewState.copy(
+        weather = partialStateChange.weather,
         error = null
       )
-      is PartialChange.RefreshWeatherSuccess -> viewState.copy(
-        weather = partialChange.weather,
-        showRefreshSuccessfully = partialChange.showMessage,
+      is PartialStateChange.RefreshWeatherSuccess -> viewState.copy(
+        weather = partialStateChange.weather,
+        showRefreshSuccessfully = partialStateChange.showMessage,
         error = null
       )
     }
   }
 
-  private fun showError(throwable: Throwable): Observable<PartialChange> {
+  private fun showError(throwable: Throwable): Observable<PartialStateChange> {
     return Observable.timer(2_000, TimeUnit.MILLISECONDS)
       .map {
-        PartialChange.Error(throwable = throwable, showMessage = false)
+        PartialStateChange.Error(throwable = throwable, showMessage = false)
       }
       .startWith(
-        PartialChange.Error(throwable = throwable, showMessage = true)
+        PartialStateChange.Error(throwable = throwable, showMessage = true)
       )
       .cast()
   }
 
-  private fun weather(cityAndCurrentWeather: CityAndCurrentWeather): Observable<PartialChange> {
+  private fun weather(cityAndCurrentWeather: CityAndCurrentWeather): Observable<PartialStateChange> {
     return Observable.timer(2_000, TimeUnit.MILLISECONDS)
       .map {
-        PartialChange.RefreshWeatherSuccess(
+        PartialStateChange.RefreshWeatherSuccess(
           showMessage = false,
           weather = cityAndCurrentWeather.currentWeather
         )
       }
       .startWith(
-        PartialChange.RefreshWeatherSuccess(
+        PartialStateChange.RefreshWeatherSuccess(
           showMessage = true,
           weather = cityAndCurrentWeather.currentWeather
         )

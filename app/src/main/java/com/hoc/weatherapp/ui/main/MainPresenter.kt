@@ -14,19 +14,19 @@ import io.reactivex.rxkotlin.ofType
 
 class MainPresenter(private val repository: Repository) :
   MviBasePresenter<MainContract.View, MainContract.ViewState>() {
-  private val tag = "####"
+  private val tag = "main"
 
   override fun bindIntents() {
-    val cityAndCurrentWeather = repository.getSelectedCityAndCurrentWeather()
-      .toObservable()
+    val cityAndCurrentWeather = repository
+      .getSelectedCityAndCurrentWeather()
       .publish { shared ->
         Observable.merge(
           shared.ofType<Some<CityAndCurrentWeather>>()
             .map { it.value }
             .map {
               CityAndWeather(
-                it.city,
-                it.currentWeather
+                city = it.city,
+                weather = it.currentWeather
               )
             },
           shared.ofType<None>().map { NoSelectedCity }

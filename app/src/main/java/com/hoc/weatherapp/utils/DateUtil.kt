@@ -1,6 +1,7 @@
 package com.hoc.weatherapp.utils
 
-import java.util.*
+import java.util.Calendar
+import java.util.Date
 
 val calendar = Calendar.getInstance()!!
 

@@ -1,21 +1,32 @@
 package com.hoc.weatherapp.utils
 
+import android.Manifest
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.PackageManager
+import android.location.Location
 import android.os.Looper
 import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.annotation.IntDef
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationResult
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.LocationSettingsRequest
 import com.google.android.gms.tasks.Task
 import com.google.android.material.snackbar.Snackbar
 import io.reactivex.BackpressureStrategy
 import io.reactivex.Flowable
 import io.reactivex.FlowableEmitter
+import io.reactivex.Observable
+import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 
 @IntDef(value = [Toast.LENGTH_SHORT, Toast.LENGTH_LONG])
@@ -98,3 +109,69 @@ fun Context.receivesLocal(intentFilter: IntentFilter): Flowable<Intent> {
     }
   }, BackpressureStrategy.LATEST)
 }
+
+fun Context.checkLocationSettingAndGetCurrentLocation(): Single<Location> {
+  return Observable.generate<Location> { emitter ->
+    val locationRequest = LocationRequest()
+      .setInterval(1000)
+      .setFastestInterval(500)
+      .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
+      .setNumUpdates(1)
+    val fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
+
+    LocationServices.getSettingsClient(this)
+      .checkLocationSettings(
+        LocationSettingsRequest.Builder()
+          .addLocationRequest(locationRequest)
+          .build()
+      )
+      .addOnSuccessListener {
+        if (ContextCompat.checkSelfPermission(
+            this,
+            Manifest.permission.ACCESS_FINE_LOCATION
+          ) != PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(
+            this,
+            Manifest.permission.ACCESS_COARSE_LOCATION
+          ) != PackageManager.PERMISSION_GRANTED
+        ) {
+          emitter.onError(IllegalStateException("Need granted permission ACCESS_FINE_LOCATION or ACCESS_COARSE_LOCATION"))
+          return@addOnSuccessListener
+        }
+
+        fusedLocationProviderClient.lastLocation
+          .addOnSuccessListener { lastLocation ->
+            if (lastLocation != null) {
+              emitter.onNext(lastLocation)
+              emitter.onComplete()
+            }
+          }
+
+        if (ContextCompat.checkSelfPermission(
+            this,
+            Manifest.permission.ACCESS_FINE_LOCATION
+          ) != PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(
+            this,
+            Manifest.permission.ACCESS_COARSE_LOCATION
+          ) != PackageManager.PERMISSION_GRANTED
+        ) {
+          emitter.onError(IllegalStateException("Need granted permission ACCESS_FINE_LOCATION or ACCESS_COARSE_LOCATION"))
+          return@addOnSuccessListener
+        }
+
+        fusedLocationProviderClient.requestLocationUpdates(
+          locationRequest,
+          object : LocationCallback() {
+            override fun onLocationResult(locationResult: LocationResult?) {
+              val lastLocation = locationResult?.lastLocation ?: return
+              fusedLocationProviderClient.removeLocationUpdates(this)
+              emitter.onNext(lastLocation)
+              emitter.onComplete()
+            }
+          },
+          null /* LOOPER */
+        )
+      }.addOnFailureListener(emitter::onError)
+  }.take(1).singleOrError()
+}
+
+

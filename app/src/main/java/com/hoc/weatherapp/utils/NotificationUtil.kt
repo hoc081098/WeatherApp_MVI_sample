@@ -9,10 +9,10 @@ import androidx.core.text.HtmlCompat
 import com.hoc.weatherapp.App
 import com.hoc.weatherapp.CancelNotificationReceiver
 import com.hoc.weatherapp.R
-import com.hoc.weatherapp.data.models.entity.CurrentWeather
 import com.hoc.weatherapp.data.models.TemperatureUnit
-import com.hoc.weatherapp.ui.main.currentweather.CurrentWeatherFragment
+import com.hoc.weatherapp.data.models.entity.CurrentWeather
 import com.hoc.weatherapp.ui.main.MainActivity
+import com.hoc.weatherapp.ui.main.currentweather.CurrentWeatherFragment
 
 const val WEATHER_NOTIFICATION_ID = 2
 const val ACTION_CANCEL_NOTIFICATION = "com.hoc.weatherapp.CancelNotificationReceiver"
