@@ -18,6 +18,7 @@ import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.rxkotlin.ofType
+import io.reactivex.rxkotlin.zipWith
 import io.reactivex.schedulers.Schedulers
 
 object NoSelectedCityException : Exception() {
@@ -31,6 +32,19 @@ class RepositoryImpl(
   private val dailyWeatherLocalDataSource: DailyWeatherLocalDataSource,
   private val sharedPrefUtil: SharedPrefUtil
 ) : Repository {
+
+  override fun refreshWeatherOf(city: City): Completable {
+    return weatherApiService
+      .getCurrentWeatherByCityId(city.id)
+      .zipWith(weatherApiService.get5DayEvery3HourForecastByCityId(city.id))
+      .subscribeOn(Schedulers.io())
+      .flatMap {
+        saveCityAndCurrentWeather(it.first)
+          .zipWith(saveFiveDayForecastWeather(it.second))
+      }
+      .ignoreElement()
+  }
+
   private val selectedCityProcessor = sharedPrefUtil.selectedCityObservable
   private val noneCity = selectedCityProcessor.ofType<None>()
   private val city = selectedCityProcessor.ofType<Some<City>>().map { it.value }
@@ -46,12 +60,12 @@ class RepositoryImpl(
     return cityLocalDataSource
       .insertOrUpdateCity(city)
       .andThen(currentWeatherLocalDataSource.insertOrUpdateCurrentWeather(weather))
-      .toSingle {
+      .toSingleDefault(
         CityAndCurrentWeather().apply {
           this.city = city
           this.currentWeather = weather
         }
-      }
+      )
       .subscribeOn(Schedulers.io())
   }
 
@@ -66,7 +80,8 @@ class RepositoryImpl(
   }
 
   override fun refreshCurrentWeather(): Single<CityAndCurrentWeather> {
-    return when (val city = sharedPrefUtil.getSelectedCity()) {
+    return when (
+      val city = sharedPrefUtil.selectedCity) {
       null -> Single.error(NoSelectedCityException)
       else -> weatherApiService
         .getCurrentWeatherByCityId(city.id)
@@ -78,9 +93,9 @@ class RepositoryImpl(
   override fun getSelectedCityAndCurrentWeather(): Observable<Optional<CityAndCurrentWeather>> {
     return Observable.merge(
       noneCity,
-      city.switchMap {
+      city.switchMap { city ->
         currentWeatherLocalDataSource
-          .getCityAndCurrentWeatherByCityId(it.id)
+          .getCityAndCurrentWeatherByCityId(city.id)
           .subscribeOn(Schedulers.io())
           .map { it.toOptional() }
       }
@@ -98,13 +113,20 @@ class RepositoryImpl(
       .subscribeOn(Schedulers.io())
       .flatMap(::saveCityAndCurrentWeather)
       .map { it.city }
+      .flatMap { city ->
+        weatherApiService
+          .get5DayEvery3HourForecastByCityId(city.id)
+          .subscribeOn(Schedulers.io())
+          .flatMap { saveFiveDayForecastWeather(it) }
+          .map { city }
+      }
   }
 
   override fun deleteCity(city: City): Completable {
     return cityLocalDataSource.deleteCity(city)
       .subscribeOn(Schedulers.io())
       .andThen(
-        if (city == sharedPrefUtil.getSelectedCity()) {
+        if (city == sharedPrefUtil.selectedCity) {
           changeSelectedCity(null)
         } else {
           Completable.complete()
@@ -131,7 +153,8 @@ class RepositoryImpl(
   }
 
   override fun refreshFiveDayForecastOfSelectedCity(): Single<List<DailyWeather>> {
-    return when (val city = sharedPrefUtil.getSelectedCity()) {
+    return when (
+      val city = sharedPrefUtil.selectedCity) {
       null -> Single.error(NoSelectedCityException)
       else -> weatherApiService
         .get5DayEvery3HourForecastByCityId(city.id)

@@ -15,16 +15,12 @@ import com.hoc.weatherapp.ui.cities.CitiesContract.View
 import com.hoc.weatherapp.ui.cities.CitiesContract.ViewState
 import com.hoc.weatherapp.utils.debug
 import com.hoc.weatherapp.utils.getOrNull
+import com.hoc.weatherapp.utils.notOfType
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.rxkotlin.*
 import io.reactivex.rxkotlin.Observables.combineLatest
-import io.reactivex.rxkotlin.addTo
-import io.reactivex.rxkotlin.cast
-import io.reactivex.rxkotlin.ofType
-import io.reactivex.rxkotlin.subscribeBy
-import io.reactivex.rxkotlin.withLatestFrom
-import io.reactivex.rxkotlin.zipWith
 import java.util.concurrent.TimeUnit
 
 const val TAG = "cities"
@@ -40,9 +36,10 @@ class CitiesPresenter(
       .publish { shared->
         Observable.mergeArray(
           shared.ofType<InitialSearchStringIntent>().take(1),
-          shared.ofType<UserSearchStringIntent>()
+          shared.notOfType<InitialSearchStringIntent>()
         )
       }
+      .cast<CitiesContract.SearchStringIntent>()
       .map { it.value }
       .doOnNext { debug("searchStringIntent '$it'", TAG) }
       .switchMap(repository::getAllCityAndCurrentWeathers)
@@ -50,12 +47,29 @@ class CitiesPresenter(
     val cityListItemsPartialChange = cityListItemsPartialChange(cityAndCurrentWeathers)
     val deleteCityPartialChange = deleteCityPartialChange(cityAndCurrentWeathers)
     changeSelectedCity()
+    refreshWeather(cityAndCurrentWeathers)
 
     subscribeViewState(Observable.mergeArray(cityListItemsPartialChange, deleteCityPartialChange)
       .scan(ViewState(), ::reduce)
       .distinctUntilChanged()
       .doOnNext { debug("CitiesPresenter ViewState = $it", TAG) }
       .observeOn(AndroidSchedulers.mainThread()), View::render)
+  }
+
+  private fun refreshWeather(cityAndCurrentWeathers: Observable<List<CityAndCurrentWeather>>) {
+    intent { it.refreshCurrentWeatherAtPosition() }
+      .filter { it != RecyclerView.NO_POSITION }
+      .withLatestFrom(cityAndCurrentWeathers)
+      .map { (position, list) -> list[position] }
+      .map { it.city }
+      .flatMap {
+        repository
+          .refreshWeatherOf(it)
+          .toObservable<Unit>()
+          .onErrorReturnItem(Unit)
+      }
+      .subscribe()
+      .addTo(compositeDisposable)
   }
 
   private fun deleteCityPartialChange(cityAndCurrentWeathers: Observable<List<CityAndCurrentWeather>>): Observable<PartialStateChange> {

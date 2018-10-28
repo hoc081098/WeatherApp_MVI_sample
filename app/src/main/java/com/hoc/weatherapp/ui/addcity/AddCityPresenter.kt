@@ -13,6 +13,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.rxkotlin.cast
 import io.reactivex.rxkotlin.toObservable
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
 
 class AddCityPresenter(private val repository: Repository, private val application: Application) :
   MviBasePresenter<View, ViewState>() {
@@ -51,7 +52,12 @@ class AddCityPresenter(private val repository: Repository, private val applicati
           .doOnNext { debug("CurrentLocation $it", tag) }
           .map { it.latitude to it.longitude }
           .compose(addCityTransformer)
-          .onErrorResumeNext { throwable: Throwable ->
+          .onErrorResumeNext { it: Throwable ->
+            val throwable = if (it is TimeoutException && it.message === null) {
+              TimeoutException("Timeout to get current location. Try again!")
+            } else {
+              it
+            }
             listOf(
               ViewState.Error(showMessage = true, throwable = throwable),
               ViewState.Error(showMessage = false, throwable = throwable)
