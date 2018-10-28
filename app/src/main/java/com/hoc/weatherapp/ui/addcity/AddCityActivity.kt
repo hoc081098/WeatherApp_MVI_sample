@@ -34,6 +34,7 @@ class AddCityActivity : MviActivity<AddCityContract.View, AddCityPresenter>(),
   AddCityContract.View {
   private val tag = "addcity"
   private val publishSubjectAutoCompletePlace = PublishSubject.create<Pair<Double, Double>>()
+  private val publishSubjectTriggerAddCurrentLocation = PublishSubject.create<Unit>()
 
   override fun addCurrentLocationIntent(): Observable<Unit> {
     return button_my_loction.clicks()
@@ -45,6 +46,7 @@ class AddCityActivity : MviActivity<AddCityContract.View, AddCityPresenter>(),
       )
       .filter { it.granted }
       .map { Unit }
+      .mergeWith(publishSubjectTriggerAddCurrentLocation)
       .doOnNext { debug("button my location clicks", tag) }
   }
 
@@ -150,7 +152,7 @@ class AddCityActivity : MviActivity<AddCityContract.View, AddCityPresenter>(),
     debug("requestCode = [$requestCode], resultCode = [$resultCode], data = [$data]", "789654")
     when (requestCode) {
       REQUEST_CHECK_SETTINGS -> if (resultCode == Activity.RESULT_OK) {
-
+        publishSubjectTriggerAddCurrentLocation.onNext(Unit)
       }
     }
   }

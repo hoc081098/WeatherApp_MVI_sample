@@ -83,8 +83,10 @@ fun Context.checkLocationSettingAndGetCurrentLocation(): Single<Location> {
         fusedLocationProviderClient.lastLocation
           .addOnSuccessListener { lastLocation ->
             if (lastLocation != null) {
-              emitter.onNext(lastLocation)
-              emitter.onComplete()
+              if (!emitter.isDisposed) {
+                emitter.onNext(lastLocation)
+                emitter.onComplete()
+              }
             }
           }
 
@@ -100,25 +102,32 @@ fun Context.checkLocationSettingAndGetCurrentLocation(): Single<Location> {
           return@addOnSuccessListener
         }
 
-        fusedLocationProviderClient.requestLocationUpdates(
-          locationRequest,
-          object : LocationCallback() {
-            override fun onLocationResult(locationResult: LocationResult?) {
-              val lastLocation = locationResult?.lastLocation ?: return
-              fusedLocationProviderClient.removeLocationUpdates(this)
+        val callback = object : LocationCallback() {
+          override fun onLocationResult(locationResult: LocationResult?) {
+            val lastLocation = locationResult?.lastLocation ?: return
+            if (!emitter.isDisposed) {
               emitter.onNext(lastLocation)
               emitter.onComplete()
-              toast("Get location successfully: $lastLocation")
+              debug(
+                "Get location successfully: $lastLocation",
+                "Context::checkLocationSettingAndGetCurrentLocation"
+              )
             }
-          },
+          }
+        }
+        fusedLocationProviderClient.requestLocationUpdates(
+          locationRequest,
+          callback,
           null /* LOOPER */
         )
+
+        emitter.setCancellable {
+          debug("removeLocationUpdates", "Context::checkLocationSettingAndGetCurrentLocation")
+          fusedLocationProviderClient.removeLocationUpdates(callback)
+        }
       }.addOnFailureListener(emitter::onError)
   }.take(1).singleOrError()
 }
 
-/**
- * Filters the items emitted by an Observable, only emitting those of the specified type.
- */
 inline fun <reified R : Any> Observable<*>.notOfType(): Observable<out Any> =
   filter { !R::class.java.isInstance(it) }

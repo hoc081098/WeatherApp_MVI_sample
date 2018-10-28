@@ -20,23 +20,39 @@ class SharedPrefUtil(
   context: Context,
   private val moshi: Moshi
 ) {
-  val temperatureUnit by sharedPreferences.delegateVal<TemperatureUnit>(
+  /**
+   *************************************************************************************************
+   */
+
+  private val _temperatureUnit by sharedPreferences.delegateVal<TemperatureUnit>(
     { key, defaultValue ->
       getString(key, defaultValue.toString())!!.let { TemperatureUnit.fromString(it) }
     },
     TemperatureUnit.KELVIN,
     context.applicationContext.getString(R.string.key_temperature_unit)
   )
+  private val _temperatureUnitSubject =
+    BehaviorSubject.createDefault<TemperatureUnit>(_temperatureUnit)
+
+
+  val temperatureUnit get() = _temperatureUnit
+  val temperatureUnitObservable get() = _temperatureUnitSubject.hide()!!
+
+  /**
+   *************************************************************************************************
+   */
+
   val showNotification by sharedPreferences.delegate<Boolean>(
     key = context.applicationContext.getString(
       R.string.key_show_notification
     ), default = true
   )
-  private var selectedCityJsonString by sharedPreferences.delegate<String>()
 
   /**
    *************************************************************************************************
    */
+
+  private var selectedCityJsonString by sharedPreferences.delegate<String>()
 
   private var _selectedCity: City?
     get() = runCatching {
@@ -50,17 +66,18 @@ class SharedPrefUtil(
       }
     }
 
+
   private val _selectedCitySubject =
     BehaviorSubject.createDefault<Optional<City>>(_selectedCity.toOptional())
 
-  val selectedCityObservable = _selectedCitySubject.hide()!!
+  val selectedCityObservable get() = _selectedCitySubject.hide()!!
+
+  val selectedCity get() = _selectedCity
 
   fun setSelectedCity(city: City?) {
     _selectedCity = city
     _selectedCitySubject.onNext(city.toOptional())
   }
-
-  fun getSelectedCity() = _selectedCity
 }
 
 @Suppress("UNCHECKED_CAST")

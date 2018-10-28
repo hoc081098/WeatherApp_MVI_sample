@@ -10,20 +10,33 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.hannesdorfmann.mosby3.mvi.MviFragment
 import com.hoc.weatherapp.R
 import com.hoc.weatherapp.data.Repository
+import com.hoc.weatherapp.ui.main.fivedayforecast.DailyWeatherContract.RefreshIntent
 import com.hoc.weatherapp.utils.toast
+import com.jakewharton.rxbinding3.swiperefreshlayout.refreshes
+import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.rxkotlin.cast
 import io.reactivex.rxkotlin.subscribeBy
+import io.reactivex.subjects.PublishSubject
 import org.koin.android.ext.android.inject
 import kotlinx.android.synthetic.main.fragment_daily_weather.*
 
 class DailyWeatherFragment : MviFragment<DailyWeatherContract.View, DailyWeatherPresenter>(),
   DailyWeatherContract.View {
+
+  override fun refreshDailyWeatherIntent(): Observable<RefreshIntent> {
+    return swipe_refresh_layout.refreshes()
+      .map { RefreshIntent.UserIntent }
+      .cast<RefreshIntent>()
+      .mergeWith(initialRefreshSubject)
+  }
+
   override fun createPresenter(): DailyWeatherPresenter {
     return DailyWeatherPresenter(repository = weatherRepository)
   }
 
   private val weatherRepository by inject<Repository>()
-
+  private val initialRefreshSubject = PublishSubject.create<RefreshIntent.InitialIntent>()
   private val dailyWeatherAdapter = DailyWeatherAdapter()
 
   override fun onCreateView(
@@ -60,6 +73,11 @@ class DailyWeatherFragment : MviFragment<DailyWeatherContract.View, DailyWeather
           onSuccess = { toast("Refresh successfully") }
         )
     }
+  }
+
+  override fun onResume() {
+    super.onResume()
+    initialRefreshSubject.onNext(RefreshIntent.InitialIntent)
   }
 
   override fun render(viewState: DailyWeatherContract.ViewState) {

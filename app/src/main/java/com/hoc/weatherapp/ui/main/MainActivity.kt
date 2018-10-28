@@ -195,7 +195,7 @@ class MainActivity : MviActivity<MainContract.View, MainPresenter>(), MainContra
               window.statusBarColor = it.getDarkVibrantColor(
                 ContextCompat.getColor(
                   this@MainActivity,
-                  R.color.colorDeepPurpleAccent700
+                  R.color.colorPrimaryDark
                 )
               ).also { debug("Color $it", "@@@") }
             }
@@ -264,6 +264,12 @@ class MainActivity : MviActivity<MainContract.View, MainPresenter>(), MainContra
       .apply(RequestOptions.fitCenterTransform().centerCrop())
       .apply(RequestOptions.bitmapTransform(GlideBlurTransformation(this, 25f)))
       .into(image_background)
+
+    window.statusBarColor = ContextCompat.getColor(
+      this@MainActivity,
+      R.color.colorPrimaryDark
+    )
+
     toolbar_title.text = getString(R.string.no_selected_city)
     cancelNotificationById(WEATHER_NOTIFICATION_ID)
     cancelWorkRequest()
