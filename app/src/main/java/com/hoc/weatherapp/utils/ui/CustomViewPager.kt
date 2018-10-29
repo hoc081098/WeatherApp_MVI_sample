@@ -1,4 +1,4 @@
-package com.hoc.weatherapp.utils
+package com.hoc.weatherapp.utils.ui
 
 import android.annotation.SuppressLint
 import android.content.Context

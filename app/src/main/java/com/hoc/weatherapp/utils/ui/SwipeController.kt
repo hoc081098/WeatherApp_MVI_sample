@@ -1,4 +1,4 @@
-package com.hoc.weatherapp.utils
+package com.hoc.weatherapp.utils.ui
 
 import android.annotation.SuppressLint
 import android.graphics.Canvas
@@ -8,9 +8,7 @@ import android.graphics.RectF
 import android.view.MotionEvent
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.ItemTouchHelper
-import androidx.recyclerview.widget.ItemTouchHelper.ACTION_STATE_SWIPE
-import androidx.recyclerview.widget.ItemTouchHelper.LEFT
-import androidx.recyclerview.widget.ItemTouchHelper.RIGHT
+import androidx.recyclerview.widget.ItemTouchHelper.*
 import androidx.recyclerview.widget.RecyclerView
 import com.hoc.weatherapp.R
 
@@ -27,7 +25,8 @@ interface SwipeControllerActions {
 
 class SwipeController(private val buttonsActions: SwipeControllerActions) :
   ItemTouchHelper.Callback() {
-  private var buttonShowedState: ButtonState = ButtonState.GONE
+  private var buttonShowedState: ButtonState =
+    ButtonState.GONE
   private var swipeBack: Boolean = false
   private val buttonWidth = 192f
   private var currentViewHolder: RecyclerView.ViewHolder? = null
@@ -117,8 +116,10 @@ class SwipeController(private val buttonsActions: SwipeControllerActions) :
           MotionEvent.ACTION_UP
       if (swipeBack) {
         when {
-          dX < -buttonWidth -> buttonShowedState = ButtonState.RIGHT_VISIBLE
-          dX > buttonWidth -> buttonShowedState = ButtonState.LEFT_VISIBLE
+          dX < -buttonWidth -> buttonShowedState =
+              ButtonState.RIGHT_VISIBLE
+          dX > buttonWidth -> buttonShowedState =
+              ButtonState.LEFT_VISIBLE
         }
 
         if (buttonShowedState != ButtonState.GONE) {

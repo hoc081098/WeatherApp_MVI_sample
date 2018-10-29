@@ -1,5 +1,7 @@
 package com.hoc.weatherapp.utils
 
+import java.util.*
+
 @Suppress("unused")
 sealed class Optional<out T>
 
@@ -16,4 +18,9 @@ fun <T : Any> T?.toOptional(): Optional<T> = when (this) {
 fun <T> Optional<T>.getOrNull(): T? = when (this) {
   is Some -> value
   else -> null
+}
+
+fun <T> Optional<T>.getOrThrow(): T = when (this) {
+  is Some -> value
+  else -> throw NoSuchElementException("No value present")
 }

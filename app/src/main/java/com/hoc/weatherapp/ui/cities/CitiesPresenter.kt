@@ -6,16 +6,14 @@ import com.hoc.weatherapp.data.Repository
 import com.hoc.weatherapp.data.local.SharedPrefUtil
 import com.hoc.weatherapp.data.models.entity.City
 import com.hoc.weatherapp.data.models.entity.CityAndCurrentWeather
-import com.hoc.weatherapp.ui.cities.CitiesContract.PartialStateChange
+import com.hoc.weatherapp.ui.cities.CitiesContract.*
 import com.hoc.weatherapp.ui.cities.CitiesContract.PartialStateChange.CityListItems
 import com.hoc.weatherapp.ui.cities.CitiesContract.PartialStateChange.Error
 import com.hoc.weatherapp.ui.cities.CitiesContract.SearchStringIntent.InitialSearchStringIntent
-import com.hoc.weatherapp.ui.cities.CitiesContract.SearchStringIntent.UserSearchStringIntent
-import com.hoc.weatherapp.ui.cities.CitiesContract.View
-import com.hoc.weatherapp.ui.cities.CitiesContract.ViewState
 import com.hoc.weatherapp.utils.debug
 import com.hoc.weatherapp.utils.getOrNull
 import com.hoc.weatherapp.utils.notOfType
+import com.hoc.weatherapp.work.WorkerUtil
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
@@ -33,7 +31,7 @@ class CitiesPresenter(
 
   override fun bindIntents() {
     val cityAndCurrentWeathers = intent(View::searchStringIntent)
-      .publish { shared->
+      .publish { shared ->
         Observable.mergeArray(
           shared.ofType<InitialSearchStringIntent>().take(1),
           shared.notOfType<InitialSearchStringIntent>()
@@ -44,20 +42,23 @@ class CitiesPresenter(
       .doOnNext { debug("searchStringIntent '$it'", TAG) }
       .switchMap(repository::getAllCityAndCurrentWeathers)
 
-    val cityListItemsPartialChange = cityListItemsPartialChange(cityAndCurrentWeathers)
-    val deleteCityPartialChange = deleteCityPartialChange(cityAndCurrentWeathers)
     changeSelectedCity()
-    refreshWeather(cityAndCurrentWeathers)
 
-    subscribeViewState(Observable.mergeArray(cityListItemsPartialChange, deleteCityPartialChange)
-      .scan(ViewState(), ::reduce)
-      .distinctUntilChanged()
-      .doOnNext { debug("CitiesPresenter ViewState = $it", TAG) }
-      .observeOn(AndroidSchedulers.mainThread()), View::render)
+    subscribeViewState(
+      Observable.mergeArray(
+        cityListItemsPartialChange(cityAndCurrentWeathers),
+        deleteCityPartialChange(cityAndCurrentWeathers),
+        refreshWeather(cityAndCurrentWeathers)
+      ).scan(ViewState(), ::reduce)
+        .distinctUntilChanged()
+        .doOnNext { debug("CitiesPresenter ViewState = $it", TAG) }
+        .observeOn(AndroidSchedulers.mainThread()),
+      View::render
+    )
   }
 
-  private fun refreshWeather(cityAndCurrentWeathers: Observable<List<CityAndCurrentWeather>>) {
-    intent { it.refreshCurrentWeatherAtPosition() }
+  private fun refreshWeather(cityAndCurrentWeathers: Observable<List<CityAndCurrentWeather>>): Observable<PartialStateChange> {
+    return intent { it.refreshCurrentWeatherAtPosition() }
       .filter { it != RecyclerView.NO_POSITION }
       .withLatestFrom(cityAndCurrentWeathers)
       .map { (position, list) -> list[position] }
@@ -65,11 +66,18 @@ class CitiesPresenter(
       .flatMap {
         repository
           .refreshWeatherOf(it)
-          .toObservable<Unit>()
-          .onErrorReturnItem(Unit)
+          .doOnComplete {
+            if (sharedPrefUtil.selectedCity == it) {
+              WorkerUtil.enqueueUpdateDailyWeatherWorkWorkRequest()
+              WorkerUtil.enqueueUpdateCurrentWeatherWorkRequest()
+            }
+          }
+          .toSingleDefault(it)
+          .toObservable()
+          .observeOn(AndroidSchedulers.mainThread())
+          .flatMap(::showRefreshResult)
+          .onErrorResumeNext(::showError)
       }
-      .subscribe()
-      .addTo(compositeDisposable)
   }
 
   private fun deleteCityPartialChange(cityAndCurrentWeathers: Observable<List<CityAndCurrentWeather>>): Observable<PartialStateChange> {
@@ -81,9 +89,16 @@ class CitiesPresenter(
       .flatMap {
         repository
           .deleteCity(it)
+          .doOnComplete {
+            if (sharedPrefUtil.selectedCity == it) {
+              WorkerUtil.cancelUpdateCurrentWeatherWorkRequest()
+              WorkerUtil.cancelUpdateDailyWeatherWorkWorkRequest()
+            }
+          }
           .toSingleDefault(it)
           .toObservable()
-          .flatMap(::delete)
+          .observeOn(AndroidSchedulers.mainThread())
+          .flatMap(::showDeleteResult)
           .onErrorResumeNext(::showError)
       }
   }
@@ -95,9 +110,13 @@ class CitiesPresenter(
           .changeSelectedCity(city)
           .andThen(
             repository
-              .refreshCurrentWeather()
+              .refreshCurrentWeatherOfSelectedCity()
               .zipWith(repository.refreshFiveDayForecastOfSelectedCity())
           )
+          .doOnSuccess {
+            WorkerUtil.enqueueUpdateCurrentWeatherWorkRequest()
+            WorkerUtil.enqueueUpdateDailyWeatherWorkWorkRequest()
+          }
           .toObservable()
           .onErrorResumeNext(Observable.empty())
       }
@@ -125,6 +144,7 @@ class CitiesPresenter(
       }
       .map(::CityListItems)
       .cast<PartialStateChange>()
+      .observeOn(AndroidSchedulers.mainThread())
       .onErrorResumeNext(::showError)
       .doOnNext { debug("cityListItems $it", TAG) }
   }
@@ -138,8 +158,7 @@ class CitiesPresenter(
     return when (partialStateChange) {
       is CityListItems -> viewState.copy(
         cityListItems = partialStateChange.items,
-        error = null,
-        deletedCity = null
+        error = null
       )
       is Error -> viewState.copy(
         showError = partialStateChange.showMessage,
@@ -149,21 +168,36 @@ class CitiesPresenter(
         showDeleteCitySuccessfully = partialStateChange.showMessage,
         deletedCity = partialStateChange.deletedCity
       )
+      is CitiesContract.PartialStateChange.RefreshWeather -> viewState.copy(
+        showRefreshSuccessfully = partialStateChange.showMessage,
+        refreshCity = partialStateChange.refreshCity
+      )
     }
   }
 
-  private fun delete(city: City): Observable<PartialStateChange> {
-    return Observable.timer(2_000, TimeUnit.MILLISECONDS)
+  private fun showDeleteResult(city: City): Observable<PartialStateChange> {
+    return Observable.timer(SNACKBAR_DURATION, TimeUnit.MILLISECONDS)
+      .map { PartialStateChange.RefreshWeather(showMessage = false, refreshCity = city) }
+      .startWith(PartialStateChange.RefreshWeather(showMessage = true, refreshCity = city))
+      .cast()
+  }
+
+  private fun showRefreshResult(city: City): Observable<PartialStateChange> {
+    return Observable.timer(SNACKBAR_DURATION, TimeUnit.MILLISECONDS)
       .map { PartialStateChange.DeleteCity(showMessage = false, deletedCity = city) }
       .startWith(PartialStateChange.DeleteCity(showMessage = true, deletedCity = city))
       .cast()
   }
 
   private fun showError(throwable: Throwable): Observable<PartialStateChange> {
-    return Observable.timer(2_000, TimeUnit.MILLISECONDS)
+    return Observable.timer(SNACKBAR_DURATION, TimeUnit.MILLISECONDS)
       .map { Error(showMessage = false, throwable = throwable) }
       .startWith(Error(showMessage = true, throwable = throwable))
       .cast()
+  }
+
+  companion object {
+    private const val SNACKBAR_DURATION = 2_000L
   }
 }
 

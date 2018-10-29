@@ -17,6 +17,11 @@ interface CitiesContract {
       val showMessage: Boolean,
       val deletedCity: City
     ) : PartialStateChange()
+
+    data class RefreshWeather(
+      val showMessage: Boolean,
+      val refreshCity: City
+    ) : PartialStateChange()
   }
 
   data class ViewState(
@@ -24,10 +29,12 @@ interface CitiesContract {
     val error: Throwable? = null,
     val showError: Boolean = false,
     val showDeleteCitySuccessfully: Boolean = false,
-    val deletedCity: City? = null
+    val deletedCity: City? = null,
+    val showRefreshSuccessfully: Boolean = false,
+    val refreshCity: City? = null
   )
 
-  sealed class SearchStringIntent() {
+  sealed class SearchStringIntent {
     abstract val value: String
 
     object InitialSearchStringIntent : SearchStringIntent() {

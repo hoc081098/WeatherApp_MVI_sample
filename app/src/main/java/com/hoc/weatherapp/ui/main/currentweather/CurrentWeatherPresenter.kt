@@ -4,14 +4,12 @@ import com.hannesdorfmann.mosby3.mvi.MviBasePresenter
 import com.hoc.weatherapp.data.NoSelectedCityException
 import com.hoc.weatherapp.data.Repository
 import com.hoc.weatherapp.data.models.entity.CityAndCurrentWeather
-import com.hoc.weatherapp.ui.main.currentweather.CurrentWeatherContract.InitialRefreshIntent
-import com.hoc.weatherapp.ui.main.currentweather.CurrentWeatherContract.PartialStateChange
-import com.hoc.weatherapp.ui.main.currentweather.CurrentWeatherContract.View
-import com.hoc.weatherapp.ui.main.currentweather.CurrentWeatherContract.ViewState
+import com.hoc.weatherapp.ui.main.currentweather.CurrentWeatherContract.*
 import com.hoc.weatherapp.utils.None
 import com.hoc.weatherapp.utils.Some
 import com.hoc.weatherapp.utils.debug
 import com.hoc.weatherapp.utils.notOfType
+import com.hoc.weatherapp.work.WorkerUtil
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.rxkotlin.cast
@@ -23,24 +21,18 @@ private const val TAG = "currrentweather"
 class CurrentWeatherPresenter(private val repository: Repository) :
   MviBasePresenter<View, ViewState>() {
   override fun bindIntents() {
+    subscribeViewState(
+      Observable.mergeArray(refreshWeatherPartialChange(), cityAndWeatherPartialChange())
+        .scan(ViewState(), ::reduce)
+        .distinctUntilChanged()
+        .doOnNext { debug("CurrentWeatherPresenter ViewState = $it", TAG) }
+        .observeOn(AndroidSchedulers.mainThread()),
+      View::render
+    )
+  }
 
-    val refresh = intent(View::refreshCurrentWeatherIntent)
-      .publish { shared ->
-        Observable.mergeArray(
-          shared.ofType<InitialRefreshIntent>().take(1),
-          shared.notOfType<InitialRefreshIntent>()
-        )
-      }
-      .doOnNext { debug("refresh intent $it") }
-      .switchMap {
-        repository.refreshCurrentWeather()
-          .toObservable()
-          .switchMap(::weather)
-          .onErrorResumeNext(::showError)
-      }
-      .doOnNext { debug("refreshWeather $it", TAG) }
-
-    val cityAndWeather = repository.getSelectedCityAndCurrentWeather()
+  private fun cityAndWeatherPartialChange(): Observable<PartialStateChange> {
+    val cityAndWeather = repository.getSelectedCityAndCurrentWeatherOfSelectedCity()
       .publish { shared ->
         Observable.mergeArray(
           shared.ofType<None>().switchMap { showError(NoSelectedCityException) },
@@ -53,20 +45,27 @@ class CurrentWeatherPresenter(private val repository: Repository) :
         )
       }
       .doOnNext { debug("cityAndWeather $it", TAG) }
+    return cityAndWeather
+  }
 
-    subscribeViewState(
-      Observable.mergeArray(refresh, cityAndWeather)
-        .scan(ViewState(), ::reduce)
-        .distinctUntilChanged()
-        .doOnNext {
-          debug(
-            "CurrentWeatherPresenter ViewState = $it",
-            TAG
-          )
-        }
-        .observeOn(AndroidSchedulers.mainThread()),
-      View::render
-    )
+  private fun refreshWeatherPartialChange(): Observable<PartialStateChange> {
+    return intent(View::refreshCurrentWeatherIntent)
+      .publish { shared ->
+        Observable.mergeArray(
+          shared.ofType<RefreshIntent.InitialRefreshIntent>().take(1),
+          shared.notOfType<RefreshIntent.InitialRefreshIntent>()
+        )
+      }
+      .doOnNext { debug("refresh intent $it") }
+      .switchMap {
+        repository.refreshCurrentWeatherOfSelectedCity()
+          .doOnSuccess { WorkerUtil.enqueueUpdateCurrentWeatherWorkRequest() }
+          .toObservable()
+          .observeOn(AndroidSchedulers.mainThread())
+          .switchMap(::showWeather)
+          .onErrorResumeNext(::showError)
+      }
+      .doOnNext { debug("refreshWeather $it", TAG) }
   }
 
   private fun reduce(viewState: ViewState, partialStateChange: PartialStateChange): ViewState {
@@ -103,7 +102,7 @@ class CurrentWeatherPresenter(private val repository: Repository) :
       .cast()
   }
 
-  private fun weather(cityAndCurrentWeather: CityAndCurrentWeather): Observable<PartialStateChange> {
+  private fun showWeather(cityAndCurrentWeather: CityAndCurrentWeather): Observable<PartialStateChange> {
     return Observable.timer(2_000, TimeUnit.MILLISECONDS)
       .map {
         PartialStateChange.RefreshWeatherSuccess(

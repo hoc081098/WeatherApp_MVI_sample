@@ -34,9 +34,9 @@ interface Repository {
 
   fun refreshWeatherOf(city: City): Completable
 
-  fun refreshCurrentWeather(): Single<CityAndCurrentWeather>
+  fun refreshCurrentWeatherOfSelectedCity(): Single<CityAndCurrentWeather>
 
-  fun getSelectedCityAndCurrentWeather(): Observable<Optional<CityAndCurrentWeather>>
+  fun getSelectedCityAndCurrentWeatherOfSelectedCity(): Observable<Optional<CityAndCurrentWeather>>
 
   fun getAllCityAndCurrentWeathers(querySearch: String): Observable<List<CityAndCurrentWeather>>
 

@@ -1,4 +1,4 @@
-package com.hoc.weatherapp.utils
+package com.hoc.weatherapp.utils.ui
 
 import android.os.Looper
 import androidx.annotation.CheckResult
@@ -13,8 +13,7 @@ fun checkMainThread(observer: Observer<*>): Boolean {
     observer.onSubscribe(Disposables.empty())
     observer.onError(
       IllegalStateException(
-
-        "Expected to be called on the main thread but was " + Thread.currentThread().name
+        "Expected to be called on the main thread but was ${Thread.currentThread().name}"
       )
     )
     return false
@@ -33,7 +32,7 @@ internal class MaterialSearchViewObservable(private val view: MaterialSearchView
     if (!checkMainThread(observer)) {
       return
     }
-    MaterialSearchViewObservable.Listener(view, observer).let { listener ->
+    Listener(view, observer).let { listener ->
       observer.onSubscribe(listener)
       view.setOnQueryTextListener(listener)
     }
