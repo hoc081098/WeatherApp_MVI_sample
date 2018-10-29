@@ -131,7 +131,7 @@ class CurrentWeatherFragment : MviFragment<CurrentWeatherContract.View, CurrentW
       R.string.wind_direction,
       WindDirection.fromDegrees(weather.winDegrees)
     )
-    text_wind_speed.text = getString(R.string.speed, sharedPrefUtil.speedUnit.format(weather.winSpeed))
+    text_wind_speed.text = getString(R.string.wind_speed, sharedPrefUtil.speedUnit.format(weather.winSpeed))
   }
 
   override fun createPresenter() = get<CurrentWeatherPresenter>()

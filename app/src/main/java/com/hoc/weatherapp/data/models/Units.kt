@@ -63,7 +63,7 @@ enum class SpeedUnit {
     ) + symbol()
   }
 
-  private fun symbol(): String {
+  fun symbol(): String {
     return when (this) {
       METERS_PER_SECOND -> "m/s"
       KILOMETERS_PER_HOUR -> "kph"
@@ -86,7 +86,7 @@ enum class PressureUnit {
     ) + symbol()
   }
 
-  private fun symbol(): String {
+  fun symbol(): String {
     return when (this) {
       HPA -> "hPa"
       MM_HG -> "mmHg"

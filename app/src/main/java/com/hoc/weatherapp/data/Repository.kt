@@ -32,7 +32,7 @@ interface Repository {
    * *********************************************************************************************
    */
 
-  fun refreshWeatherOf(city: City): Completable
+  fun refreshWeatherOf(city: City): Single<Pair<CityAndCurrentWeather, List<DailyWeather>>>
 
   fun refreshCurrentWeatherOfSelectedCity(): Single<CityAndCurrentWeather>
 

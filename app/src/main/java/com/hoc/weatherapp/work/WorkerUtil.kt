@@ -50,7 +50,6 @@ object WorkerUtil {
       )
   }
 
-
   fun cancelUpdateDailyWeatherWorkWorkRequest() {
     debug("cancelUpdateDailyWeatherWorkWorkRequest", TAG)
 

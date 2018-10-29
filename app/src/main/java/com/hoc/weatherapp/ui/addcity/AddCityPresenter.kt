@@ -53,8 +53,8 @@ class AddCityPresenter(private val repository: Repository, private val applicati
           .map { it.latitude to it.longitude }
           .compose(addCityTransformer)
           .onErrorResumeNext { it: Throwable ->
-            val throwable = if (it is TimeoutException && it.message === null) {
-              TimeoutException("Timeout to get current location. Try again!")
+            val throwable = if (it is TimeoutException) {
+              TimeoutException("timeout to get current location. Try again!")
             } else {
               it
             }

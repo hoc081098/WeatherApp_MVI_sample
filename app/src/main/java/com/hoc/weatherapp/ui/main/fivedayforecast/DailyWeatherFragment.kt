@@ -150,7 +150,7 @@ class DailyWeatherFragment : MviFragment<DailyWeatherContract.View, DailyWeather
     dailyWeatherAdapter.submitList(viewState.dailyWeatherListItem)
 
     if (viewState.error != null && viewState.showError) {
-      refreshSnackBar?.dismiss()
+      errorSnackBar?.dismiss()
       errorSnackBar = view?.snackBar(viewState.error.message ?: "An error occurred")
     }
     if (!viewState.showError) {

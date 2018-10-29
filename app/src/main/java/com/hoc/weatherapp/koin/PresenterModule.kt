@@ -10,15 +10,15 @@ import org.koin.android.ext.koin.androidApplication
 import org.koin.dsl.module.module
 
 val presenterModule = module {
-  factory { CitiesPresenter(get(), get()) }
+  factory { CitiesPresenter(get(), get(), androidApplication()) }
 
-  factory { CurrentWeatherPresenter(get()) }
+  factory { CurrentWeatherPresenter(get(), androidApplication(), get()) }
 
   factory { AddCityPresenter(get(), androidApplication()) }
 
-  factory { DailyWeatherPresenter(get(), get()) }
+  factory { DailyWeatherPresenter(get(), get(), androidApplication()) }
 
-  factory { MainPresenter(get(), get(), androidApplication()) }
+  factory { MainPresenter(get()) }
 
   factory { ChartPresenter(get(), get()) }
 }

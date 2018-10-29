@@ -5,6 +5,7 @@ import com.hoc.weatherapp.data.Repository
 import com.hoc.weatherapp.data.local.SharedPrefUtil
 import com.hoc.weatherapp.ui.main.chart.ChartContract.View
 import com.hoc.weatherapp.ui.main.chart.ChartContract.ViewState
+import com.hoc.weatherapp.ui.main.fivedayforecast.Tuple4
 import com.hoc.weatherapp.utils.debug
 import com.hoc.weatherapp.utils.getOrNull
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -16,12 +17,24 @@ class ChartPresenter(
 ) : MviBasePresenter<View, ViewState>() {
   override fun bindIntents() {
     val viewState = Observables.combineLatest(
-      repository.getFiveDayForecastOfSelectedCity(),
-      sharedPrefUtil.temperatureUnitObservable
+      source1 = repository.getFiveDayForecastOfSelectedCity(),
+      source2 = sharedPrefUtil.temperatureUnitObservable,
+      source3 = sharedPrefUtil.speedUnitObservable,
+      source4 = sharedPrefUtil.pressureUnitObservable,
+      combineFunction = { optional, temperatureUnit, speedUnit, pressureUnit ->
+        Tuple4(
+          temperatureUnit = temperatureUnit,
+          weathers = optional.getOrNull().orEmpty(),
+          pressureUnit = pressureUnit,
+          speedUnit = speedUnit
+        )
+      }
     ).map {
       ViewState(
-        temperatureUnit = it.second,
-        weathers = it.first.getOrNull()
+        temperatureUnit = it.temperatureUnit,
+        weathers = it.weathers,
+        speedUnit = it.speedUnit,
+        pressureUnit = it.pressureUnit
       )
     }.distinctUntilChanged()
       .doOnNext { debug("ChartPresenter ViewState=$it", "$#$#$#$#$#") }

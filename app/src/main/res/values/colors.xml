@@ -16,4 +16,5 @@
 
     <color name="colorMaterialBlue500">#2196f3</color>
     <color name="colorDeepPurpleAccent700">#6200ea</color>
+    <color name="colorMaterialCyan400">#26C6DA</color>
 </resources>
