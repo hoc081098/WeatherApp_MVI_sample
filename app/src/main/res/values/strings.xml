@@ -4,16 +4,21 @@
     <string name="title_activity_maps">Map</string>
     <string name="title_activity_settings">Settings</string>
 
-    <string name="temperature_degree" translatable="false">%s°</string>
-    <string name="last_updated">Last updated: %s</string>
-    <string name="humidity" translatable="false">%d%%</string>
-    <string name="wind_direction">Direction: %s</string>
+    <string name="rain_chart_title">Rain volume (mm)</string>
     <string name="temperature_chart_title">Temperature (%s)</string>
+    <string name="pressure_chart_title">Pressure (%s)</string>
+    <string name="wind_speed_chart_title">Wind speed (%s)</string>
+
+    <string name="temperature_degree" translatable="false">%s°</string>
+    <string name="humidity" translatable="false">%d%%</string>
     <string name="city_name_and_country" translatable="false">%s - %s</string>
-    <string name="speed">Speed: %s</string>
     <string name="no_main_weather" translatable="false">____</string>
     <string name="rain_mm" translatable="false">%smm</string>
     <string name="visibility_km" translatable="false">%skm</string>
+
+    <string name="wind_direction">Direction: %s</string>
+    <string name="wind_speed">Speed: %s</string>
+    <string name="last_updated">Last updated: %s</string>
 
     <string-array name="pref_list_temperature_units_titles">
         <item>Kelvin</item>
@@ -51,15 +56,16 @@
 
     <string name="key_temperature_unit" translatable="false">temperature_unit</string>
     <string name="key_speed_unit" translatable="false">speed_unit</string>
-    <string name="key_pressure_unit" translatable="false">speed_unit</string>
+    <string name="key_pressure_unit" translatable="false">pressure_unit</string>
     <string name="key_show_notification" translatable="false">show_notification</string>
 
     <string name="pref_title_select_temperature_unit">Select temperature unit</string>
     <string name="pref_title_select_speed_unit">Select wind speed unit</string>
     <string name="pref_title_select_pressure_unit">Select pressure unit</string>
 
-    <string name="no_selected_city">No selected city</string>
     <string name="app_id" translatable="false">24ddc04fbdc34946bea8c12a327dd17c</string>
+
+    <string name="no_selected_city">No selected city</string>
     <string name="rain">Rain</string>
     <string name="wind">Wind</string>
     <string name="temperature">Temperature</string>

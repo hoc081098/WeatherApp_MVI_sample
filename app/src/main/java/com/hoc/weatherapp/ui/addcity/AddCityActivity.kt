@@ -153,7 +153,6 @@ class AddCityActivity : MviActivity<AddCityContract.View, AddCityPresenter>(),
     when (requestCode) {
       REQUEST_CHECK_SETTINGS -> if (resultCode == Activity.RESULT_OK) {
         publishSubjectTriggerAddCurrentLocation.onNext(Unit)
-        toast("publishSubjectTriggerAddCurrentLocation..onNext")
       }
     }
   }

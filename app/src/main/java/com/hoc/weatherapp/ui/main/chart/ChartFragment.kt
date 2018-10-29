@@ -13,7 +13,6 @@ import com.db.chart.util.Tools
 import com.db.chart.view.LineChartView
 import com.hannesdorfmann.mosby3.mvi.MviFragment
 import com.hoc.weatherapp.R
-import com.hoc.weatherapp.data.models.TemperatureUnit
 import com.hoc.weatherapp.data.models.entity.DailyWeather
 import com.hoc.weatherapp.utils.UnitConverter
 import com.hoc.weatherapp.utils.debug
@@ -25,21 +24,8 @@ import kotlin.math.floor
 
 class ChartFragment : MviFragment<ChartContract.View, ChartPresenter>(), ChartContract.View {
   override fun render(viewState: ChartContract.ViewState) {
-    updateCharts(viewState.weathers, viewState.temperatureUnit)
-  }
-
-  override fun createPresenter() = get<ChartPresenter>()
-
-  override fun onCreateView(
-    inflater: LayoutInflater,
-    container: ViewGroup?,
-    savedInstanceState: Bundle?
-  ): View = inflater.inflate(R.layout.fragment_chart, container, false)
-
-  private fun updateCharts(weathers: List<DailyWeather>?, temperatureUnit: TemperatureUnit) {
-    if (weathers.isNullOrEmpty()) {
-      return
-    }
+    val (weathers, temperatureUnit, pressureUnit, speedUnit) = viewState
+    if (weathers.isEmpty()) return
 
     text_temperature.text =
         getString(R.string.temperature_chart_title, temperatureUnit.symbol())
@@ -57,7 +43,7 @@ class ChartFragment : MviFragment<ChartContract.View, ChartPresenter>(), ChartCo
       )
     )
 
-    text_rain.text = "Rain volume (mm)"
+    text_rain.text = getString(R.string.rain_chart_title)
     drawChart(
       chart_rain,
       weathers,
@@ -72,11 +58,27 @@ class ChartFragment : MviFragment<ChartContract.View, ChartPresenter>(), ChartCo
       )
     )
 
-    text_pressure.text = "Pressure (hPa)"
+    text_pressure.text = getString(R.string.pressure_chart_title, pressureUnit.symbol())
     drawChart(
       chart_pressure,
       weathers,
-      { it.pressure.toFloat() },
+      { UnitConverter.convertPressure(it.pressure, pressureUnit).toFloat() },
+      ContextCompat.getColor(
+        requireContext(),
+        R.color.colorMaterialCyan400
+      ),
+      ContextCompat.getColor(
+        requireContext(),
+        R.color.colorAccent
+      )
+    )
+
+
+    text_wind_speed.text = getString(R.string.wind_speed_chart_title, speedUnit.symbol())
+    drawChart(
+      chart_wind_speed,
+      weathers,
+      { UnitConverter.convertSpeed(it.windSpeed, speedUnit).toFloat() },
       ContextCompat.getColor(
         requireContext(),
         R.color.colorDeepPurpleAccent700
@@ -87,6 +89,14 @@ class ChartFragment : MviFragment<ChartContract.View, ChartPresenter>(), ChartCo
       )
     )
   }
+
+  override fun createPresenter() = get<ChartPresenter>()
+
+  override fun onCreateView(
+    inflater: LayoutInflater,
+    container: ViewGroup?,
+    savedInstanceState: Bundle?
+  ): View = inflater.inflate(R.layout.fragment_chart, container, false)
 
   private inline fun drawChart(
     lineChartView: LineChartView,

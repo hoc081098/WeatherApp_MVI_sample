@@ -31,7 +31,7 @@ object Mapper {
           temperatureMax = main?.tempMax ?: 0.0,
           temperatureMin = main?.tempMin ?: 0.0,
           winDegrees = wind?.deg ?: 0.0,
-          winSpeed = wind?.speed ?: 0.0,
+          windSpeed = wind?.speed ?: 0.0,
           cityId = response.city?.id ?: -1
         )
       }

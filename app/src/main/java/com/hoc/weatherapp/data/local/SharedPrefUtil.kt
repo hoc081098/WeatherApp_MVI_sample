@@ -85,11 +85,17 @@ class SharedPrefUtil(
    *************************************************************************************************
    */
 
-  val showNotification by sharedPreferences.delegate<Boolean>(
-    key = androidApplication.getString(
-      R.string.key_show_notification
-    ), default = true
+  private val _showNotification by sharedPreferences.delegate<Boolean>(
+    key = androidApplication.getString(R.string.key_show_notification),
+    default = true
   )
+  private val _showNotificationSubject = BehaviorSubject.createDefault<Boolean>(_showNotification)
+
+  var showNotification
+    get() = _showNotification
+    set(value) = _showNotificationSubject.onNext(value)
+
+  val showNotificationObservable get() = _showNotificationSubject.hide()!!
 
   /**
    *************************************************************************************************
@@ -193,8 +199,12 @@ fun <T> SharedPreferences.delegateVar(
     override fun getValue(thisRef: Any, property: KProperty<*>) =
       getter(key ?: property.name, defaultValue)
 
-    override fun setValue(thisRef: Any, property: KProperty<*>, value: T) =
-      edit().setter(key ?: property.name, value).apply()
+    override fun setValue(thisRef: Any, property: KProperty<*>, value: T) {
+      val k = key ?: property.name
+      if (!edit().setter(k, value).commit()) {
+        throw IllegalStateException("The new value=$value, key=$k were written not successfully ")
+      }
+    }
   }
 }
 

@@ -11,11 +11,7 @@ import android.widget.Toast
 import androidx.annotation.IntDef
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import com.google.android.gms.location.LocationCallback
-import com.google.android.gms.location.LocationRequest
-import com.google.android.gms.location.LocationResult
-import com.google.android.gms.location.LocationServices
-import com.google.android.gms.location.LocationSettingsRequest
+import com.google.android.gms.location.*
 import com.google.android.material.snackbar.Snackbar
 import io.reactivex.Observable
 import io.reactivex.Single
@@ -98,7 +94,7 @@ fun Context.checkLocationSettingAndGetCurrentLocation(): Single<Location> {
             Manifest.permission.ACCESS_COARSE_LOCATION
           ) != PackageManager.PERMISSION_GRANTED
         ) {
-          emitter.onError(IllegalStateException("Need granted permission ACCESS_FINE_LOCATION or ACCESS_COARSE_LOCATION"))
+          emitter.onError(IllegalStateException("need granted permission ACCESS_FINE_LOCATION or ACCESS_COARSE_LOCATION"))
           return@addOnSuccessListener
         }
 

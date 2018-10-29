@@ -10,7 +10,15 @@ import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module.module
 
 val dataSourceModule = module {
-  single { RepositoryImpl(get(), get(), get(), get(), get()) } bind Repository::class
+  single {
+    RepositoryImpl(
+      get(),
+      get(),
+      get(),
+      get(),
+      get()
+    )
+  } bind Repository::class
 
   single { AppDatabase.getInstance(androidContext()) }
 

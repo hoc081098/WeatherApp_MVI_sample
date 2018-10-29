@@ -1,14 +1,13 @@
 package com.hoc.weatherapp.ui.main.currentweather
 
+import android.app.Application
 import com.hannesdorfmann.mosby3.mvi.MviBasePresenter
 import com.hoc.weatherapp.data.NoSelectedCityException
 import com.hoc.weatherapp.data.Repository
+import com.hoc.weatherapp.data.local.SharedPrefUtil
 import com.hoc.weatherapp.data.models.entity.CityAndCurrentWeather
 import com.hoc.weatherapp.ui.main.currentweather.CurrentWeatherContract.*
-import com.hoc.weatherapp.utils.None
-import com.hoc.weatherapp.utils.Some
-import com.hoc.weatherapp.utils.debug
-import com.hoc.weatherapp.utils.notOfType
+import com.hoc.weatherapp.utils.*
 import com.hoc.weatherapp.work.WorkerUtil
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -18,7 +17,11 @@ import java.util.concurrent.TimeUnit
 
 private const val TAG = "currrentweather"
 
-class CurrentWeatherPresenter(private val repository: Repository) :
+class CurrentWeatherPresenter(
+  private val repository: Repository,
+  private val androidApplication: Application,
+  private val sharedPrefUtil: SharedPrefUtil
+) :
   MviBasePresenter<View, ViewState>() {
   override fun bindIntents() {
     subscribeViewState(
@@ -59,7 +62,23 @@ class CurrentWeatherPresenter(private val repository: Repository) :
       .doOnNext { debug("refresh intent $it") }
       .switchMap {
         repository.refreshCurrentWeatherOfSelectedCity()
-          .doOnSuccess { WorkerUtil.enqueueUpdateCurrentWeatherWorkRequest() }
+          .doOnSuccess {
+            WorkerUtil.enqueueUpdateCurrentWeatherWorkRequest()
+            if (sharedPrefUtil.showNotification) {
+              androidApplication.showOrUpdateNotification(
+                cityName = it.city.name,
+                unit = sharedPrefUtil.temperatureUnit,
+                cityCountry = it.city.country,
+                weather = it.currentWeather
+              )
+            }
+          }
+          .doOnError {
+            if (it is NoSelectedCityException) {
+              androidApplication.cancelNotificationById(WEATHER_NOTIFICATION_ID)
+              WorkerUtil.cancelUpdateCurrentWeatherWorkRequest()
+            }
+          }
           .toObservable()
           .observeOn(AndroidSchedulers.mainThread())
           .switchMap(::showWeather)

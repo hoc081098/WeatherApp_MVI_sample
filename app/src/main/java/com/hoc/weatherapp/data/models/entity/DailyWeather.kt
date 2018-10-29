@@ -1,15 +1,11 @@
 package com.hoc.weatherapp.data.models.entity
 
 import android.os.Parcelable
-import androidx.room.ColumnInfo
-import androidx.room.Entity
-import androidx.room.ForeignKey
+import androidx.room.*
 import androidx.room.ForeignKey.CASCADE
-import androidx.room.Index
-import androidx.room.PrimaryKey
 import kotlinx.android.parcel.IgnoredOnParcel
 import kotlinx.android.parcel.Parcelize
-import java.util.Date
+import java.util.*
 
 @Parcelize
 @Entity(
@@ -106,7 +102,7 @@ data class DailyWeather(
    * Wind speed. Unit Default: meter/sec, Metric: meter/sec, Imperial: miles/hour.
    */
   @ColumnInfo(name = "win_speed")
-  val winSpeed: Double,
+  val windSpeed: Double,
 
   /**
    *  Wind direction, degrees (meteorological)

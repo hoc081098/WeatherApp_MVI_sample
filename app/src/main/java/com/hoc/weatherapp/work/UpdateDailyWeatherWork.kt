@@ -3,7 +3,10 @@ package com.hoc.weatherapp.work
 import android.content.Context
 import androidx.work.Worker
 import androidx.work.WorkerParameters
+import com.hoc.weatherapp.data.NoSelectedCityException
 import com.hoc.weatherapp.data.Repository
+import com.hoc.weatherapp.utils.WEATHER_NOTIFICATION_ID
+import com.hoc.weatherapp.utils.cancelNotificationById
 import org.koin.standalone.KoinComponent
 import org.koin.standalone.inject
 
@@ -18,7 +21,13 @@ class UpdateDailyWeatherWork(context: Context, workerParams: WorkerParameters) :
         .blockingGet()
     }.fold(
       onSuccess = { Result.SUCCESS },
-      onFailure = { Result.FAILURE }
+      onFailure = {
+        if (it is NoSelectedCityException) {
+          applicationContext.cancelNotificationById(WEATHER_NOTIFICATION_ID)
+          WorkerUtil.cancelUpdateDailyWeatherWorkWorkRequest()
+        }
+        Result.FAILURE
+      }
     )
   }
 

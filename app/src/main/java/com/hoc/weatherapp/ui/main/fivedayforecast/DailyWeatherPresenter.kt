@@ -1,6 +1,8 @@
 package com.hoc.weatherapp.ui.main.fivedayforecast
 
+import android.app.Application
 import com.hannesdorfmann.mosby3.mvi.MviBasePresenter
+import com.hoc.weatherapp.data.NoSelectedCityException
 import com.hoc.weatherapp.data.Repository
 import com.hoc.weatherapp.data.local.SharedPrefUtil
 import com.hoc.weatherapp.data.models.PressureUnit
@@ -10,10 +12,7 @@ import com.hoc.weatherapp.data.models.WindDirection
 import com.hoc.weatherapp.data.models.entity.DailyWeather
 import com.hoc.weatherapp.ui.main.fivedayforecast.DailyWeatherContract.*
 import com.hoc.weatherapp.ui.main.fivedayforecast.DailyWeatherContract.PartialStateChange.Weather
-import com.hoc.weatherapp.utils.debug
-import com.hoc.weatherapp.utils.getOrNull
-import com.hoc.weatherapp.utils.notOfType
-import com.hoc.weatherapp.utils.trim
+import com.hoc.weatherapp.utils.*
 import com.hoc.weatherapp.work.WorkerUtil
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -22,9 +21,17 @@ import io.reactivex.rxkotlin.cast
 import io.reactivex.rxkotlin.ofType
 import java.util.concurrent.TimeUnit
 
+data class Tuple4(
+  val weathers: List<DailyWeather>,
+  val temperatureUnit: TemperatureUnit,
+  val speedUnit: SpeedUnit,
+  val pressureUnit: PressureUnit
+)
+
 class DailyWeatherPresenter(
   private val repository: Repository,
-  private val sharedPrefUtil: SharedPrefUtil
+  private val sharedPrefUtil: SharedPrefUtil,
+  private val androidApplication: Application
 ) :
   MviBasePresenter<View, ViewState>() {
   private val tag = "_five_day_forecast_"
@@ -54,7 +61,7 @@ class DailyWeatherPresenter(
                 groundLevel = pressureUnit.format(it.groundLevel),
                 pressure = pressureUnit.format(it.pressure),
                 seaLevel = pressureUnit.format(it.seaLevel),
-                winSpeed = windSpeedUnit.format(it.winSpeed)
+                winSpeed = windSpeedUnit.format(it.windSpeed)
               )
             }
       }
@@ -82,7 +89,15 @@ class DailyWeatherPresenter(
       .doOnNext { debug("refreshDailyWeatherIntent $it", "_daily_weather_") }
       .switchMap {
         repository.refreshFiveDayForecastOfSelectedCity()
-          .doOnSuccess { WorkerUtil.enqueueUpdateDailyWeatherWorkWorkRequest() }
+          .doOnSuccess {
+            WorkerUtil.enqueueUpdateDailyWeatherWorkWorkRequest()
+          }
+          .doOnError {
+            if (it is NoSelectedCityException) {
+              androidApplication.cancelNotificationById(WEATHER_NOTIFICATION_ID)
+              WorkerUtil.cancelUpdateDailyWeatherWorkWorkRequest()
+            }
+          }
           .toObservable()
           .map {
             mapListDailyWeathersToListItem(
@@ -99,13 +114,6 @@ class DailyWeatherPresenter(
           .onErrorResumeNext(::showError)
       }
   }
-
-  private data class Tuple4(
-    val weathers: List<DailyWeather>,
-    val temperatureUnit: TemperatureUnit,
-    val speedUnit: SpeedUnit,
-    val pressureUnit: PressureUnit
-  )
 
   private fun weatherChangePartialState(): Observable<PartialStateChange> {
     return Observables.combineLatest(
@@ -169,7 +177,7 @@ class DailyWeatherPresenter(
       )
       is DailyWeatherContract.PartialStateChange.RefreshWeatherSuccess -> viewState.copy(
         dailyWeatherListItem = partialStateChange.dailyWeatherListItem,
-        showError = partialStateChange.showMessage,
+        showRefreshSuccessfully = partialStateChange.showMessage,
         error = null
       )
     }

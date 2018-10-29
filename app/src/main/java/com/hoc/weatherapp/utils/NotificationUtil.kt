@@ -58,6 +58,7 @@ fun Context.showOrUpdateNotification(
     .setOngoing(true)
     .setWhen(System.currentTimeMillis())
     .setPriority(NotificationCompat.PRIORITY_HIGH)
+    .setDefaults(NotificationCompat.DEFAULT_ALL)
 
   val resultPendingIntent = PendingIntent.getActivity(
     this,
@@ -70,6 +71,8 @@ fun Context.showOrUpdateNotification(
     WEATHER_NOTIFICATION_ID,
     builder.build()
   )
+
+  debug("Show notification", "__showOrUpdateNotification__")
 }
 
 fun Context.cancelNotificationById(id: Int) =
