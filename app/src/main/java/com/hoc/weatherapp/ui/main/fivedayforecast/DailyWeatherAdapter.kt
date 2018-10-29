@@ -14,17 +14,17 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.bumptech.glide.request.RequestOptions
 import com.hoc.weatherapp.R
-import com.hoc.weatherapp.utils.getIconDrawableFromDailyWeather
 import com.hoc.weatherapp.utils.trim
-import java.text.DateFormat
-import java.text.SimpleDateFormat
-import java.util.Calendar
+import com.hoc.weatherapp.utils.ui.getIconDrawableFromDailyWeather
+import io.reactivex.subjects.PublishSubject
 import kotlinx.android.synthetic.main.daily_weather_header_layout.view.*
 import kotlinx.android.synthetic.main.daily_weather_item_layout.view.*
+import java.text.DateFormat
+import java.text.SimpleDateFormat
+import java.util.*
 
-class DailyWeatherAdapter :
-  ListAdapter<DailyWeatherListItem, RecyclerView.ViewHolder>(object :
-    DiffUtil.ItemCallback<DailyWeatherListItem?>() {
+class DailyWeatherAdapter : ListAdapter<DailyWeatherListItem, RecyclerView.ViewHolder>(
+  object : DiffUtil.ItemCallback<DailyWeatherListItem>() {
     override fun areItemsTheSame(
       oldItem: DailyWeatherListItem,
       newItem: DailyWeatherListItem
@@ -38,7 +38,11 @@ class DailyWeatherAdapter :
       oldItem: DailyWeatherListItem,
       newItem: DailyWeatherListItem
     ) = newItem == oldItem
-  }) {
+  }
+) {
+  private val _clickSubject = PublishSubject.create<DailyWeatherListItem.Weather>()
+  val clickObservable get() = _clickSubject.hide()!!
+
   @ViewType
   override fun getItemViewType(position: Int): Int {
     return when (
@@ -67,8 +71,8 @@ class DailyWeatherAdapter :
 
   override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
     when (holder) {
-      is HeaderViewHolder -> holder.bind(getItem(position) as? DailyWeatherListItem.Header)
-      is DailyWeatherViewHolder -> holder.bind(getItem(position) as? DailyWeatherListItem.Weather)
+      is HeaderViewHolder -> holder.bind(getItem(position) as DailyWeatherListItem.Header)
+      is DailyWeatherViewHolder -> holder.bind(getItem(position) as DailyWeatherListItem.Weather)
       else -> throw IllegalStateException("Unknown type of view holder $holder at position $position")
     }
   }
@@ -76,40 +80,50 @@ class DailyWeatherAdapter :
   class HeaderViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
     private val textViewDate = itemView.textViewDate!!
 
-    fun bind(header: DailyWeatherListItem.Header?) = header?.date?.let {
+    fun bind(header: DailyWeatherListItem.Header) {
       val current = Calendar.getInstance()
         .apply { time = time.trim() }
-      calendar.time = it
+      CALENDAR.time = header.date
 
-      if (current == calendar) {
-        textViewDate.text = "Today"
-        return@let
+      if (current == CALENDAR) {
+        textViewDate.text = itemView.context.getString(R.string.today)
+        return
       }
 
       current.add(Calendar.DATE, 1)
-      if (current == calendar) {
-        textViewDate.text = "Tomorrow"
-        return@let
+      if (current == CALENDAR) {
+        textViewDate.text = itemView.context.getString(R.string.tomorrow)
+        return
       }
 
-      textViewDate.text = headerDateFormat.format(it)
+      textViewDate.text = HEADER_DATE_FORMAT.format(header.date)
     }
   }
 
-  inner class DailyWeatherViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+  inner class DailyWeatherViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView),
+    View.OnClickListener {
+    override fun onClick(v: View) {
+      val adapterPosition = adapterPosition
+      if (adapterPosition != RecyclerView.NO_POSITION) {
+        _clickSubject.onNext(getItem(adapterPosition) as DailyWeatherListItem.Weather)
+      }
+    }
+
     private val textWeather = itemView.text_weather!!
     private val imageIconCityItem = itemView.image_icon_city_item!!
     private val textViewDataTime = itemView.textViewDataTime!!
     private val textTempMax = itemView.text_temp_max!!
     private val textTempMin = itemView.text_temp_min!!
 
-    fun bind(weather: DailyWeatherListItem.Weather?) = weather?.let {
+    init {
+      itemView.setOnClickListener(this)
+    }
+
+    fun bind(weather: DailyWeatherListItem.Weather) {
       textTempMin.text = weather.temperatureMin
       textTempMax.text = weather.temperatureMax
-
-      textWeather.text =
-          weather.weatherDescription
-      textViewDataTime.text = itemDateFormat.format(weather.dataTime)
+      textWeather.text = weather.weatherDescription
+      textViewDataTime.text = ITEM_DATE_FORMAT.format(weather.dataTime)
 
       Glide.with(itemView.context)
         .load(itemView.context.getIconDrawableFromDailyWeather(weather.weatherIcon))
@@ -119,8 +133,7 @@ class DailyWeatherAdapter :
           ContextCompat.getColor(
             itemView.context,
             R.color.colorPrimaryDark
-          )
-            .let(::ColorDrawable)
+          ).let(::ColorDrawable)
             .let(RequestOptions::placeholderOf)
         )
         .into(imageIconCityItem)
@@ -134,14 +147,14 @@ class DailyWeatherAdapter :
   companion object {
     @SuppressLint("SimpleDateFormat")
     @JvmField
-    val headerDateFormat: DateFormat = SimpleDateFormat("dd/MM/yyyy, E")
+    val HEADER_DATE_FORMAT: DateFormat = SimpleDateFormat("dd/MM/yyyy, E")
 
     @SuppressLint("SimpleDateFormat")
     @JvmField
-    val itemDateFormat: DateFormat = SimpleDateFormat("HH:mm")
+    val ITEM_DATE_FORMAT: DateFormat = SimpleDateFormat("HH:mm")
 
     @JvmField
-    val calendar = Calendar.getInstance()!!
+    val CALENDAR = Calendar.getInstance()!!
 
     const val HEADER_TYPE = 1
     const val DAILY_WEATHER_TYPE = 3

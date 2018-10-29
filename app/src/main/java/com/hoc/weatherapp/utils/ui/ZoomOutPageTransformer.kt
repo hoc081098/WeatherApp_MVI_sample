@@ -1,4 +1,4 @@
-package com.hoc.weatherapp.utils
+package com.hoc.weatherapp.utils.ui
 
 import android.view.View
 import androidx.viewpager.widget.ViewPager

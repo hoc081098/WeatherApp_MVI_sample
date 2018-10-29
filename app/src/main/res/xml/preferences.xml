@@ -16,4 +16,22 @@
         android:positiveButtonText="@null"
         android:title="@string/pref_title_select_temperature_unit" />
 
+    <androidx.preference.ListPreference
+        android:defaultValue="METERS_PER_SECOND"
+        android:entries="@array/pref_list_temperature_units_titles"
+        android:entryValues="@array/pref_list_temperature_units_values"
+        android:key="@string/key_speed_unit"
+        android:negativeButtonText="@null"
+        android:positiveButtonText="@null"
+        android:title="@string/pref_title_select_speed_unit" />
+
+    <androidx.preference.ListPreference
+        android:defaultValue="HPA"
+        android:entries="@array/pref_list_pressure_units_titles"
+        android:entryValues="@array/pref_list_pressure_units_values"
+        android:key="@string/key_pressure_unit"
+        android:negativeButtonText="@null"
+        android:positiveButtonText="@null"
+        android:title="@string/pref_title_select_pressure_unit" />
+
 </androidx.preference.PreferenceScreen>

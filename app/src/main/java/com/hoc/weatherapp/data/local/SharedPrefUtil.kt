@@ -1,8 +1,10 @@
 package com.hoc.weatherapp.data.local
 
-import android.content.Context
+import android.app.Application
 import android.content.SharedPreferences
 import com.hoc.weatherapp.R
+import com.hoc.weatherapp.data.models.PressureUnit
+import com.hoc.weatherapp.data.models.SpeedUnit
 import com.hoc.weatherapp.data.models.TemperatureUnit
 import com.hoc.weatherapp.data.models.entity.City
 import com.hoc.weatherapp.utils.Optional
@@ -13,11 +15,9 @@ import kotlin.properties.ReadOnlyProperty
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
-val i: Int.(Int) -> Unit = {}
-
 class SharedPrefUtil(
   sharedPreferences: SharedPreferences,
-  context: Context,
+  androidApplication: Application,
   private val moshi: Moshi
 ) {
   /**
@@ -29,21 +29,64 @@ class SharedPrefUtil(
       getString(key, defaultValue.toString())!!.let { TemperatureUnit.fromString(it) }
     },
     TemperatureUnit.KELVIN,
-    context.applicationContext.getString(R.string.key_temperature_unit)
+    androidApplication.getString(R.string.key_temperature_unit)
   )
   private val _temperatureUnitSubject =
     BehaviorSubject.createDefault<TemperatureUnit>(_temperatureUnit)
 
 
-  val temperatureUnit get() = _temperatureUnit
+  var temperatureUnit
+    get() = _temperatureUnit
+    set(value) = _temperatureUnitSubject.onNext(value)
   val temperatureUnitObservable get() = _temperatureUnitSubject.hide()!!
 
   /**
    *************************************************************************************************
    */
 
+  private val _speedUnit by sharedPreferences.delegateVal<SpeedUnit>(
+    { key, defaultValue ->
+      getString(key, defaultValue.toString())!!.let { SpeedUnit.valueOf(it) }
+    },
+    SpeedUnit.METERS_PER_SECOND,
+    androidApplication.getString(R.string.key_speed_unit)
+  )
+  private val _speedUnitSubject =
+    BehaviorSubject.createDefault<SpeedUnit>(_speedUnit)
+
+
+  var speedUnit
+    get() = _speedUnit
+    set(value) = _speedUnitSubject.onNext(value)
+  val speedUnitObservable get() = _speedUnitSubject.hide()!!
+
+  /**
+   *************************************************************************************************
+   */
+
+  private val _pressureUnit by sharedPreferences.delegateVal<PressureUnit>(
+    { key, defaultValue ->
+      getString(key, defaultValue.toString())!!.let { PressureUnit.valueOf(it) }
+    },
+    PressureUnit.HPA,
+    androidApplication.getString(R.string.key_pressure_unit)
+  )
+  private val _pressureUnitSubject =
+    BehaviorSubject.createDefault<PressureUnit>(_pressureUnit)
+
+
+  var pressureUnit
+    get() = _pressureUnit
+    set(value) = _pressureUnitSubject.onNext(value)
+  val pressureUnitObservable get() = _pressureUnitSubject.hide()!!
+
+
+  /**
+   *************************************************************************************************
+   */
+
   val showNotification by sharedPreferences.delegate<Boolean>(
-    key = context.applicationContext.getString(
+    key = androidApplication.getString(
       R.string.key_show_notification
     ), default = true
   )
@@ -65,19 +108,16 @@ class SharedPrefUtil(
         selectedCityJsonString = it ?: return@onSuccess
       }
     }
-
-
   private val _selectedCitySubject =
     BehaviorSubject.createDefault<Optional<City>>(_selectedCity.toOptional())
 
   val selectedCityObservable get() = _selectedCitySubject.hide()!!
-
-  val selectedCity get() = _selectedCity
-
-  fun setSelectedCity(city: City?) {
-    _selectedCity = city
-    _selectedCitySubject.onNext(city.toOptional())
-  }
+  var selectedCity
+    get() = _selectedCity
+    set(value) {
+      _selectedCity = value
+      _selectedCitySubject.onNext(value.toOptional())
+    }
 }
 
 @Suppress("UNCHECKED_CAST")

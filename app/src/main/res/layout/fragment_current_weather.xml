@@ -474,7 +474,7 @@
                         app:layout_constraintTop_toBottomOf="@id/text_windspeed_summary" />
 
 
-                    <com.hoc.weatherapp.utils.WindmillView
+                    <com.hoc.weatherapp.utils.ui.WindmillView
                         android:id="@+id/windmill1"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -485,9 +485,9 @@
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toBottomOf="@id/divider2">
 
-                    </com.hoc.weatherapp.utils.WindmillView>
+                    </com.hoc.weatherapp.utils.ui.WindmillView>
 
-                    <com.hoc.weatherapp.utils.WindmillView
+                    <com.hoc.weatherapp.utils.ui.WindmillView
                         android:id="@+id/windmill2"
                         android:layout_width="64dp"
                         android:layout_height="96dp"

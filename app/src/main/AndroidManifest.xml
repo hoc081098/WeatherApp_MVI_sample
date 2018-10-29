@@ -11,6 +11,7 @@
     <application
         android:name=".App"
         android:allowBackup="true"
+        android:fullBackupContent="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
@@ -53,10 +54,10 @@
             android:value="@string/google_maps_key" />
 
         <activity
-            android:name=".ui.SettingsActivity"
+            android:name=".ui.setting.SettingsActivity"
             android:theme="@style/AppTheme" />
 
-        <activity android:name=".ui.MapActivity" />
+        <activity android:name=".ui.map.MapActivity" />
 
         <activity android:name=".ui.addcity.AddCityActivity" />
 

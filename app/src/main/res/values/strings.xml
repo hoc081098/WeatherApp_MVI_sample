@@ -1,90 +1,19 @@
 <resources>
     <string name="app_name">Weather App</string>
     <string name="action_settings">Settings</string>
-    <string name="section_format">Hello World from section: %1$d</string>
     <string name="title_activity_maps">Map</string>
     <string name="title_activity_settings">Settings</string>
-    <string name="key_show_notification">show_notification</string>
-    <string name="temperature_degree">%s°</string>
+
+    <string name="temperature_degree" translatable="false">%s°</string>
     <string name="last_updated">Last updated: %s</string>
-    <string name="humidity">%d%%</string>
+    <string name="humidity" translatable="false">%d%%</string>
     <string name="wind_direction">Direction: %s</string>
     <string name="temperature_chart_title">Temperature (%s)</string>
-    <string name="city_name_and_country">%s - %s</string>
-
-    <!-- Strings related to Settings -->
-
-    <!-- Example General settings -->
-    <string name="pref_header_general">General</string>
-
-    <string name="pref_title_social_recommendations">Enable social recommendations</string>
-    <string name="pref_description_social_recommendations">Recommendations for people to contact
-        based on your message history
-    </string>
-
-    <string name="pref_title_display_name">Display name</string>
-    <string name="pref_default_display_name">John Smith</string>
-
-    <string name="pref_title_add_friends_to_messages">Add friends to messages</string>
-    <string-array name="pref_example_list_titles">
-        <item>Always</item>
-        <item>When possible</item>
-        <item>Never</item>
-    </string-array>
-    <string-array name="pref_example_list_values">
-        <item>1</item>
-        <item>0</item>
-        <item>-1</item>
-    </string-array>
-
-    <!-- Example settings for Data & Sync -->
-    <string name="pref_header_data_sync">Data &amp; sync</string>
-
-    <string name="pref_title_sync_frequency">Sync frequency</string>
-    <string-array name="pref_sync_frequency_titles">
-        <item>15 minutes</item>
-        <item>30 minutes</item>
-        <item>1 hour</item>
-        <item>3 hours</item>
-        <item>6 hours</item>
-        <item>Never</item>
-    </string-array>
-    <string-array name="pref_sync_frequency_values">
-        <item>15</item>
-        <item>30</item>
-        <item>60</item>
-        <item>180</item>
-        <item>360</item>
-        <item>-1</item>
-    </string-array>
-
-    <string-array name="list_preference_entries">
-        <item>Entry 1</item>
-        <item>Entry 2</item>
-        <item>Entry 3</item>
-    </string-array>
-
-    <string-array name="list_preference_entry_values">
-        <item>1</item>
-        <item>2</item>
-        <item>3</item>
-    </string-array>
-
-    <string-array name="multi_select_list_preference_default_value" />
-
-    <string name="pref_title_system_sync_settings">System sync settings</string>
-
-    <!-- Example settings for Notifications -->
-    <string name="pref_header_notifications">Notifications</string>
-
-    <string name="pref_title_new_message_notifications">New message notifications</string>
-
-    <string name="pref_title_ringtone">Ringtone</string>
-    <string name="pref_ringtone_silent">Silent</string>
-
-    <string name="pref_title_vibrate">Vibrate</string>
-    <string name="background_image">BACKGROUND_IMAGE</string>
-
+    <string name="city_name_and_country" translatable="false">%s - %s</string>
+    <string name="speed">Speed: %s</string>
+    <string name="no_main_weather" translatable="false">____</string>
+    <string name="rain_mm" translatable="false">%smm</string>
+    <string name="visibility_km" translatable="false">%skm</string>
 
     <string-array name="pref_list_temperature_units_titles">
         <item>Kelvin</item>
@@ -96,14 +25,46 @@
         <item>Celsius</item>
         <item>Fahrenheit</item>
     </string-array>
-    <string name="key_temperature_unit">temperature_unit</string>
-    <string name="pref_title_select_temperature_unit">Select temperature unit</string>
-    <string name="no_selected_city">No selected city</string>
 
-    <string name="app_id">24ddc04fbdc34946bea8c12a327dd17c</string>
+
+    <string-array name="pref_list_speed_units_titles">
+        <item>Meters per second (m/s)</item>
+        <item>Kilometers per hour (kph)</item>
+        <item>Miles per hour (mph)</item>
+    </string-array>
+    <string-array name="pref_list_speed_units_values">
+        <item>METERS_PER_SECOND</item>
+        <item>KILOMETERS_PER_HOUR</item>
+        <item>MILES_PER_HOUR</item>
+    </string-array>
+
+
+    <string-array name="pref_list_pressure_units_titles">
+        <item>hPa</item>
+        <item>mmHg</item>
+    </string-array>
+    <string-array name="pref_list_pressure_units_values">
+        <item>HPA</item>
+        <item>MM_HG</item>
+    </string-array>
+
+
+    <string name="key_temperature_unit" translatable="false">temperature_unit</string>
+    <string name="key_speed_unit" translatable="false">speed_unit</string>
+    <string name="key_pressure_unit" translatable="false">speed_unit</string>
+    <string name="key_show_notification" translatable="false">show_notification</string>
+
+    <string name="pref_title_select_temperature_unit">Select temperature unit</string>
+    <string name="pref_title_select_speed_unit">Select wind speed unit</string>
+    <string name="pref_title_select_pressure_unit">Select pressure unit</string>
+
+    <string name="no_selected_city">No selected city</string>
+    <string name="app_id" translatable="false">24ddc04fbdc34946bea8c12a327dd17c</string>
     <string name="rain">Rain</string>
     <string name="wind">Wind</string>
     <string name="temperature">Temperature</string>
     <string name="weather_map">Weather map</string>
     <string name="search">Search</string>
+    <string name="today">Today</string>
+    <string name="tomorrow">Tomorrow</string>
 </resources>

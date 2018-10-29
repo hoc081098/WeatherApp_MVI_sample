@@ -1,5 +1,6 @@
 package com.hoc.weatherapp.data
 
+import android.app.Application
 import com.hoc.weatherapp.data.local.CityLocalDataSource
 import com.hoc.weatherapp.data.local.CurrentWeatherLocalDataSource
 import com.hoc.weatherapp.data.local.DailyWeatherLocalDataSource
@@ -10,10 +11,8 @@ import com.hoc.weatherapp.data.models.entity.CityAndCurrentWeather
 import com.hoc.weatherapp.data.models.entity.DailyWeather
 import com.hoc.weatherapp.data.models.forecastweather.FiveDayForecastResponse
 import com.hoc.weatherapp.data.remote.WeatherApiService
-import com.hoc.weatherapp.utils.None
-import com.hoc.weatherapp.utils.Optional
-import com.hoc.weatherapp.utils.Some
-import com.hoc.weatherapp.utils.toOptional
+import com.hoc.weatherapp.utils.*
+import com.hoc.weatherapp.work.WorkerUtil
 import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
@@ -30,7 +29,8 @@ class RepositoryImpl(
   private val currentWeatherLocalDataSource: CurrentWeatherLocalDataSource,
   private val cityLocalDataSource: CityLocalDataSource,
   private val dailyWeatherLocalDataSource: DailyWeatherLocalDataSource,
-  private val sharedPrefUtil: SharedPrefUtil
+  private val sharedPrefUtil: SharedPrefUtil,
+  private val application: Application
 ) : Repository {
 
   override fun refreshWeatherOf(city: City): Completable {
@@ -79,7 +79,7 @@ class RepositoryImpl(
       .subscribeOn(Schedulers.io())
   }
 
-  override fun refreshCurrentWeather(): Single<CityAndCurrentWeather> {
+  override fun refreshCurrentWeatherOfSelectedCity(): Single<CityAndCurrentWeather> {
     return when (
       val city = sharedPrefUtil.selectedCity) {
       null -> Single.error(NoSelectedCityException)
@@ -87,10 +87,26 @@ class RepositoryImpl(
         .getCurrentWeatherByCityId(city.id)
         .subscribeOn(Schedulers.io())
         .flatMap(::saveCityAndCurrentWeather)
+    }.doOnSuccess {
+      if (sharedPrefUtil.showNotification) {
+        application.showOrUpdateNotification(
+          weather = it.currentWeather,
+          cityCountry = it.city.country,
+          unit = sharedPrefUtil.temperatureUnit,
+          cityName = it.city.name
+        )
+      } else {
+        application.cancelNotificationById(WEATHER_NOTIFICATION_ID)
+      }
+    }.doOnError {
+      if (it is NoSelectedCityException) {
+        application.cancelNotificationById(WEATHER_NOTIFICATION_ID)
+        WorkerUtil.cancelUpdateCurrentWeatherWorkRequest()
+      }
     }
   }
 
-  override fun getSelectedCityAndCurrentWeather(): Observable<Optional<CityAndCurrentWeather>> {
+  override fun getSelectedCityAndCurrentWeatherOfSelectedCity(): Observable<Optional<CityAndCurrentWeather>> {
     return Observable.merge(
       noneCity,
       city.switchMap { city ->
@@ -104,7 +120,7 @@ class RepositoryImpl(
 
   override fun changeSelectedCity(city: City?): Completable {
     return Completable
-      .fromAction { sharedPrefUtil.setSelectedCity(city) }
+      .fromAction { sharedPrefUtil.selectedCity = city }
       .subscribeOn(Schedulers.io())
   }
 
@@ -160,6 +176,11 @@ class RepositoryImpl(
         .get5DayEvery3HourForecastByCityId(city.id)
         .subscribeOn(Schedulers.io())
         .flatMap(::saveFiveDayForecastWeather)
+    }.doOnError {
+      if (it is NoSelectedCityException) {
+        application.cancelNotificationById(WEATHER_NOTIFICATION_ID)
+        WorkerUtil.cancelUpdateDailyWeatherWorkWorkRequest()
+      }
     }
   }
 }

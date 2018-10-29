@@ -13,6 +13,7 @@ import com.hoc.weatherapp.data.models.TemperatureUnit
 import com.hoc.weatherapp.data.models.entity.CurrentWeather
 import com.hoc.weatherapp.ui.main.MainActivity
 import com.hoc.weatherapp.ui.main.currentweather.CurrentWeatherFragment
+import com.hoc.weatherapp.utils.ui.getIconDrawableFromCurrentWeather
 
 const val WEATHER_NOTIFICATION_ID = 2
 const val ACTION_CANCEL_NOTIFICATION = "com.hoc.weatherapp.CancelNotificationReceiver"
@@ -56,7 +57,7 @@ fun Context.showOrUpdateNotification(
     .setAutoCancel(false)
     .setOngoing(true)
     .setWhen(System.currentTimeMillis())
-    .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+    .setPriority(NotificationCompat.PRIORITY_HIGH)
 
   val resultPendingIntent = PendingIntent.getActivity(
     this,

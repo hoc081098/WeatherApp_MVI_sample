@@ -14,7 +14,7 @@ import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.bumptech.glide.request.RequestOptions
 import com.hoc.weatherapp.R
 import com.hoc.weatherapp.data.models.entity.City
-import com.hoc.weatherapp.utils.getIconDrawableFromCurrentWeather
+import com.hoc.weatherapp.utils.ui.getIconDrawableFromCurrentWeather
 import io.reactivex.subjects.PublishSubject
 import kotlinx.android.synthetic.main.city_item_layout.view.*
 

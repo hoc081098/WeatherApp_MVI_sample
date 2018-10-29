@@ -23,29 +23,23 @@ import com.bumptech.glide.request.target.CustomViewTarget
 import com.bumptech.glide.request.transition.Transition
 import com.hannesdorfmann.mosby3.mvi.MviActivity
 import com.hoc.weatherapp.R
-import com.hoc.weatherapp.data.local.SharedPrefUtil
 import com.hoc.weatherapp.data.models.entity.CurrentWeather
 import com.hoc.weatherapp.ui.cities.CitiesActivity
+import com.hoc.weatherapp.ui.main.chart.ChartFragment
 import com.hoc.weatherapp.ui.main.currentweather.CurrentWeatherFragment
 import com.hoc.weatherapp.ui.main.fivedayforecast.DailyWeatherFragment
-import com.hoc.weatherapp.utils.WEATHER_NOTIFICATION_ID
-import com.hoc.weatherapp.utils.ZoomOutPageTransformer
+import com.hoc.weatherapp.ui.map.MapActivity
+import com.hoc.weatherapp.ui.setting.SettingsActivity
 import com.hoc.weatherapp.utils.blur.GlideBlurTransformation
-import com.hoc.weatherapp.utils.cancelNotificationById
 import com.hoc.weatherapp.utils.debug
-import com.hoc.weatherapp.utils.getBackgroundDrawableFromWeather
-import com.hoc.weatherapp.utils.getSoundUriFromCurrentWeather
-import com.hoc.weatherapp.utils.showOrUpdateNotification
 import com.hoc.weatherapp.utils.startActivity
+import com.hoc.weatherapp.utils.ui.ZoomOutPageTransformer
+import com.hoc.weatherapp.utils.ui.getBackgroundDrawableFromWeather
+import com.hoc.weatherapp.utils.ui.getSoundUriFromCurrentWeather
 import kotlinx.android.synthetic.main.activity_main.*
 import org.koin.android.ext.android.get
-import org.koin.android.ext.android.inject
 
 class MainActivity : MviActivity<MainContract.View, MainPresenter>(), MainContract.View {
-  private val tag = "main"
-
-  private val sharedPrefUtil by inject<SharedPrefUtil>()
-  private var pagerAdapter: SectionsPagerAdapter? = null
   private var mediaPlayer: MediaPlayer? = null
 
   override fun onCreate(savedInstanceState: Bundle?) {
@@ -83,16 +77,17 @@ class MainActivity : MviActivity<MainContract.View, MainPresenter>(), MainContra
 
   private fun setupViewPager() {
     view_pager.run {
-      val fragments = listOf(
+      val fragments: List<Fragment> = listOf(
         CurrentWeatherFragment(),
-        DailyWeatherFragment()
-//        ChartFragment()
+        DailyWeatherFragment(),
+        ChartFragment()
       )
       adapter = SectionsPagerAdapter(
         supportFragmentManager,
         fragments
-      ).also { pagerAdapter = it }
+      )
       offscreenPageLimit = fragments.size
+
       setPageTransformer(true, ZoomOutPageTransformer())
 
       dots_indicator.setViewPager(view_pager)
@@ -111,42 +106,6 @@ class MainActivity : MviActivity<MainContract.View, MainPresenter>(), MainContra
     }
   }
 
-  private fun enqueueWorkRequest() {
-//        val updateCurrentWeather =
-//            PeriodicWorkRequestBuilder<UpdateCurrentWeatherWorker>(15, TimeUnit.MINUTES)
-//                .build()
-//
-//        val updateDailyWeathers =
-//            PeriodicWorkRequestBuilder<UpdateDailyWeatherWork>(15, TimeUnit.MINUTES)
-//                .build()
-//
-//        WorkManager.getInstance().run {
-//            enqueueUniquePeriodicWork(
-//                UpdateCurrentWeatherWorker.UNIQUE_WORK_NAME,
-//                ExistingPeriodicWorkPolicy.REPLACE,
-//                updateCurrentWeather
-//            )
-//            getStatusesForUniqueWork(UpdateCurrentWeatherWorker.UNIQUE_WORK_NAME)
-//                .observe(this@MainActivity, Observer {
-//                    if (it != null) {
-//                        this@MainActivity.debug("${UpdateCurrentWeatherWorker.UNIQUE_WORK_NAME}: $it")
-//                    }
-//                })
-//
-//            enqueueUniquePeriodicWork(
-//                UpdateDailyWeatherWork.UNIQUE_WORK_NAME,
-//                ExistingPeriodicWorkPolicy.REPLACE,
-//                updateDailyWeathers
-//            )
-//            getStatusesForUniqueWork(UpdateDailyWeatherWork.UNIQUE_WORK_NAME)
-//                .observe(this@MainActivity, Observer {
-//                    if (it != null) {
-//                        this@MainActivity.debug("${UpdateDailyWeatherWork.UNIQUE_WORK_NAME}: $it")
-//                    }
-//                })
-//        }
-  }
-
   private class SectionsPagerAdapter(fm: FragmentManager, private val fragments: List<Fragment>) :
     FragmentPagerAdapter(fm) {
     override fun getItem(position: Int) = fragments[position]
@@ -160,13 +119,9 @@ class MainActivity : MviActivity<MainContract.View, MainPresenter>(), MainContra
 
   override fun onOptionsItemSelected(item: MenuItem?): Boolean {
     return when (item?.itemId) {
-      android.R.id.home -> true.also {
-        startActivity<CitiesActivity>()
-      }
-      R.id.action_settings -> true.also {
-
-      }
-//            R.id.action_map -> true.also { startActivity<MapActivity>() }
+      android.R.id.home -> true.also { startActivity<CitiesActivity>() }
+      R.id.action_settings -> true.also { startActivity<SettingsActivity>() }
+      R.id.action_map -> true.also { startActivity<MapActivity>() }
       else -> super.onOptionsItemSelected(item)
     }
   }
@@ -191,23 +146,15 @@ class MainActivity : MviActivity<MainContract.View, MainPresenter>(), MainContra
           view.setImageBitmap(resource)
           Palette.from(resource)
             .generate {
-              it ?: return@generate
-              window.statusBarColor = it.getDarkVibrantColor(
+              window.statusBarColor = (it ?: return@generate).getDarkVibrantColor(
                 ContextCompat.getColor(
                   this@MainActivity,
                   R.color.colorPrimaryDark
                 )
-              ).also { debug("Color $it", "@@@") }
+              )
             }
         }
       })
-  }
-
-  private fun cancelWorkRequest() {
-//        WorkManager.getInstance().run {
-//            cancelUniqueWork(UpdateDailyWeatherWork.UNIQUE_WORK_NAME)
-//            cancelUniqueWork(UpdateCurrentWeatherWorker.UNIQUE_WORK_NAME)
-//        }
   }
 
   private fun stopSound() {
@@ -223,13 +170,12 @@ class MainActivity : MviActivity<MainContract.View, MainPresenter>(), MainContra
     mediaPlayer =
         MediaPlayer.create(this, getSoundUriFromCurrentWeather(weather))
           .apply {
-            setVolume(0.2f, 0.2f)
-            runCatching { start() }.onSuccess { debug("MediaPlayer::start", "@@@") }
+            setVolume(0.25f, 0.25f)
+            runCatching { start() }.onSuccess { debug("MediaPlayer::start", "__main__") }
           }
   }
 
   override fun render(state: MainContract.ViewState) {
-    debug("render state=$state", tag)
     when (state) {
       MainContract.ViewState.NoSelectedCity -> renderNoSelectedCity()
       is MainContract.ViewState.CityAndWeather -> renderCityAndWeather(state)
@@ -237,22 +183,12 @@ class MainActivity : MviActivity<MainContract.View, MainPresenter>(), MainContra
   }
 
   private fun renderCityAndWeather(state: MainContract.ViewState.CityAndWeather) {
-    debug(state.city.name, tag)
     updateBackground(state.weather)
     toolbar_title.text = getString(
       R.string.city_name_and_country,
       state.city.name,
       state.city.country
     )
-    if (sharedPrefUtil.showNotification) {
-      showOrUpdateNotification(
-        state.weather,
-        state.city.name,
-        state.city.country,
-        sharedPrefUtil.temperatureUnit
-      )
-    }
-    enqueueWorkRequest()
     playSound(state.weather)
     enableIndicatorAndViewPager(true)
   }
@@ -269,15 +205,10 @@ class MainActivity : MviActivity<MainContract.View, MainPresenter>(), MainContra
       this@MainActivity,
       R.color.colorPrimaryDark
     )
-
     toolbar_title.text = getString(R.string.no_selected_city)
-    cancelNotificationById(WEATHER_NOTIFICATION_ID)
-    cancelWorkRequest()
     stopSound()
     enableIndicatorAndViewPager(false)
   }
 
-  override fun createPresenter(): MainPresenter {
-    return MainPresenter(get())
-  }
+  override fun createPresenter() = get<MainPresenter>()
 }

@@ -19,29 +19,32 @@ import com.hoc.weatherapp.ui.addcity.AddCityActivity
 import com.hoc.weatherapp.ui.cities.CitiesContract.SearchStringIntent
 import com.hoc.weatherapp.ui.cities.CitiesContract.SearchStringIntent.InitialSearchStringIntent
 import com.hoc.weatherapp.ui.cities.CitiesContract.View
-import com.hoc.weatherapp.utils.SwipeController
-import com.hoc.weatherapp.utils.SwipeControllerActions
 import com.hoc.weatherapp.utils.debug
 import com.hoc.weatherapp.utils.snackBar
 import com.hoc.weatherapp.utils.startActivity
-import com.hoc.weatherapp.utils.textChanges
+import com.hoc.weatherapp.utils.ui.SwipeController
+import com.hoc.weatherapp.utils.ui.SwipeControllerActions
+import com.hoc.weatherapp.utils.ui.textChanges
 import io.reactivex.Observable
 import io.reactivex.rxkotlin.cast
-import io.reactivex.subjects.BehaviorSubject
-import io.reactivex.subjects.PublishSubject
 import io.reactivex.subjects.PublishSubject.create
 import kotlinx.android.synthetic.main.activity_cities.*
 import org.koin.android.ext.android.get
 import java.util.concurrent.TimeUnit
+import kotlin.LazyThreadSafetyMode.NONE
 
 class CitiesActivity : MviActivity<View, CitiesPresenter>(), View {
+  private var refreshSnackBar: Snackbar? = null
   private var snackBar: Snackbar? = null
-
   private var deleteSnackBar: Snackbar? = null
+
   private val cityAdapter = CitiesAdapter()
+  private val root by lazy(NONE) { findViewById<android.view.View>(android.R.id.content)!! }
+
   private val deletePositionPublishSubject = create<Int>()
   private val refreshPositionPublishSubject = create<Int>()
   private val searchStringInitial = create<InitialSearchStringIntent>()
+
   override fun createPresenter() = get<CitiesPresenter>()
 
   override fun refreshCurrentWeatherAtPosition() =
@@ -66,27 +69,37 @@ class CitiesActivity : MviActivity<View, CitiesPresenter>(), View {
   override fun render(state: CitiesContract.ViewState) {
     cityAdapter.submitList(state.cityListItems)
 
-    if (state.error != null) {
-      if (state.showError) {
-        snackBar = findViewById<android.view.View>(android.R.id.content).snackBar(
-          state.error.message ?: "An error occurred!",
-          Snackbar.LENGTH_INDEFINITE
-        )
-      }
+    if (state.error != null && state.showError) {
+      snackBar?.dismiss()
+      snackBar = root.snackBar(
+        state.error.message ?: "An error occurred!",
+        Snackbar.LENGTH_INDEFINITE
+      )
     }
     if (!state.showError) {
       snackBar?.dismiss()
     }
 
-    if (state.deletedCity != null) {
-      if (state.showDeleteCitySuccessfully) {
-        deleteSnackBar = findViewById<android.view.View>(android.R.id.content).snackBar(
-          "Delete city ${state.deletedCity.name} successfully",
-          Snackbar.LENGTH_INDEFINITE
-        )
-      } else {
-        deleteSnackBar?.dismiss()
-      }
+    if (state.deletedCity != null && state.showDeleteCitySuccessfully) {
+      deleteSnackBar?.dismiss()
+      deleteSnackBar = root.snackBar(
+        "Delete city ${state.deletedCity.name} successfully",
+        Snackbar.LENGTH_INDEFINITE
+      )
+    }
+    if (!state.showDeleteCitySuccessfully) {
+      deleteSnackBar?.dismiss()
+    }
+
+    if (state.refreshCity != null && state.showRefreshSuccessfully) {
+      refreshSnackBar?.dismiss()
+      refreshSnackBar = root.snackBar(
+        "Refresh weather of city ${state.refreshCity.name} successfully",
+        Snackbar.LENGTH_INDEFINITE
+      )
+    }
+    if (!state.showRefreshSuccessfully) {
+      refreshSnackBar?.dismiss()
     }
   }
 
@@ -133,7 +146,8 @@ class CitiesActivity : MviActivity<View, CitiesPresenter>(), View {
         }
       })
 
-      val swipeController = SwipeController(object : SwipeControllerActions {
+      val swipeController = SwipeController(object :
+        SwipeControllerActions {
         override fun onLeftClicked(adapterPosition: Int) {
           refreshPositionPublishSubject.onNext(adapterPosition)
         }
