@@ -18,6 +18,7 @@ import com.hoc.weatherapp.R
 import com.hoc.weatherapp.ui.main.fivedayforecast.DailyWeatherContract.RefreshIntent
 import com.hoc.weatherapp.utils.debug
 import com.hoc.weatherapp.utils.snackBar
+import com.hoc.weatherapp.utils.ui.HeaderItemDecoration
 import com.hoc.weatherapp.utils.ui.getIconDrawableFromDailyWeather
 import com.jakewharton.rxbinding3.swiperefreshlayout.refreshes
 import io.reactivex.Observable
@@ -76,6 +77,7 @@ class DailyWeatherFragment : MviFragment<DailyWeatherContract.View, DailyWeather
           )?.let(::setDrawable)
         }
         .let(::addItemDecoration)
+      addItemDecoration(HeaderItemDecoration(dailyWeatherAdapter))
     }
   }
 

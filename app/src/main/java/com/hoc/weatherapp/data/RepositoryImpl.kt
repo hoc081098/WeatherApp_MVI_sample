@@ -59,6 +59,7 @@ class RepositoryImpl(
           this.currentWeather = weather
         }
       )
+      .doOnSuccess { debug("saveCityAndCurrentWeather successs", "__WorkerUtil__") }
       .subscribeOn(Schedulers.io())
   }
 
