@@ -5,6 +5,7 @@ import android.graphics.drawable.ColorDrawable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
 import androidx.annotation.IntDef
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
@@ -15,6 +16,7 @@ import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.bumptech.glide.request.RequestOptions
 import com.hoc.weatherapp.R
 import com.hoc.weatherapp.utils.trim
+import com.hoc.weatherapp.utils.ui.HeaderItemDecoration
 import com.hoc.weatherapp.utils.ui.getIconDrawableFromDailyWeather
 import io.reactivex.subjects.PublishSubject
 import kotlinx.android.synthetic.main.daily_weather_header_layout.view.*
@@ -39,7 +41,25 @@ class DailyWeatherAdapter : ListAdapter<DailyWeatherListItem, RecyclerView.ViewH
       newItem: DailyWeatherListItem
     ) = newItem == oldItem
   }
-) {
+), HeaderItemDecoration.StickyHeaderInterface {
+  override val headerLayout = R.layout.daily_weather_header_layout
+
+  override fun getHeaderPositionForItem(itemPosition: Int): Int {
+    return (itemPosition downTo 0).find { isHeader(it) } ?: 0
+  }
+
+  override fun bindHeaderData(header: View, headerPosition: Int) {
+    val textViewDate = header.textViewDate!!
+    val headerItem = getItem(headerPosition) as? DailyWeatherListItem.Header ?: return
+    bindHeader(textViewDate, headerItem)
+    header.setBackgroundColor(ContextCompat.getColor(header.context, R.color.colorHeaderBackground))
+    textViewDate.setTextColor(ContextCompat.getColor(header.context, R.color.colorHeaderText))
+  }
+
+  override fun isHeader(itemPosition: Int): Boolean {
+    return getItem(itemPosition) is DailyWeatherListItem.Header
+  }
+
   private val _clickSubject = PublishSubject.create<DailyWeatherListItem.Weather>()
   val clickObservable get() = _clickSubject.hide()!!
 
@@ -80,24 +100,7 @@ class DailyWeatherAdapter : ListAdapter<DailyWeatherListItem, RecyclerView.ViewH
   class HeaderViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
     private val textViewDate = itemView.textViewDate!!
 
-    fun bind(header: DailyWeatherListItem.Header) {
-      val current = Calendar.getInstance()
-        .apply { time = time.trim() }
-      CALENDAR.time = header.date
-
-      if (current == CALENDAR) {
-        textViewDate.text = itemView.context.getString(R.string.today)
-        return
-      }
-
-      current.add(Calendar.DATE, 1)
-      if (current == CALENDAR) {
-        textViewDate.text = itemView.context.getString(R.string.tomorrow)
-        return
-      }
-
-      textViewDate.text = HEADER_DATE_FORMAT.format(header.date)
-    }
+    fun bind(header: DailyWeatherListItem.Header) = bindHeader(textViewDate, header)
   }
 
   inner class DailyWeatherViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView),
@@ -140,6 +143,7 @@ class DailyWeatherAdapter : ListAdapter<DailyWeatherListItem, RecyclerView.ViewH
     }
   }
 
+
   @IntDef(value = [HEADER_TYPE, DAILY_WEATHER_TYPE])
   @Retention(value = AnnotationRetention.SOURCE)
   annotation class ViewType
@@ -158,5 +162,24 @@ class DailyWeatherAdapter : ListAdapter<DailyWeatherListItem, RecyclerView.ViewH
 
     const val HEADER_TYPE = 1
     const val DAILY_WEATHER_TYPE = 3
+
+    private fun bindHeader(textView: TextView, headerItem: DailyWeatherListItem.Header) {
+      val current = Calendar.getInstance()
+        .apply { time = time.trim() }
+      CALENDAR.time = headerItem.date
+
+      if (current == CALENDAR) {
+        textView.text = textView.context.getString(R.string.today)
+        return
+      }
+
+      current.add(Calendar.DATE, 1)
+      if (current == CALENDAR) {
+        textView.text = textView.context.getString(R.string.tomorrow)
+        return
+      }
+
+      textView.text = HEADER_DATE_FORMAT.format(headerItem.date)
+    }
   }
 }
