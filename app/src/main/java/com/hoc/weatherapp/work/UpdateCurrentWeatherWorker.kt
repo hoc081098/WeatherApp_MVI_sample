@@ -47,5 +47,6 @@ class UpdateCurrentWeatherWorker(context: Context, workerParams: WorkerParameter
 
   companion object {
     const val UNIQUE_WORK_NAME = "UpdateCurrentWeatherWorker"
+    const val TAG = "UpdateCurrentWeatherWorker"
   }
 }

@@ -35,20 +35,17 @@ class CurrentWeatherPresenter(
   }
 
   private fun cityAndWeatherPartialChange(): Observable<PartialStateChange> {
-    val cityAndWeather = repository.getSelectedCityAndCurrentWeatherOfSelectedCity()
-      .publish { shared ->
-        Observable.mergeArray(
-          shared.ofType<None>().switchMap { showError(NoSelectedCityException) },
-          shared.ofType<Some<CityAndCurrentWeather>>()
-            .map { it.value }
-            .map { it.currentWeather }
-            .map { PartialStateChange.Weather(weather = it) }
+    return repository.getSelectedCityAndCurrentWeatherOfSelectedCity()
+      .switchMap { optional ->
+        when (optional) {
+          is None -> showError(NoSelectedCityException)
+          is Some -> PartialStateChange.Weather(weather = optional.value.currentWeather)
+            .let { Observable.just(it) }
             .cast<PartialStateChange>()
             .onErrorResumeNext(::showError)
-        )
+        }
       }
       .doOnNext { debug("cityAndWeather $it", TAG) }
-    return cityAndWeather
   }
 
   private fun refreshWeatherPartialChange(): Observable<PartialStateChange> {

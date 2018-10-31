@@ -1,14 +1,9 @@
 package com.hoc.weatherapp.data.local
 
-import android.database.sqlite.SQLiteConstraintException
-import androidx.room.Dao
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
-import androidx.room.Query
-import androidx.room.Transaction
-import androidx.room.Update
+import androidx.room.*
 import com.hoc.weatherapp.data.models.entity.CityAndCurrentWeather
 import com.hoc.weatherapp.data.models.entity.CurrentWeather
+import com.hoc.weatherapp.utils.debug
 import io.reactivex.Observable
 
 @Dao
@@ -29,18 +24,19 @@ abstract class CurrentWeatherDao {
   )
   abstract fun getAllCityAndCurrentWeathers(querySearch: String): Observable<List<CityAndCurrentWeather>>
 
-  @Insert(onConflict = OnConflictStrategy.FAIL)
-  abstract fun insertCurrentWeather(currentWeather: CurrentWeather)
+  @Insert(onConflict = OnConflictStrategy.IGNORE)
+  abstract fun insertCurrentWeather(currentWeather: CurrentWeather): Long
 
   @Update
   abstract fun updateCurrentWeather(currentWeather: CurrentWeather)
 
   @Transaction
-  open fun upsert(currentWeather: CurrentWeather) {
-    try {
-      insertCurrentWeather(currentWeather)
-    } catch (e: SQLiteConstraintException) {
-      updateCurrentWeather(currentWeather)
-    }
+  open fun upsert(weather: CurrentWeather) {
+    insertCurrentWeather(weather)
+      .takeIf {
+        debug("insertCurrentWeather => $it", "__DAO__")
+        it == -1L
+      }
+      ?.let { updateCurrentWeather(weather) }
   }
 }

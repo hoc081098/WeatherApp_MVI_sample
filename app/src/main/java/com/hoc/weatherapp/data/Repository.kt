@@ -32,9 +32,18 @@ interface Repository {
    * *********************************************************************************************
    */
 
+  /**
+   * Refresh both current weather and five day forecast of [city]
+   * @return [Single] emit result or error
+   */
   fun refreshWeatherOf(city: City): Single<Pair<CityAndCurrentWeather, List<DailyWeather>>>
 
+  /**
+   * Refresh current weather of selected city
+   * @return [Single] emit result or error ([NoSelectedCityException] when have no selected city)
+   */
   fun refreshCurrentWeatherOfSelectedCity(): Single<CityAndCurrentWeather>
+
 
   fun getSelectedCityAndCurrentWeatherOfSelectedCity(): Observable<Optional<CityAndCurrentWeather>>
 
@@ -48,5 +57,9 @@ interface Repository {
 
   fun getFiveDayForecastOfSelectedCity(): Observable<Optional<List<DailyWeather>>>
 
+  /**
+   * Refresh five day forecast of selected city
+   * @return [Single] emit result or error ([NoSelectedCityException] when have no selected city)
+   */
   fun refreshFiveDayForecastOfSelectedCity(): Single<List<DailyWeather>>
 }

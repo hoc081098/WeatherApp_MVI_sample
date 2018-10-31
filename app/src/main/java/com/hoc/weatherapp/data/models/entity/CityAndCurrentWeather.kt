@@ -3,7 +3,7 @@ package com.hoc.weatherapp.data.models.entity
 import androidx.room.Embedded
 
 /**
- * This class captures the relationship between a [City] and a city's [CurrentWeather]s, which is
+ * This class captures the relationship between enqueueUpdateCurrentWeatherWorkRequestImmediately [City] and enqueueUpdateCurrentWeatherWorkRequestImmediately city's [CurrentWeather]s, which is
  * used by Room to fetch the related entities.
  */
 

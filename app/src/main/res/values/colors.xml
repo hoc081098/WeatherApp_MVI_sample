@@ -14,8 +14,8 @@
     <color name="colorBorder">#99ffffff</color>
     <color name="colorCardBackground">#24ffffff</color>
 
-    <color name="colorHeaderText">#009688</color>
-    <color name="colorHeaderBackground">#D8FFFFFF</color>
+    <color name="colorHeaderText">#ffffff</color>
+    <color name="colorHeaderBackground">#90FFFFFF</color>
 
     <color name="colorMaterialBlue500">#2196f3</color>
     <color name="colorDeepPurpleAccent700">#6200ea</color>
