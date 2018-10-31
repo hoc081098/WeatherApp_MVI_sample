@@ -52,14 +52,16 @@ class RepositoryImpl(
 
     return cityLocalDataSource
       .insertOrUpdateCity(city)
-      .andThen(currentWeatherLocalDataSource.insertOrUpdateCurrentWeather(weather))
+      .andThen(
+        currentWeatherLocalDataSource.insertOrUpdateCurrentWeather(weather)
+      )
       .toSingleDefault(
         CityAndCurrentWeather().apply {
           this.city = city
           this.currentWeather = weather
         }
       )
-      .doOnSuccess { debug("saveCityAndCurrentWeather successs", "__WorkerUtil__") }
+      .doOnSuccess { debug("saveCityAndCurrentWeather success $it", "__WorkerUtil__") }
       .subscribeOn(Schedulers.io())
   }
 
@@ -78,7 +80,7 @@ class RepositoryImpl(
       .subscribeOn(Schedulers.io())
       .flatMap {
         when (it) {
-          is None -> throw NoSelectedCityException
+          is None -> Single.error(NoSelectedCityException)
           is Some -> weatherApiService
             .getCurrentWeatherByCityId(it.value.id)
             .subscribeOn(Schedulers.io())
@@ -90,6 +92,7 @@ class RepositoryImpl(
   override fun getSelectedCityAndCurrentWeatherOfSelectedCity(): Observable<Optional<CityAndCurrentWeather>> {
     return sharedPrefUtil
       .selectedCityObservable
+      .distinctUntilChanged()
       .switchMap { optional ->
         when (optional) {
           is Some -> currentWeatherLocalDataSource
@@ -158,7 +161,7 @@ class RepositoryImpl(
       .subscribeOn(Schedulers.io())
       .flatMap {
         when (it) {
-          is None -> throw NoSelectedCityException
+          is None -> Single.error(NoSelectedCityException)
           is Some -> weatherApiService
             .get5DayEvery3HourForecastByCityId(it.value.id)
             .subscribeOn(Schedulers.io())

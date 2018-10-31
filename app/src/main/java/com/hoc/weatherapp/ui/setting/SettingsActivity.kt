@@ -59,7 +59,8 @@ class SettingsActivity : AppCompatActivity() {
         .skip(1)
         .switchMap { showNotification ->
           if (showNotification) {
-            repository.getSelectedCityAndCurrentWeatherOfSelectedCity()
+            repository
+              .getSelectedCityAndCurrentWeatherOfSelectedCity()
               .observeOn(AndroidSchedulers.mainThread())
               .map {
                 when (it) {
@@ -79,7 +80,7 @@ class SettingsActivity : AppCompatActivity() {
             if (showNotification) {
               when (optional) {
                 is None -> {
-                  view?.snackBar("Please select a city!!")
+                  view?.snackBar("Please select enqueueUpdateCurrentWeatherWorkRequestImmediately city!!")
                   context.cancelNotificationById(WEATHER_NOTIFICATION_ID)
                 }
                 is Some -> optional.value.run {
@@ -111,7 +112,8 @@ class SettingsActivity : AppCompatActivity() {
           sharedPrefUtil.showNotification = newValue
         }
         key == getString(R.string.key_temperature_unit) && newValue is String -> {
-          sharedPrefUtil.temperatureUnit = TemperatureUnit.fromString(newValue)
+          sharedPrefUtil.temperatureUnit =
+              TemperatureUnit.fromString(newValue) //TODO: change temperature unit on notification
         }
         key == getString(R.string.key_pressure_unit) && newValue is String -> {
           sharedPrefUtil.pressureUnit = PressureUnit.valueOf(newValue)

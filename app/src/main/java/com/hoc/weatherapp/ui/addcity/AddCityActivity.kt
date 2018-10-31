@@ -85,7 +85,7 @@ class AddCityActivity : MviActivity<AddCityContract.View, AddCityPresenter>(),
     setSupportActionBar(toolbar)
     supportActionBar?.run {
       setDisplayHomeAsUpEnabled(true)
-      title = "Add a city"
+      title = "Add enqueueUpdateCurrentWeatherWorkRequestImmediately city"
     }
 
     setupAutoCompletePlace()
