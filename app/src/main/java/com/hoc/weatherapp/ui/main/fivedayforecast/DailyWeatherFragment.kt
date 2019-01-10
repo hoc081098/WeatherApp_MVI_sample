@@ -1,11 +1,13 @@
 package com.hoc.weatherapp.ui.main.fivedayforecast
 
+import android.app.Dialog
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.DialogFragment
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -16,6 +18,7 @@ import com.google.android.material.snackbar.Snackbar
 import com.hannesdorfmann.mosby3.mvi.MviFragment
 import com.hoc.weatherapp.R
 import com.hoc.weatherapp.ui.main.fivedayforecast.DailyWeatherContract.RefreshIntent
+import com.hoc.weatherapp.ui.main.fivedayforecast.DetailDialog.Companion.TAG
 import com.hoc.weatherapp.utils.debug
 import com.hoc.weatherapp.utils.snackBar
 import com.hoc.weatherapp.utils.ui.HeaderItemDecoration
@@ -34,12 +37,78 @@ import org.koin.android.ext.android.get
 import java.text.SimpleDateFormat
 import java.util.*
 
+class DetailDialog : DialogFragment() {
+  companion object {
+    const val TAG = "com.hoc.weatherapp.ui.main.fivedayforecast.detail_dialog_tag"
+    private const val ITEM_KEY = "com.hoc.weatherapp.ui.main.fivedayforecast.detail_dialog_item"
+
+    fun newInstance(item: DailyWeatherListItem.Weather): DetailDialog {
+      return DetailDialog().apply {
+        arguments = Bundle().apply {
+          putParcelable(ITEM_KEY, item)
+        }
+      }
+    }
+  }
+
+  override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+    val item = arguments?.getParcelable<DailyWeatherListItem.Weather>(ITEM_KEY)
+      ?: return super.onCreateDialog(savedInstanceState)
+
+    val view =
+      LayoutInflater.from(requireContext()).inflate(R.layout.dialog_detail_daily_weather, null)
+    view.image_icon.setImageResource(requireContext().getIconDrawableFromDailyWeather(item.weatherIcon))
+    view.text_data_time.text = SimpleDateFormat(
+      "dd/MM/yyyy, HH:mm",
+      Locale.getDefault()
+    ).format(item.dataTime)
+    view.text_main.text = item.main
+    view.text_description.text = item.weatherDescription
+
+    view.recycler_detail.run {
+      setHasFixedSize(true)
+      layoutManager = LinearLayoutManager(requireContext())
+      adapter = object : RecyclerView.Adapter<DailyWeatherFragment.VH>() {
+        val list = listOf(
+          R.drawable.ic_thermometer_black_24dp to "Temperature min: ${item.temperatureMin}",
+          R.drawable.ic_thermometer_black_24dp to "Temperature max: ${item.temperatureMax}",
+          R.drawable.ic_thermometer_black_24dp to "Temperature: ${item.temperature}",
+          R.drawable.ic_pressure_black_24dp to "Pressure: ${item.pressure}",
+          R.drawable.ic_pressure_black_24dp to "Sea level: ${item.seaLevel}",
+          R.drawable.ic_pressure_black_24dp to "Ground level: ${item.groundLevel}",
+          R.drawable.ic_humidity_black_24dp to "Humidity: ${item.humidity}",
+          R.drawable.ic_cloud_black_24dp to "Cloudiness: ${item.cloudiness}",
+          R.drawable.ic_windy_black_24dp to "Wind speed: ${item.winSpeed}",
+          R.drawable.ic_windy_black_24dp to "Wind direction: ${item.windDirection}",
+          R.drawable.ic_water_black_24dp to "Rain volume last 3h: ${item.rainVolumeForTheLast3Hours}",
+          R.drawable.ic_snow_black_24dp to "Snow volume last 3h: ${item.snowVolumeForTheLast3Hours}"
+        )
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) =
+          LayoutInflater.from(parent.context)
+            .inflate(R.layout.detail_item_layout, parent, false)
+            .let(DailyWeatherFragment::VH)
+
+        override fun getItemCount() = list.size
+
+        override fun onBindViewHolder(holder: DailyWeatherFragment.VH, position: Int) =
+          holder.bind(list[position])
+      }
+    }
+
+    return AlertDialog.Builder(requireContext())
+      .setMessage("Detail")
+      .setView(view)
+      .setPositiveButton("Close") { dialog, _ -> dialog.dismiss() }
+      .show()
+  }
+}
+
 class DailyWeatherFragment : MviFragment<DailyWeatherContract.View, DailyWeatherPresenter>(),
   DailyWeatherContract.View {
 
   private var errorSnackBar: Snackbar? = null
   private var refreshSnackBar: Snackbar? = null
-  private var dialog: AlertDialog? = null
 
   private val dailyWeatherAdapter = DailyWeatherAdapter()
   private val compositeDisposable = CompositeDisposable()
@@ -91,59 +160,14 @@ class DailyWeatherFragment : MviFragment<DailyWeatherContract.View, DailyWeather
   }
 
   private fun showDetailDialog(item: DailyWeatherListItem.Weather) {
-    val view =
-      LayoutInflater.from(requireContext()).inflate(R.layout.dialog_detail_daily_weather, null)
-
-    view.image_icon.setImageResource(requireContext().getIconDrawableFromDailyWeather(item.weatherIcon))
-    view.text_data_time.text = SimpleDateFormat(
-      "dd/MM/yyyy, HH:mm",
-      Locale.getDefault()
-    ).format(item.dataTime)
-    view.text_main.text = item.main
-    view.text_description.text = item.weatherDescription
-
-    view.recycler_detail.run {
-      setHasFixedSize(true)
-      layoutManager = LinearLayoutManager(requireContext())
-      adapter = object : RecyclerView.Adapter<VH>() {
-        val list = listOf(
-          R.drawable.ic_thermometer_black_24dp to "Temperature min: ${item.temperatureMin}",
-          R.drawable.ic_thermometer_black_24dp to "Temperature max: ${item.temperatureMax}",
-          R.drawable.ic_thermometer_black_24dp to "Temperature: ${item.temperature}",
-          R.drawable.ic_pressure_black_24dp to "Pressure: ${item.pressure}",
-          R.drawable.ic_pressure_black_24dp to "Sea level: ${item.seaLevel}",
-          R.drawable.ic_pressure_black_24dp to "Ground level: ${item.groundLevel}",
-          R.drawable.ic_humidity_black_24dp to "Humidity: ${item.humidity}",
-          R.drawable.ic_cloud_black_24dp to "Cloudiness: ${item.cloudiness}",
-          R.drawable.ic_windy_black_24dp to "Wind speed: ${item.winSpeed}",
-          R.drawable.ic_windy_black_24dp to "Wind direction: ${item.windDirection}",
-          R.drawable.ic_water_black_24dp to "Rain volume last 3h: ${item.rainVolumeForTheLast3Hours}",
-          R.drawable.ic_snow_black_24dp to "Snow volume last 3h: ${item.snowVolumeForTheLast3Hours}"
-        )
-
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) =
-          LayoutInflater.from(parent.context)
-            .inflate(R.layout.detail_item_layout, parent, false)
-            .let(::VH)
-
-        override fun getItemCount() = list.size
-
-        override fun onBindViewHolder(holder: VH, position: Int) = holder.bind(list[position])
-      }
-    }
-
-
-    dialog = AlertDialog.Builder(requireContext())
-      .setMessage("Detail")
-      .setView(view)
-      .setPositiveButton("Close") { dialog, _ -> dialog.dismiss() }
-      .show()
+    (fragmentManager?.findFragmentByTag(TAG) as? DetailDialog)?.dismiss()
+    DetailDialog.newInstance(item).show(fragmentManager, TAG)
   }
 
   override fun onPause() {
     super.onPause()
+    (fragmentManager?.findFragmentByTag(TAG) as? DetailDialog)?.dismiss()
     compositeDisposable.clear()
-    dialog?.takeIf { it.isShowing }?.dismiss()
   }
 
   override fun render(viewState: DailyWeatherContract.ViewState) {
