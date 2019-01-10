@@ -1,6 +1,9 @@
 package com.hoc.weatherapp.work
 
 import androidx.work.*
+import com.hoc.weatherapp.utils.debug
+import java.util.concurrent.Executor
+import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 object WorkerUtil {
@@ -16,6 +19,10 @@ object WorkerUtil {
     WorkManager
       .getInstance()
       .enqueue(workRequest)
+      .result
+      .addListener(Runnable{
+        debug("")
+      }, Executors.newSingleThreadExecutor())
   }
 
   private fun cancelAllWorkByTag(tag: String) = WorkManager
@@ -26,10 +33,6 @@ object WorkerUtil {
     val updateCurrentWeather = PeriodicWorkRequestBuilder<UpdateCurrentWeatherWorker>(
       repeatInterval = 15,
       repeatIntervalTimeUnit = TimeUnit.MINUTES
-    ).setConstraints(
-      Constraints.Builder()
-        .setRequiredNetworkType(NetworkType.CONNECTED)
-        .build()
     ).addTag(UpdateCurrentWeatherWorker.TAG).build()
 
     WorkManager
@@ -45,10 +48,6 @@ object WorkerUtil {
     val updateDailyWeathers = PeriodicWorkRequestBuilder<UpdateDailyWeatherWork>(
       repeatInterval = 15,
       repeatIntervalTimeUnit = TimeUnit.MINUTES
-    ).setConstraints(
-      Constraints.Builder()
-        .setRequiredNetworkType(NetworkType.CONNECTED)
-        .build()
     ).addTag(UpdateDailyWeatherWork.TAG).build()
 
     WorkManager
