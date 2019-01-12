@@ -19,10 +19,10 @@ object BlurImageUtil {
         Bitmap.Config.ARGB_8888
       )
 
-      // Create enqueueUpdateCurrentWeatherWorkRequestImmediately RenderScript context.
+      // Create a RenderScript context.
       rsContext = RenderScript.create(applicationContext, RenderScript.ContextType.NORMAL)
 
-      // Creates enqueueUpdateCurrentWeatherWorkRequestImmediately RenderScript allocation for the blurred result.
+      // Creates a RenderScript allocation for the blurred result.
       val inAlloc = Allocation.createFromBitmap(rsContext, bitmap)
       val outAlloc = Allocation.createTyped(rsContext, inAlloc.type)
 

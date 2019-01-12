@@ -10,7 +10,7 @@ import com.hoc.weatherapp.App
 import com.hoc.weatherapp.BuildConfig
 import com.hoc.weatherapp.CancelNotificationReceiver
 import com.hoc.weatherapp.R
-import com.hoc.weatherapp.data.models.TemperatureUnit
+import com.hoc.weatherapp.data.models.apiresponse.TemperatureUnit
 import com.hoc.weatherapp.data.models.entity.CurrentWeather
 import com.hoc.weatherapp.ui.main.MainActivity
 import com.hoc.weatherapp.ui.main.currentweather.CurrentWeatherFragment

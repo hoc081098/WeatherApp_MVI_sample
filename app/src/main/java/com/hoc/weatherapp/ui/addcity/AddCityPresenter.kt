@@ -1,10 +1,14 @@
 package com.hoc.weatherapp.ui.addcity
 
 import android.app.Application
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.LocationSettingsRequest
 import com.hannesdorfmann.mosby3.mvi.MviBasePresenter
-import com.hoc.weatherapp.data.Repository
+import com.hoc.weatherapp.data.CityRepository
 import com.hoc.weatherapp.ui.addcity.AddCityContract.View
 import com.hoc.weatherapp.ui.addcity.AddCityContract.ViewState
+import com.hoc.weatherapp.utils.MyUnsafeLazyImpl
 import com.hoc.weatherapp.utils.checkLocationSettingAndGetCurrentLocation
 import com.hoc.weatherapp.utils.debug
 import io.reactivex.Observable
@@ -15,12 +19,41 @@ import io.reactivex.rxkotlin.toObservable
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 
-class AddCityPresenter(private val repository: Repository, private val application: Application) :
+class AddCityPresenter(
+  private val cityRepository: CityRepository,
+  private val application: Application
+) :
   MviBasePresenter<View, ViewState>() {
+  private val locationRequestLazy = MyUnsafeLazyImpl {
+    LocationRequest()
+      .setInterval(500)
+      .setFastestInterval(500)
+      .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
+      .setNumUpdates(1)
+  }
+  private val locationSettingsRequestLazy = MyUnsafeLazyImpl {
+    LocationSettingsRequest.Builder()
+      .addLocationRequest(locationRequest)
+      .build()
+  }
+  private val fusedLocationProviderClientLazy = MyUnsafeLazyImpl {
+    LocationServices.getFusedLocationProviderClient(application)
+  }
+  private val settingsClientLazy = MyUnsafeLazyImpl {
+    LocationServices.getSettingsClient(application)
+  }
+
+  private val locationRequest by locationRequestLazy
+  private val fusedLocationProviderClient by fusedLocationProviderClientLazy
+  private val locationSettingsRequest by locationSettingsRequestLazy
+  private val settingsClient by settingsClientLazy
+
   private val tag = "_add_city_"
+
   private val addCityTransformer = ObservableTransformer<Pair<Double, Double>, ViewState> {
     it.flatMap { (latitude, longitude) ->
-      repository.addCityByLatLng(latitude, longitude)
+      cityRepository
+        .addCityByLatLng(latitude, longitude)
         .doOnSubscribe { debug("addCityByLatLng...", tag) }
         .toObservable()
         .flatMapIterable {
@@ -44,35 +77,12 @@ class AddCityPresenter(private val repository: Repository, private val applicati
 
   override fun bindIntents() {
     val addCurrentLocation = intent(View::addCurrentLocationIntent)
-      .flatMap {
-        application.checkLocationSettingAndGetCurrentLocation()
-          .subscribeOn(AndroidSchedulers.mainThread())
-          .timeout(3_000, TimeUnit.MILLISECONDS)//TODO
-          .toObservable()
-          .doOnNext { debug("CurrentLocation $it", tag) }
-          .map { it.latitude to it.longitude }
-          .compose(addCityTransformer)
-          .onErrorResumeNext { it: Throwable ->
-            val throwable = if (it is TimeoutException) {
-              TimeoutException("timeout to get current location. Try again!")
-            } else {
-              it
-            }
-            listOf(
-              ViewState.Error(showMessage = true, throwable = throwable),
-              ViewState.Error(showMessage = false, throwable = throwable)
-            ).toObservable()
-          }
-          .observeOn(AndroidSchedulers.mainThread())
-          .doOnNext { debug("ViewState $it", tag) }
-          .startWith(ViewState.Loading)
-      }
+      .flatMap(::addCurrentLocationIntentToViewState)
       .doOnNext { debug("addCurrentLocation $it", tag) }
       .doOnError { debug("addCurrentLocation $it", tag) }
       .doOnComplete { debug("addCurrentLocation", tag) }
 
-    val addCityByLatLng = intent(View::addCityByLatLngIntent)
-      .compose(addCityTransformer)
+    val addCityByLatLng = intent(View::addCityByLatLngIntent).compose(addCityTransformer)
 
     subscribeViewState(
       Observable.mergeArray(addCityByLatLng, addCurrentLocation)
@@ -81,5 +91,42 @@ class AddCityPresenter(private val repository: Repository, private val applicati
         .observeOn(AndroidSchedulers.mainThread()),
       View::render
     )
+  }
+
+  private fun addCurrentLocationIntentToViewState(ignored: Unit): Observable<ViewState> {
+    return application.checkLocationSettingAndGetCurrentLocation(
+      settingsClient = settingsClient,
+      fusedLocationProviderClient = fusedLocationProviderClient,
+      locationRequest = locationRequest,
+      locationSettingsRequest = locationSettingsRequest
+    ).subscribeOn(AndroidSchedulers.mainThread())
+      .timeout(5_000, TimeUnit.MILLISECONDS) //  5 seconds timeout
+      .retry { t1, t2 -> t2 is TimeoutException && t1 < 3 } // Try 3 times
+      .toObservable()
+      .doOnNext { debug("currentLocation $it", tag) }
+      .map { it.latitude to it.longitude }
+      .compose(addCityTransformer)
+      .onErrorResumeNext { it: Throwable ->
+        val throwable = if (it is TimeoutException) {
+          TimeoutException("timeout to get current location. Try again!")
+        } else {
+          it
+        }
+        listOf(
+          ViewState.Error(showMessage = true, throwable = throwable),
+          ViewState.Error(showMessage = false, throwable = throwable)
+        ).toObservable()
+      }
+      .observeOn(AndroidSchedulers.mainThread())
+      .doOnNext { debug("viewState $it", tag) }
+      .startWith(ViewState.Loading)
+  }
+
+  override fun unbindIntents() {
+    super.unbindIntents()
+    locationRequestLazy.cleanUp()
+    locationSettingsRequestLazy.cleanUp()
+    fusedLocationProviderClientLazy.cleanUp()
+    settingsClientLazy.cleanUp()
   }
 }

@@ -28,7 +28,7 @@ class WindmillView @JvmOverloads constructor(
     }
 
   private fun calculateDuration(value: Double): Long {
-    return ((1 - value / 10.0) * MAX_ANIM_DURATION).toLong()
+    return (maxOf((1 - value / 10.0), 0.0) * MAX_ANIM_DURATION).toLong()
   }
 
   init {

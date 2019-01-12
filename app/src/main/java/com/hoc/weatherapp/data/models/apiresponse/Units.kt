@@ -1,4 +1,4 @@
-package com.hoc.weatherapp.data.models
+package com.hoc.weatherapp.data.models.apiresponse
 
 import com.hoc.weatherapp.utils.UnitConverter
 import java.text.DecimalFormat

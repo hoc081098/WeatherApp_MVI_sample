@@ -1,6 +1,6 @@
-package com.hoc.weatherapp.data.models.forecastweather
+package com.hoc.weatherapp.data.models.apiresponse.forecastweatherapiresponse
 
-import com.hoc.weatherapp.data.models.Coord
+import com.hoc.weatherapp.data.models.apiresponse.Coord
 import com.squareup.moshi.Json
 
 class City(
