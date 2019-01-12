@@ -1,10 +1,6 @@
-package com.hoc.weatherapp.data.models.forecastweather
+package com.hoc.weatherapp.data.models.apiresponse.forecastweatherapiresponse
 
-import com.hoc.weatherapp.data.models.Clouds
-import com.hoc.weatherapp.data.models.Rain
-import com.hoc.weatherapp.data.models.Snow
-import com.hoc.weatherapp.data.models.WeatherModel
-import com.hoc.weatherapp.data.models.Wind
+import com.hoc.weatherapp.data.models.apiresponse.*
 import com.squareup.moshi.Json
 
 class DailyWeatherModel(

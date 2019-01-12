@@ -1,7 +1,7 @@
 package com.hoc.weatherapp.ui.main.fivedayforecast
 
 import android.os.Parcelable
-import com.hoc.weatherapp.data.models.WindDirection
+import com.hoc.weatherapp.data.models.apiresponse.WindDirection
 import kotlinx.android.parcel.Parcelize
 import java.util.*
 

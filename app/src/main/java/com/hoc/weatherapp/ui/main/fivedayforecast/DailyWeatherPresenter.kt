@@ -2,13 +2,13 @@ package com.hoc.weatherapp.ui.main.fivedayforecast
 
 import android.app.Application
 import com.hannesdorfmann.mosby3.mvi.MviBasePresenter
+import com.hoc.weatherapp.data.FiveDayForecastRepository
 import com.hoc.weatherapp.data.NoSelectedCityException
-import com.hoc.weatherapp.data.Repository
-import com.hoc.weatherapp.data.local.SharedPrefUtil
-import com.hoc.weatherapp.data.models.PressureUnit
-import com.hoc.weatherapp.data.models.SpeedUnit
-import com.hoc.weatherapp.data.models.TemperatureUnit
-import com.hoc.weatherapp.data.models.WindDirection
+import com.hoc.weatherapp.data.local.SettingPreferences
+import com.hoc.weatherapp.data.models.apiresponse.PressureUnit
+import com.hoc.weatherapp.data.models.apiresponse.SpeedUnit
+import com.hoc.weatherapp.data.models.apiresponse.TemperatureUnit
+import com.hoc.weatherapp.data.models.apiresponse.WindDirection
 import com.hoc.weatherapp.data.models.entity.DailyWeather
 import com.hoc.weatherapp.ui.main.fivedayforecast.DailyWeatherContract.*
 import com.hoc.weatherapp.ui.main.fivedayforecast.DailyWeatherContract.PartialStateChange.Weather
@@ -29,8 +29,8 @@ data class Tuple4(
 )
 
 class DailyWeatherPresenter(
-  private val repository: Repository,
-  private val sharedPrefUtil: SharedPrefUtil,
+  private val fiveDayForecastRepository: FiveDayForecastRepository,
+  private val settingPreferences: SettingPreferences,
   private val androidApplication: Application
 ) :
   MviBasePresenter<View, ViewState>() {
@@ -88,7 +88,7 @@ class DailyWeatherPresenter(
       }
       .doOnNext { debug("refreshDailyWeatherIntent $it", "_daily_weather_") }
       .switchMap {
-        repository.refreshFiveDayForecastOfSelectedCity()
+        fiveDayForecastRepository.refreshFiveDayForecastOfSelectedCity()
           .doOnSuccess {
             WorkerUtil.enqueueUpdateDailyWeatherWorkWorkRequest()
           }
@@ -103,9 +103,9 @@ class DailyWeatherPresenter(
             mapListDailyWeathersToListItem(
               Tuple4(
                 it,
-                sharedPrefUtil.temperatureUnit,
-                sharedPrefUtil.speedUnit,
-                sharedPrefUtil.pressureUnit
+                settingPreferences.temperatureUnitPreference.value,
+                settingPreferences.speedUnitPreference.value,
+                settingPreferences.pressureUnitPreference.value
               )
             )
           }
@@ -117,11 +117,11 @@ class DailyWeatherPresenter(
 
   private fun weatherChangePartialState(): Observable<PartialStateChange> {
     return Observables.combineLatest(
-      source1 = repository.getFiveDayForecastOfSelectedCity()
+      source1 = fiveDayForecastRepository.getFiveDayForecastOfSelectedCity()
         .map { it.getOrNull().orEmpty() },
-      source2 = sharedPrefUtil.temperatureUnitObservable,
-      source3 = sharedPrefUtil.speedUnitObservable,
-      source4 = sharedPrefUtil.pressureUnitObservable,
+      source2 = settingPreferences.temperatureUnitPreference.observable,
+      source3 = settingPreferences.speedUnitPreference.observable,
+      source4 = settingPreferences.pressureUnitPreference.observable,
       combineFunction = { list, temperatureUnit, speedUnit, pressureUnit ->
         Tuple4(list, temperatureUnit, speedUnit, pressureUnit)
       }

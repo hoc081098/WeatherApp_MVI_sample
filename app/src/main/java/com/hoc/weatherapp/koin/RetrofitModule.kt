@@ -1,12 +1,8 @@
 package com.hoc.weatherapp.koin
 
 import com.hoc.weatherapp.BuildConfig
-import com.hoc.weatherapp.data.models.TemperatureUnit
-import com.hoc.weatherapp.data.remote.APP_ID
-import com.hoc.weatherapp.data.remote.BASE_URL
-import com.hoc.weatherapp.data.remote.BASE_URL_HELPER
-import com.hoc.weatherapp.data.remote.HelperApiService
-import com.hoc.weatherapp.data.remote.WeatherApiService
+import com.hoc.weatherapp.data.models.apiresponse.TemperatureUnit
+import com.hoc.weatherapp.data.remote.*
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import okhttp3.OkHttpClient
@@ -17,7 +13,7 @@ import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.moshi.MoshiConverterFactory
 
-const val WEATHER_RETROFIT = "WEATHER_RETROFIT"
+const val OPEN_WEATHER_MAP_RETROFIT = "OPEN_WEATHER_MAP_RETROFIT"
 const val HELPER_RETROFIT = "HELPER_RETROFIT"
 
 val retrofitModule = module {
@@ -25,7 +21,7 @@ val retrofitModule = module {
 
   single { getMoshi() }
 
-  single(name = WEATHER_RETROFIT) { getWeatherRetrofit() }
+  single(name = OPEN_WEATHER_MAP_RETROFIT) { getOpenWeatherMapRetrofit() }
 
   single { getWeatherApiService() }
 
@@ -49,13 +45,13 @@ private fun ModuleDefinition.getHelperRetrofit(): Retrofit {
     .build()
 }
 
-private fun ModuleDefinition.getWeatherApiService(): WeatherApiService {
-  return get<Retrofit>(name = WEATHER_RETROFIT).create(
-    WeatherApiService::class.java
+private fun ModuleDefinition.getWeatherApiService(): OpenWeatherMapApiService {
+  return get<Retrofit>(name = OPEN_WEATHER_MAP_RETROFIT).create(
+    OpenWeatherMapApiService::class.java
   )
 }
 
-private fun ModuleDefinition.getWeatherRetrofit(): Retrofit {
+private fun ModuleDefinition.getOpenWeatherMapRetrofit(): Retrofit {
   return Retrofit.Builder()
     .baseUrl(BASE_URL)
     .client(get())

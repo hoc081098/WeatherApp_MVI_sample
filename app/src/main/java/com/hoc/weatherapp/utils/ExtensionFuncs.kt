@@ -1,6 +1,7 @@
 package com.hoc.weatherapp.utils
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -14,6 +15,7 @@ import androidx.fragment.app.Fragment
 import com.google.android.gms.location.*
 import com.google.android.material.snackbar.Snackbar
 import io.reactivex.Observable
+import io.reactivex.ObservableEmitter
 import io.reactivex.Single
 
 @IntDef(value = [Toast.LENGTH_SHORT, Toast.LENGTH_LONG])
@@ -47,57 +49,30 @@ inline fun <reified T : Any> T.debug(msg: Any?, tag: String? = null) {
   Log.d(tag ?: this::class.java.simpleName, msg.toString())
 }
 
-fun Context.checkLocationSettingAndGetCurrentLocation(): Single<Location> {
+@SuppressLint("MissingPermission")
+fun Context.checkLocationSettingAndGetCurrentLocation(
+  settingsClient: SettingsClient,
+  locationSettingsRequest: LocationSettingsRequest,
+  fusedLocationProviderClient: FusedLocationProviderClient,
+  locationRequest: LocationRequest
+): Single<Location> {
   return Observable.create<Location> { emitter ->
-    val locationRequest = LocationRequest()
-      .setInterval(500)
-      .setFastestInterval(500)
-      .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
-      .setNumUpdates(1)
-
-    val fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
-
-    LocationServices.getSettingsClient(this)
-      .checkLocationSettings(
-        LocationSettingsRequest.Builder()
-          .addLocationRequest(locationRequest)
-          .build()
-      )
+    settingsClient
+      .checkLocationSettings(locationSettingsRequest)
+      .addOnFailureListener(emitter::onError)
       .addOnSuccessListener {
-        if (ContextCompat.checkSelfPermission(
-            this,
-            Manifest.permission.ACCESS_FINE_LOCATION
-          ) != PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(
-            this,
-            Manifest.permission.ACCESS_COARSE_LOCATION
-          ) != PackageManager.PERMISSION_GRANTED
-        ) {
-          emitter.onError(IllegalStateException("Need granted permission ACCESS_FINE_LOCATION or ACCESS_COARSE_LOCATION"))
-          return@addOnSuccessListener
-        }
 
-        fusedLocationProviderClient.lastLocation
+        if (isAccessLocationPermissionDenied(emitter)) return@addOnSuccessListener
+        fusedLocationProviderClient
+          .lastLocation
           .addOnSuccessListener { lastLocation ->
-            if (lastLocation != null) {
-              if (!emitter.isDisposed) {
-                emitter.onNext(lastLocation)
-                emitter.onComplete()
-              }
+            if (lastLocation != null && !emitter.isDisposed) {
+              emitter.onNext(lastLocation)
+              emitter.onComplete()
             }
           }
 
-        if (ContextCompat.checkSelfPermission(
-            this,
-            Manifest.permission.ACCESS_FINE_LOCATION
-          ) != PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(
-            this,
-            Manifest.permission.ACCESS_COARSE_LOCATION
-          ) != PackageManager.PERMISSION_GRANTED
-        ) {
-          emitter.onError(IllegalStateException("need granted permission ACCESS_FINE_LOCATION or ACCESS_COARSE_LOCATION"))
-          return@addOnSuccessListener
-        }
-
+        if (isAccessLocationPermissionDenied(emitter)) return@addOnSuccessListener
         val callback = object : LocationCallback() {
           override fun onLocationResult(locationResult: LocationResult?) {
             val lastLocation = locationResult?.lastLocation ?: return
@@ -118,12 +93,33 @@ fun Context.checkLocationSettingAndGetCurrentLocation(): Single<Location> {
         )
 
         emitter.setCancellable {
-          debug("removeLocationUpdates", "Context::checkLocationSettingAndGetCurrentLocation")
+          debug(
+            "removeLocationUpdates",
+            "Context::checkLocationSettingAndGetCurrentLocation"
+          )
           fusedLocationProviderClient.removeLocationUpdates(callback)
         }
-      }.addOnFailureListener(emitter::onError)
-  }.take(1).singleOrError()
+      }
+  }
+    .take(1)
+    .singleOrError()
+}
+
+private fun Context.isAccessLocationPermissionDenied(emitter: ObservableEmitter<Location>): Boolean {
+  if (ContextCompat.checkSelfPermission(
+      this,
+      Manifest.permission.ACCESS_FINE_LOCATION
+    ) != PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(
+      this,
+      Manifest.permission.ACCESS_COARSE_LOCATION
+    ) != PackageManager.PERMISSION_GRANTED
+  ) {
+    emitter.onError(IllegalStateException("need granted access location permission"))
+    return true
+  }
+  return false
 }
 
 inline fun <reified R : Any> Observable<*>.notOfType(): Observable<out Any> =
   filter { !R::class.java.isInstance(it) }
+

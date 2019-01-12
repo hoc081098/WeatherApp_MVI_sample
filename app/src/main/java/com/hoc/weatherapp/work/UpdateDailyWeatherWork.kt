@@ -3,8 +3,8 @@ package com.hoc.weatherapp.work
 import android.content.Context
 import androidx.work.Worker
 import androidx.work.WorkerParameters
+import com.hoc.weatherapp.data.FiveDayForecastRepository
 import com.hoc.weatherapp.data.NoSelectedCityException
-import com.hoc.weatherapp.data.Repository
 import com.hoc.weatherapp.utils.WEATHER_NOTIFICATION_ID
 import com.hoc.weatherapp.utils.cancelNotificationById
 import org.koin.standalone.KoinComponent
@@ -12,7 +12,7 @@ import org.koin.standalone.inject
 
 class UpdateDailyWeatherWork(context: Context, workerParams: WorkerParameters) :
   Worker(context, workerParams), KoinComponent {
-  private val repository by inject<Repository>()
+  private val repository by inject<FiveDayForecastRepository>()
 
   override fun doWork(): Result {
     return runCatching {
@@ -20,13 +20,13 @@ class UpdateDailyWeatherWork(context: Context, workerParams: WorkerParameters) :
         .refreshFiveDayForecastOfSelectedCity()
         .blockingGet()
     }.fold(
-      onSuccess = { Result.SUCCESS },
+      onSuccess = { Result.success() },
       onFailure = {
         if (it is NoSelectedCityException) {
           applicationContext.cancelNotificationById(WEATHER_NOTIFICATION_ID)
           WorkerUtil.cancelUpdateDailyWeatherWorkWorkRequest()
         }
-        Result.FAILURE
+        Result.failure()
       }
     )
   }

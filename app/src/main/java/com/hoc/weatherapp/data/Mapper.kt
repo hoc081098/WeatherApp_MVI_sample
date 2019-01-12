@@ -1,13 +1,16 @@
 package com.hoc.weatherapp.data
 
-import com.hoc.weatherapp.data.models.currentweather.CurrentWeatherResponse
+import com.hoc.weatherapp.data.models.apiresponse.currentweatherapiresponse.CurrentWeatherResponse
+import com.hoc.weatherapp.data.models.apiresponse.forecastweatherapiresponse.FiveDayForecastResponse
 import com.hoc.weatherapp.data.models.entity.City
 import com.hoc.weatherapp.data.models.entity.CurrentWeather
 import com.hoc.weatherapp.data.models.entity.DailyWeather
-import com.hoc.weatherapp.data.models.forecastweather.FiveDayForecastResponse
 import com.hoc.weatherapp.utils.debug
-import java.util.Date
+import java.util.*
 
+/**
+ * Map response from api to local database entity
+ */
 object Mapper {
   @JvmStatic
   fun responseToListDailyWeatherEntity(response: FiveDayForecastResponse): List<DailyWeather> {

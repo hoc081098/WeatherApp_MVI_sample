@@ -11,9 +11,9 @@ import com.google.android.material.snackbar.Snackbar
 import com.hannesdorfmann.mosby3.mvi.MviFragment
 import com.hoc.weatherapp.R
 import com.hoc.weatherapp.data.NoSelectedCityException
-import com.hoc.weatherapp.data.local.SharedPrefUtil
-import com.hoc.weatherapp.data.models.NUMBER_FORMAT
-import com.hoc.weatherapp.data.models.WindDirection
+import com.hoc.weatherapp.data.local.SettingPreferences
+import com.hoc.weatherapp.data.models.apiresponse.NUMBER_FORMAT
+import com.hoc.weatherapp.data.models.apiresponse.WindDirection
 import com.hoc.weatherapp.data.models.entity.CurrentWeather
 import com.hoc.weatherapp.ui.LiveWeatherActivity
 import com.hoc.weatherapp.ui.main.currentweather.CurrentWeatherContract.RefreshIntent
@@ -37,7 +37,7 @@ private const val TAG = "currentweather"
 
 class CurrentWeatherFragment : MviFragment<CurrentWeatherContract.View, CurrentWeatherPresenter>(),
   CurrentWeatherContract.View {
-  private val sharedPrefUtil by inject<SharedPrefUtil>()
+  private val sharedPrefUtil by inject<SettingPreferences>()
   private var errorSnackBar: Snackbar? = null
   private var refreshSnackBar: Snackbar? = null
   private val refreshInitial = PublishSubject.create<RefreshIntent.InitialRefreshIntent>()
@@ -102,7 +102,7 @@ class CurrentWeatherFragment : MviFragment<CurrentWeatherContract.View, CurrentW
   private fun updateUi(weather: CurrentWeather) {
     val temperature = UnitConverter.convertTemperature(
       weather.temperature,
-      sharedPrefUtil.temperatureUnit
+      sharedPrefUtil.temperatureUnitPreference.value
     )
     updateWeatherIcon(
       weatherConditionId = weather.weatherConditionId,
@@ -119,7 +119,7 @@ class CurrentWeatherFragment : MviFragment<CurrentWeatherContract.View, CurrentW
     button_live.visibility = View.VISIBLE
 
     card_view1.visibility = View.VISIBLE
-    text_pressure.text = sharedPrefUtil.pressureUnit.format(weather.pressure)
+    text_pressure.text = sharedPrefUtil.pressureUnitPreference.value.format(weather.pressure)
     text_humidity.text = getString(R.string.humidity, weather.humidity)
     text_rain.text = getString(R.string.rain_mm, NUMBER_FORMAT.format(weather.rainVolumeForThe3Hours))
     text_visibility.text =getString(R.string.visibility_km, NUMBER_FORMAT.format(weather.visibility / 1_000))
@@ -131,7 +131,7 @@ class CurrentWeatherFragment : MviFragment<CurrentWeatherContract.View, CurrentW
       R.string.wind_direction,
       WindDirection.fromDegrees(weather.winDegrees)
     )
-    text_wind_speed.text = getString(R.string.wind_speed, sharedPrefUtil.speedUnit.format(weather.winSpeed))
+    text_wind_speed.text = getString(R.string.wind_speed, sharedPrefUtil.speedUnitPreference.value.format(weather.winSpeed))
   }
 
   override fun createPresenter() = get<CurrentWeatherPresenter>()

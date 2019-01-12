@@ -1,9 +1,9 @@
 package com.hoc.weatherapp.ui.main.chart
 
 import com.hannesdorfmann.mosby3.mvp.MvpView
-import com.hoc.weatherapp.data.models.PressureUnit
-import com.hoc.weatherapp.data.models.SpeedUnit
-import com.hoc.weatherapp.data.models.TemperatureUnit
+import com.hoc.weatherapp.data.models.apiresponse.PressureUnit
+import com.hoc.weatherapp.data.models.apiresponse.SpeedUnit
+import com.hoc.weatherapp.data.models.apiresponse.TemperatureUnit
 import com.hoc.weatherapp.data.models.entity.DailyWeather
 
 interface ChartContract {

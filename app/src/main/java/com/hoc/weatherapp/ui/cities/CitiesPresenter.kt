@@ -3,8 +3,11 @@ package com.hoc.weatherapp.ui.cities
 import android.app.Application
 import androidx.recyclerview.widget.RecyclerView
 import com.hannesdorfmann.mosby3.mvi.MviBasePresenter
-import com.hoc.weatherapp.data.Repository
-import com.hoc.weatherapp.data.local.SharedPrefUtil
+import com.hoc.weatherapp.data.CityRepository
+import com.hoc.weatherapp.data.CurrentWeatherRepository
+import com.hoc.weatherapp.data.FiveDayForecastRepository
+import com.hoc.weatherapp.data.local.SelectedCityPreference
+import com.hoc.weatherapp.data.local.SettingPreferences
 import com.hoc.weatherapp.data.models.entity.City
 import com.hoc.weatherapp.data.models.entity.CityAndCurrentWeather
 import com.hoc.weatherapp.ui.cities.CitiesContract.*
@@ -22,8 +25,11 @@ import java.util.concurrent.TimeUnit
 const val TAG = "cities"
 
 class CitiesPresenter(
-  private val repository: Repository,
-  private val sharedPrefUtil: SharedPrefUtil,
+  private val cityRepository: CityRepository,
+  private val currentWeatherRepository: CurrentWeatherRepository,
+  private val fiveDayForecastRepository: FiveDayForecastRepository,
+  private val settingPreferences: SettingPreferences,
+  private val selectedCityPreference: SelectedCityPreference,
   private val androidApplication: Application
 ) : MviBasePresenter<View, ViewState>() {
   private val compositeDisposable = CompositeDisposable()
@@ -39,7 +45,7 @@ class CitiesPresenter(
       .cast<CitiesContract.SearchStringIntent>()
       .map { it.value }
       .doOnNext { debug("searchStringIntent '$it'", TAG) }
-      .switchMap(repository::getAllCityAndCurrentWeathers)
+      .switchMap(currentWeatherRepository::getAllCityAndCurrentWeathers)
 
     changeSelectedCity()
 
@@ -63,15 +69,15 @@ class CitiesPresenter(
       .map { (position, list) -> list[position] }
       .map { it.city }
       .flatMap { city ->
-        repository
+        currentWeatherRepository
           .refreshWeatherOf(city)
           .doOnSuccess { (cityAndCurrentWeather) ->
             WorkerUtil.enqueueUpdateCurrentWeatherWorkRequest()
             WorkerUtil.enqueueUpdateDailyWeatherWorkWorkRequest()
-            if (sharedPrefUtil.showNotification) {
+            if (settingPreferences.showNotificationPreference.value) {
               androidApplication.showOrUpdateNotification(
                 cityName = cityAndCurrentWeather.city.name,
-                unit = sharedPrefUtil.temperatureUnit,
+                unit = settingPreferences.temperatureUnitPreference.value,
                 cityCountry = cityAndCurrentWeather.city.country,
                 weather = cityAndCurrentWeather.currentWeather
               )
@@ -92,16 +98,15 @@ class CitiesPresenter(
       .map { (position, list) -> list[position] }
       .map { it.city }
       .flatMap {
-        repository
+        cityRepository
           .deleteCity(it)
-          .doOnComplete {
-            if (sharedPrefUtil.selectedCity === null) {
+          .doOnSuccess {
+            if (selectedCityPreference.value is None) {
               androidApplication.cancelNotificationById(WEATHER_NOTIFICATION_ID)
               WorkerUtil.cancelUpdateCurrentWeatherWorkRequest()
               WorkerUtil.cancelUpdateDailyWeatherWorkWorkRequest()
             }
           }
-          .toSingleDefault(it)
           .toObservable()
           .observeOn(AndroidSchedulers.mainThread())
           .flatMap(::showDeleteResult)
@@ -112,23 +117,26 @@ class CitiesPresenter(
   private fun changeSelectedCity() {
     intent(View::changeSelectedCity)
       .switchMap { city ->
-        repository
+        cityRepository
           .changeSelectedCity(city)
           .doOnComplete {
-            repository
+            currentWeatherRepository
               .refreshCurrentWeatherOfSelectedCity()
-              .zipWith(repository.refreshFiveDayForecastOfSelectedCity())
+              .zipWith(fiveDayForecastRepository.refreshFiveDayForecastOfSelectedCity())
               .doOnSuccess { (cityAndCurrentWeather) ->
+
                 WorkerUtil.enqueueUpdateCurrentWeatherWorkRequest()
                 WorkerUtil.enqueueUpdateDailyWeatherWorkWorkRequest()
-                if (sharedPrefUtil.showNotification) {
+
+                if (settingPreferences.showNotificationPreference.value) {
                   androidApplication.showOrUpdateNotification(
                     cityName = cityAndCurrentWeather.city.name,
-                    unit = sharedPrefUtil.temperatureUnit,
+                    unit = settingPreferences.temperatureUnitPreference.value,
                     cityCountry = cityAndCurrentWeather.city.country,
                     weather = cityAndCurrentWeather.currentWeather
                   )
                 }
+
               }
               .subscribeBy(onError = {})
               .addTo(compositeDisposable)
@@ -144,7 +152,7 @@ class CitiesPresenter(
   }
 
   private fun cityListItemsPartialChange(cityAndCurrentWeathers: Observable<List<CityAndCurrentWeather>>): Observable<PartialStateChange> {
-    return combineLatest(repository.getSelectedCity(), cityAndCurrentWeathers)
+    return combineLatest(cityRepository.getSelectedCity(), cityAndCurrentWeathers)
       .map { (city, list) ->
         list.map {
           CityListItem(
@@ -152,8 +160,8 @@ class CitiesPresenter(
             weatherIcon = it.currentWeather.icon,
             weatherConditionId = it.currentWeather.weatherConditionId,
             isSelected = it.city == city.getOrNull(),
-            temperatureMax = sharedPrefUtil.temperatureUnit.format(it.currentWeather.temperatureMax),
-            temperatureMin = sharedPrefUtil.temperatureUnit.format(it.currentWeather.temperatureMin),
+            temperatureMax = settingPreferences.temperatureUnitPreference.value.format(it.currentWeather.temperatureMax),
+            temperatureMin = settingPreferences.temperatureUnitPreference.value.format(it.currentWeather.temperatureMin),
             weatherDescription = it.currentWeather.description
           )
         }

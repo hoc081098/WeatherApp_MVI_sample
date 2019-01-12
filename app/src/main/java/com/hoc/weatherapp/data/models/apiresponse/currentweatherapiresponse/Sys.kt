@@ -1,4 +1,4 @@
-package com.hoc.weatherapp.data.models.currentweather
+package com.hoc.weatherapp.data.models.apiresponse.currentweatherapiresponse
 
 import com.squareup.moshi.Json
 
