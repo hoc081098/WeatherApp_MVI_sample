@@ -2,9 +2,9 @@ package com.hoc.weatherapp.ui.main.currentweather
 
 import android.app.Application
 import com.hannesdorfmann.mosby3.mvi.MviBasePresenter
+import com.hoc.weatherapp.data.CurrentWeatherRepository
 import com.hoc.weatherapp.data.NoSelectedCityException
-import com.hoc.weatherapp.data.Repository
-import com.hoc.weatherapp.data.local.SharedPrefUtil
+import com.hoc.weatherapp.data.local.SettingPreferences
 import com.hoc.weatherapp.data.models.entity.CityAndCurrentWeather
 import com.hoc.weatherapp.ui.main.currentweather.CurrentWeatherContract.*
 import com.hoc.weatherapp.utils.*
@@ -18,9 +18,9 @@ import java.util.concurrent.TimeUnit
 private const val TAG = "currrentweather"
 
 class CurrentWeatherPresenter(
-  private val repository: Repository,
+  private val currentWeatherRepository: CurrentWeatherRepository,
   private val androidApplication: Application,
-  private val sharedPrefUtil: SharedPrefUtil
+  private val settingPreferences: SettingPreferences
 ) :
   MviBasePresenter<View, ViewState>() {
   override fun bindIntents() {
@@ -35,7 +35,7 @@ class CurrentWeatherPresenter(
   }
 
   private fun cityAndWeatherPartialChange(): Observable<PartialStateChange> {
-    return repository.getSelectedCityAndCurrentWeatherOfSelectedCity()
+    return currentWeatherRepository.getSelectedCityAndCurrentWeatherOfSelectedCity()
       .switchMap { optional ->
         when (optional) {
           is None -> showError(NoSelectedCityException)
@@ -58,13 +58,13 @@ class CurrentWeatherPresenter(
       }
       .doOnNext { debug("refresh intent $it") }
       .switchMap {
-        repository.refreshCurrentWeatherOfSelectedCity()
+        currentWeatherRepository.refreshCurrentWeatherOfSelectedCity()
           .doOnSuccess {
             WorkerUtil.enqueueUpdateCurrentWeatherWorkRequest()
-            if (sharedPrefUtil.showNotification) {
+            if (settingPreferences.showNotificationPreference.value) {
               androidApplication.showOrUpdateNotification(
                 cityName = it.city.name,
-                unit = sharedPrefUtil.temperatureUnit,
+                unit = settingPreferences.temperatureUnitPreference.value,
                 cityCountry = it.city.country,
                 weather = it.currentWeather
               )

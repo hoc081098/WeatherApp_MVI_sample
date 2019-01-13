@@ -1,8 +1,8 @@
 package com.hoc.weatherapp.ui.main.chart
 
 import com.hannesdorfmann.mosby3.mvi.MviBasePresenter
-import com.hoc.weatherapp.data.Repository
-import com.hoc.weatherapp.data.local.SharedPrefUtil
+import com.hoc.weatherapp.data.FiveDayForecastRepository
+import com.hoc.weatherapp.data.local.SettingPreferences
 import com.hoc.weatherapp.ui.main.chart.ChartContract.View
 import com.hoc.weatherapp.ui.main.chart.ChartContract.ViewState
 import com.hoc.weatherapp.ui.main.fivedayforecast.Tuple4
@@ -12,15 +12,15 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.rxkotlin.Observables
 
 class ChartPresenter(
-  private val repository: Repository,
-  private val sharedPrefUtil: SharedPrefUtil
+  private val fiveDayForecastRepository: FiveDayForecastRepository,
+  private val settingPreferences: SettingPreferences
 ) : MviBasePresenter<View, ViewState>() {
   override fun bindIntents() {
     val viewState = Observables.combineLatest(
-      source1 = repository.getFiveDayForecastOfSelectedCity(),
-      source2 = sharedPrefUtil.temperatureUnitObservable,
-      source3 = sharedPrefUtil.speedUnitObservable,
-      source4 = sharedPrefUtil.pressureUnitObservable,
+      source1 = fiveDayForecastRepository.getFiveDayForecastOfSelectedCity(),
+      source2 = settingPreferences.temperatureUnitPreference.observable,
+      source3 = settingPreferences.speedUnitPreference.observable,
+      source4 = settingPreferences.pressureUnitPreference.observable,
       combineFunction = { optional, temperatureUnit, speedUnit, pressureUnit ->
         Tuple4(
           temperatureUnit = temperatureUnit,
