@@ -1,9 +1,12 @@
 package com.hoc.weatherapp.ui.main.fivedayforecast
 
-import com.hoc.weatherapp.data.models.WindDirection
+import android.os.Parcelable
+import com.hoc.weatherapp.data.models.apiresponse.WindDirection
+import kotlinx.android.parcel.Parcelize
 import java.util.*
 
 interface DailyWeatherListItem {
+  @Parcelize
   data class Weather(
     val weatherIcon: String,
     val dataTime: Date,
@@ -21,7 +24,7 @@ interface DailyWeatherListItem {
     val windDirection: WindDirection,
     val rainVolumeForTheLast3Hours: String,
     val snowVolumeForTheLast3Hours: String
-  ) : DailyWeatherListItem
+  ) : DailyWeatherListItem, Parcelable
 
   data class Header(val date: Date) : DailyWeatherListItem
 }

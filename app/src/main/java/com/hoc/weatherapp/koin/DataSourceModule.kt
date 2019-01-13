@@ -1,36 +1,79 @@
 package com.hoc.weatherapp.koin
 
-import com.hoc.weatherapp.data.Repository
-import com.hoc.weatherapp.data.RepositoryImpl
-import com.hoc.weatherapp.data.local.AppDatabase
-import com.hoc.weatherapp.data.local.CityLocalDataSource
-import com.hoc.weatherapp.data.local.CurrentWeatherLocalDataSource
-import com.hoc.weatherapp.data.local.DailyWeatherLocalDataSource
+import com.hoc.weatherapp.data.*
+import com.hoc.weatherapp.data.local.*
 import org.koin.android.ext.koin.androidContext
+import org.koin.dsl.context.ModuleDefinition
 import org.koin.dsl.module.module
 
 val dataSourceModule = module {
-  single {
-    RepositoryImpl(
-      get(),
-      get(),
-      get(),
-      get(),
-      get()
-    )
-  } bind Repository::class
+  single { getFiveDayForecastRepositoryImpl() } bind FiveDayForecastRepository::class
 
-  single { AppDatabase.getInstance(androidContext()) }
+  single { getCityRepositoryImpl() } bind CityRepository::class
 
-  single { get<AppDatabase>().weatherDao() }
+  single { getCurrentWeatherRepositoryImpl() } bind CurrentWeatherRepository::class
 
-  single { get<AppDatabase>().dailyWeatherDao() }
+  single { getAppDatabase() }
 
-  single { get<AppDatabase>().cityDao() }
+  single { getCurrentWeatherDao() }
 
-  single { DailyWeatherLocalDataSource(get()) }
+  single { getFiveDayForecastDao() }
 
-  single { CurrentWeatherLocalDataSource(get()) }
+  single { getCityDao() }
 
-  single { CityLocalDataSource(get()) }
+  single { getFiveDayForecastLocalDataSource() }
+
+  single { getCurrentWeatherLocalDataSource() }
+
+  single { getCityLocalDataSource() }
+}
+
+private fun ModuleDefinition.getCityLocalDataSource(): CityLocalDataSource {
+  return CityLocalDataSource(get())
+}
+
+private fun ModuleDefinition.getCurrentWeatherLocalDataSource(): CurrentWeatherLocalDataSource {
+  return CurrentWeatherLocalDataSource(get())
+}
+
+private fun ModuleDefinition.getFiveDayForecastLocalDataSource(): FiveDayForecastLocalDataSource {
+  return FiveDayForecastLocalDataSource(get())
+}
+
+private fun ModuleDefinition.getCityDao(): CityDao {
+  return get<AppDatabase>().cityDao()
+}
+
+private fun ModuleDefinition.getFiveDayForecastDao(): FiveDayForecastDao {
+  return get<AppDatabase>().fiveDayForecastDao()
+}
+
+private fun ModuleDefinition.getCurrentWeatherDao(): CurrentWeatherDao {
+  return get<AppDatabase>().weatherDao()
+}
+
+private fun ModuleDefinition.getAppDatabase(): AppDatabase {
+  return AppDatabase.getInstance(androidContext())
+}
+
+private fun ModuleDefinition.getCurrentWeatherRepositoryImpl(): CurrentWeatherRepositoryImpl {
+  return CurrentWeatherRepositoryImpl(get(), get(), get(), get(), get())
+}
+
+private fun ModuleDefinition.getCityRepositoryImpl(): CityRepositoryImpl {
+  return CityRepositoryImpl(
+    get(),
+    get(),
+    get(),
+    get(),
+    get()
+  )
+}
+
+private fun ModuleDefinition.getFiveDayForecastRepositoryImpl(): FiveDayForecastRepositoryImpl {
+  return FiveDayForecastRepositoryImpl(
+    get(),
+    get(),
+    get()
+  )
 }

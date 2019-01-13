@@ -8,9 +8,9 @@ class InitialDelayEnqueueWorker(context: Context, workerParams: WorkerParameters
   Worker(context, workerParams) {
   override fun doWork(): Result {
     return when (inputData.getString("TAG")) {
-      UpdateDailyWeatherWork.TAG -> Result.SUCCESS.also { WorkerUtil.enqueueUpdateCurrentWeatherWorkRequestImmediately() }
-      UpdateCurrentWeatherWorker.TAG -> Result.SUCCESS.also { WorkerUtil.enqueueUpdateDailyWeatherWorkRequestImmediately() }
-      else -> Result.FAILURE
+      UpdateDailyWeatherWork.TAG -> Result.success().also { WorkerUtil.enqueueUpdateCurrentWeatherWorkRequestImmediately() }
+      UpdateCurrentWeatherWorker.TAG -> Result.success().also { WorkerUtil.enqueueUpdateDailyWeatherWorkRequestImmediately() }
+      else -> Result.failure()
     }
   }
 }

@@ -1,38 +1,35 @@
 package com.hoc.weatherapp.work
 
 import androidx.work.*
+import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 object WorkerUtil {
-  private fun enqueuePeriodicWorkRequestWithInitialDelay(tag: String) {
+  private val backgroundExecutor by lazy { Executors.newSingleThreadExecutor() }
+
+  private fun enqueuePeriodicWorkRequestWithInitialDelay(tag: String): Operation {
     val workRequest = OneTimeWorkRequestBuilder<InitialDelayEnqueueWorker>()
       .setInitialDelay(15, TimeUnit.MINUTES)
-      .setInputData(
-        workDataOf("TAG" to tag)
-      )
+      .setInputData(workDataOf("TAG" to tag))
       .addTag(tag)
       .build()
 
-    WorkManager
+    return WorkManager
       .getInstance()
       .enqueue(workRequest)
   }
 
-  private fun cancelAllWorkByTag(tag: String) = WorkManager
+  private fun cancelAllWorkByTag(tag: String): Operation = WorkManager
     .getInstance()
     .cancelAllWorkByTag(tag)
 
-  internal fun enqueueUpdateCurrentWeatherWorkRequestImmediately() {
+  internal fun enqueueUpdateCurrentWeatherWorkRequestImmediately(): Operation {
     val updateCurrentWeather = PeriodicWorkRequestBuilder<UpdateCurrentWeatherWorker>(
       repeatInterval = 15,
       repeatIntervalTimeUnit = TimeUnit.MINUTES
-    ).setConstraints(
-      Constraints.Builder()
-        .setRequiredNetworkType(NetworkType.CONNECTED)
-        .build()
     ).addTag(UpdateCurrentWeatherWorker.TAG).build()
 
-    WorkManager
+    return WorkManager
       .getInstance()
       .enqueueUniquePeriodicWork(
         UpdateCurrentWeatherWorker.UNIQUE_WORK_NAME,
@@ -41,17 +38,13 @@ object WorkerUtil {
       )
   }
 
-  internal fun enqueueUpdateDailyWeatherWorkRequestImmediately() {
+  internal fun enqueueUpdateDailyWeatherWorkRequestImmediately(): Operation {
     val updateDailyWeathers = PeriodicWorkRequestBuilder<UpdateDailyWeatherWork>(
       repeatInterval = 15,
       repeatIntervalTimeUnit = TimeUnit.MINUTES
-    ).setConstraints(
-      Constraints.Builder()
-        .setRequiredNetworkType(NetworkType.CONNECTED)
-        .build()
     ).addTag(UpdateDailyWeatherWork.TAG).build()
 
-    WorkManager
+    return WorkManager
       .getInstance()
       .enqueueUniquePeriodicWork(
         UpdateDailyWeatherWork.UNIQUE_WORK_NAME,
@@ -62,12 +55,18 @@ object WorkerUtil {
 
   fun enqueueUpdateCurrentWeatherWorkRequest() {
     cancelUpdateCurrentWeatherWorkRequest()
-    enqueuePeriodicWorkRequestWithInitialDelay(UpdateCurrentWeatherWorker.TAG)
+      .result
+      .addListener(Runnable {
+        enqueuePeriodicWorkRequestWithInitialDelay(UpdateCurrentWeatherWorker.TAG)
+      }, backgroundExecutor)
   }
 
   fun enqueueUpdateDailyWeatherWorkWorkRequest() {
     cancelUpdateDailyWeatherWorkWorkRequest()
-    enqueuePeriodicWorkRequestWithInitialDelay(UpdateDailyWeatherWork.TAG)
+      .result
+      .addListener(Runnable {
+        enqueuePeriodicWorkRequestWithInitialDelay(UpdateDailyWeatherWork.TAG)
+      }, backgroundExecutor)
   }
 
   fun cancelUpdateCurrentWeatherWorkRequest() = cancelAllWorkByTag(UpdateCurrentWeatherWorker.TAG)

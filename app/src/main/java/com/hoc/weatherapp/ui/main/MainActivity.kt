@@ -168,11 +168,11 @@ class MainActivity : MviActivity<MainContract.View, MainPresenter>(), MainContra
       mediaPlayer?.takeIf { it.isPlaying }?.stop()
     }
     mediaPlayer =
-        MediaPlayer.create(this, getSoundUriFromCurrentWeather(weather))
-          .apply {
-            setVolume(0.25f, 0.25f)
-            runCatching { start() }.onSuccess { debug("MediaPlayer::start", "__main__") }
-          }
+      MediaPlayer.create(this, getSoundUriFromCurrentWeather(weather))
+        .apply {
+          setVolume(0.3f, 0.3f)
+          runCatching { start() }.onSuccess { debug("MediaPlayer::start", "__main__") }
+        }
   }
 
   override fun render(state: MainContract.ViewState) {

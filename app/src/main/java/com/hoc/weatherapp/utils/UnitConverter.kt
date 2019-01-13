@@ -1,12 +1,12 @@
 package com.hoc.weatherapp.utils
 
-import com.hoc.weatherapp.data.models.PressureUnit
-import com.hoc.weatherapp.data.models.PressureUnit.HPA
-import com.hoc.weatherapp.data.models.PressureUnit.MM_HG
-import com.hoc.weatherapp.data.models.SpeedUnit
-import com.hoc.weatherapp.data.models.SpeedUnit.*
-import com.hoc.weatherapp.data.models.TemperatureUnit
-import com.hoc.weatherapp.data.models.TemperatureUnit.*
+import com.hoc.weatherapp.data.models.apiresponse.PressureUnit
+import com.hoc.weatherapp.data.models.apiresponse.PressureUnit.HPA
+import com.hoc.weatherapp.data.models.apiresponse.PressureUnit.MM_HG
+import com.hoc.weatherapp.data.models.apiresponse.SpeedUnit
+import com.hoc.weatherapp.data.models.apiresponse.SpeedUnit.*
+import com.hoc.weatherapp.data.models.apiresponse.TemperatureUnit
+import com.hoc.weatherapp.data.models.apiresponse.TemperatureUnit.*
 
 object UnitConverter {
   /**

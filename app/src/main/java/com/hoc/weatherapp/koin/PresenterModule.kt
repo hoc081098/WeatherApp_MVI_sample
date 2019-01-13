@@ -7,18 +7,43 @@ import com.hoc.weatherapp.ui.main.chart.ChartPresenter
 import com.hoc.weatherapp.ui.main.currentweather.CurrentWeatherPresenter
 import com.hoc.weatherapp.ui.main.fivedayforecast.DailyWeatherPresenter
 import org.koin.android.ext.koin.androidApplication
+import org.koin.dsl.context.ModuleDefinition
 import org.koin.dsl.module.module
 
 val presenterModule = module {
-  factory { CitiesPresenter(get(), get(), androidApplication()) }
+  factory { getCitiesPresenter() }
 
-  factory { CurrentWeatherPresenter(get(), androidApplication(), get()) }
+  factory { getCurrentWeatherPresenter() }
 
-  factory { AddCityPresenter(get(), androidApplication()) }
+  factory { getAddCityPresenter() }
 
-  factory { DailyWeatherPresenter(get(), get(), androidApplication()) }
+  factory { getDailyWeatherPresenter() }
 
-  factory { MainPresenter(get()) }
+  factory { getMainPresenter() }
 
-  factory { ChartPresenter(get(), get()) }
+  factory { getChartPresenter() }
+}
+
+private fun ModuleDefinition.getChartPresenter(): ChartPresenter {
+  return ChartPresenter(get(), get())
+}
+
+private fun ModuleDefinition.getMainPresenter(): MainPresenter {
+  return MainPresenter(get())
+}
+
+private fun ModuleDefinition.getDailyWeatherPresenter(): DailyWeatherPresenter {
+  return DailyWeatherPresenter(get(), get(), androidApplication())
+}
+
+private fun ModuleDefinition.getAddCityPresenter(): AddCityPresenter {
+  return AddCityPresenter(get(), androidApplication())
+}
+
+private fun ModuleDefinition.getCurrentWeatherPresenter(): CurrentWeatherPresenter {
+  return CurrentWeatherPresenter(get(), androidApplication(), get())
+}
+
+private fun ModuleDefinition.getCitiesPresenter(): CitiesPresenter {
+  return CitiesPresenter(get(), get(), get(), get(), get(), androidApplication())
 }
