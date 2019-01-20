@@ -25,6 +25,19 @@ class CurrentWeatherRepositoryImpl(
   private val cityLocalDataSource: CityLocalDataSource,
   private val selectedCityPreference: SelectedCityPreference
 ) : CurrentWeatherRepository {
+  private val selectedCityAndCurrentWeatherObservable: Observable<Optional<CityAndCurrentWeather>> = selectedCityPreference
+    .observable
+    .distinctUntilChanged()
+    .switchMap { optionalCity ->
+      when (optionalCity) {
+        is Some -> currentWeatherLocalDataSource
+          .getCityAndCurrentWeatherByCityId(optionalCity.value.id)
+          .subscribeOn(Schedulers.io())
+          .map(::Some)
+        is None -> Observable.just(None)
+      }
+    }
+
   /**
    * Get all pair of city and current weather, get from local database
    * @return [Observable] that emits [List]s of [CityAndCurrentWeather]
@@ -33,7 +46,6 @@ class CurrentWeatherRepositoryImpl(
     return currentWeatherLocalDataSource
       .getAllCityAndCurrentWeathers(querySearch)
       .subscribeOn(Schedulers.io())
-      .share()
   }
 
   /**
@@ -41,19 +53,7 @@ class CurrentWeatherRepositoryImpl(
    * @return [Observable] that emits [Optional]s of [CityAndCurrentWeather], [None] when having no selected city
    */
   override fun getSelectedCityAndCurrentWeatherOfSelectedCity(): Observable<Optional<CityAndCurrentWeather>> {
-    return selectedCityPreference
-      .observable
-      .distinctUntilChanged()
-      .switchMap { optionalCity ->
-        when (optionalCity) {
-          is Some -> currentWeatherLocalDataSource
-            .getCityAndCurrentWeatherByCityId(optionalCity.value.id)
-            .subscribeOn(Schedulers.io())
-            .map(::Some)
-          is None -> Observable.just(None)
-        }
-      }
-      .share()
+    return selectedCityAndCurrentWeatherObservable
   }
 
   /**

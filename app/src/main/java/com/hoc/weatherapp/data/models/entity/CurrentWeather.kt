@@ -125,7 +125,7 @@ data class CurrentWeather(
   /**
    * Visibility, meter
    */
-  @ColumnInfo(name = "visibility")
+  @ColumnInfo(name = "visibilityKm")
   val visibility: Double,
 
   /**

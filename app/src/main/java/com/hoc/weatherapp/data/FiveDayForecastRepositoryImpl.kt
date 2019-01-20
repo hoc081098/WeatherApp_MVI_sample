@@ -16,25 +16,25 @@ class FiveDayForecastRepositoryImpl(
   private val fiveDayForecastLocalDataSource: FiveDayForecastLocalDataSource,
   private val selectedCityPreference: SelectedCityPreference
 ) : FiveDayForecastRepository {
+ private val fiveDayForecastObservable: Observable<Optional<List<DailyWeather>>> = selectedCityPreference
+    .observable
+    .distinctUntilChanged()
+    .switchMap { optional ->
+      when (optional) {
+        is Some -> fiveDayForecastLocalDataSource
+          .getAllDailyWeathersByCityId(optional.value.id)
+          .subscribeOn(Schedulers.io())
+          .map(::Some)
+        is None -> Observable.just(None)
+      }
+    }
 
   /**
    * Get stream of five day weather, get from local database
    * @return [Observable] emit [None] when having no selected city, otherwise emit [Some] of [DailyWeather]s
    */
   override fun getFiveDayForecastOfSelectedCity(): Observable<Optional<List<DailyWeather>>> {
-    return selectedCityPreference
-      .observable
-      .distinctUntilChanged()
-      .switchMap { optional ->
-        when (optional) {
-          is Some -> fiveDayForecastLocalDataSource
-            .getAllDailyWeathersByCityId(optional.value.id)
-            .subscribeOn(Schedulers.io())
-            .map(::Some)
-          is None -> Observable.just(None)
-        }
-      }
-      .share()
+    return fiveDayForecastObservable
   }
 
   /**

@@ -1,7 +1,6 @@
 package com.hoc.weatherapp.ui.main.currentweather
 
 import com.hannesdorfmann.mosby3.mvp.MvpView
-import com.hoc.weatherapp.data.models.entity.CurrentWeather
 import io.reactivex.Observable
 
 interface CurrentWeatherContract {

@@ -5,10 +5,12 @@ import com.hannesdorfmann.mosby3.mvi.MviBasePresenter
 import com.hoc.weatherapp.data.CurrentWeatherRepository
 import com.hoc.weatherapp.data.NoSelectedCityException
 import com.hoc.weatherapp.data.local.SettingPreferences
-import com.hoc.weatherapp.data.models.entity.CityAndCurrentWeather
+import com.hoc.weatherapp.data.models.PressureUnit
+import com.hoc.weatherapp.data.models.SpeedUnit
+import com.hoc.weatherapp.data.models.TemperatureUnit
 import com.hoc.weatherapp.ui.main.currentweather.CurrentWeatherContract.*
 import com.hoc.weatherapp.utils.*
-import com.hoc.weatherapp.work.WorkerUtil
+import com.hoc.weatherapp.worker.WorkerUtil
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.rxkotlin.cast
@@ -35,17 +37,43 @@ class CurrentWeatherPresenter(
   }
 
   private fun cityAndWeatherPartialChange(): Observable<PartialStateChange> {
-    return currentWeatherRepository.getSelectedCityAndCurrentWeatherOfSelectedCity()
+    return currentWeatherRepository
+      .getSelectedCityAndCurrentWeatherOfSelectedCity()
       .switchMap { optional ->
         when (optional) {
           is None -> showError(NoSelectedCityException)
-          is Some -> PartialStateChange.Weather(weather = optional.value.currentWeather)
-            .let { Observable.just(it) }
-            .cast<PartialStateChange>()
-            .onErrorResumeNext(::showError)
+          is Some -> PartialStateChange.Weather(
+            weather = toCurrentWeather(
+              optional.value.currentWeather,
+              settingPreferences.speedUnitPreference.value,
+              settingPreferences.pressureUnitPreference.value,
+              settingPreferences.temperatureUnitPreference.value
+            )
+          ).let { Observable.just<PartialStateChange>(it) }.onErrorResumeNext(::showError)
         }
       }
       .doOnNext { debug("cityAndWeather $it", TAG) }
+  }
+
+  private fun toCurrentWeather(
+    entity: com.hoc.weatherapp.data.models.entity.CurrentWeather,
+    speedUnit: SpeedUnit,
+    pressureUnit: PressureUnit,
+    temperatureUnit: TemperatureUnit
+  ): CurrentWeather {
+    return CurrentWeather(
+      temperature = UnitConverter.convertTemperature(entity.temperature, temperatureUnit),
+      pressure = UnitConverter.convertPressure(entity.pressure, pressureUnit),
+      rainVolumeForThe3HoursMm = entity.rainVolumeForThe3Hours,
+      visibilityKm = entity.visibility / 1_000,
+      humidity = entity.humidity,
+      description = entity.description.capitalize(),
+      dataTime = entity.dataTime,
+      weatherConditionId = entity.weatherConditionId,
+      weatherIcon = entity.icon,
+      winSpeed = UnitConverter.convertSpeed(entity.winSpeed, speedUnit),
+      winDegrees = entity.winDegrees
+    )
   }
 
   private fun refreshWeatherPartialChange(): Observable<PartialStateChange> {
@@ -58,7 +86,8 @@ class CurrentWeatherPresenter(
       }
       .doOnNext { debug("refresh intent $it") }
       .switchMap {
-        currentWeatherRepository.refreshCurrentWeatherOfSelectedCity()
+        currentWeatherRepository
+          .refreshCurrentWeatherOfSelectedCity()
           .doOnSuccess {
             WorkerUtil.enqueueUpdateCurrentWeatherWorkRequest()
             if (settingPreferences.showNotificationPreference.value) {
@@ -77,6 +106,14 @@ class CurrentWeatherPresenter(
             }
           }
           .toObservable()
+          .map {
+            toCurrentWeather(
+              it.currentWeather,
+              settingPreferences.speedUnitPreference.value,
+              settingPreferences.pressureUnitPreference.value,
+              settingPreferences.temperatureUnitPreference.value
+            )
+          }
           .observeOn(AndroidSchedulers.mainThread())
           .switchMap(::showWeather)
           .onErrorResumeNext(::showError)
@@ -118,18 +155,18 @@ class CurrentWeatherPresenter(
       .cast()
   }
 
-  private fun showWeather(cityAndCurrentWeather: CityAndCurrentWeather): Observable<PartialStateChange> {
+  private fun showWeather(currentWeather: CurrentWeather): Observable<PartialStateChange> {
     return Observable.timer(2_000, TimeUnit.MILLISECONDS)
       .map {
         PartialStateChange.RefreshWeatherSuccess(
           showMessage = false,
-          weather = cityAndCurrentWeather.currentWeather
+          weather = currentWeather
         )
       }
       .startWith(
         PartialStateChange.RefreshWeatherSuccess(
           showMessage = true,
-          weather = cityAndCurrentWeather.currentWeather
+          weather = currentWeather
         )
       )
       .cast()

@@ -1,4 +1,4 @@
-package com.hoc.weatherapp.work
+package com.hoc.weatherapp.worker
 
 import androidx.work.*
 import java.util.concurrent.Executors
