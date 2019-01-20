@@ -5,15 +5,15 @@ import com.hannesdorfmann.mosby3.mvi.MviBasePresenter
 import com.hoc.weatherapp.data.FiveDayForecastRepository
 import com.hoc.weatherapp.data.NoSelectedCityException
 import com.hoc.weatherapp.data.local.SettingPreferences
-import com.hoc.weatherapp.data.models.apiresponse.PressureUnit
-import com.hoc.weatherapp.data.models.apiresponse.SpeedUnit
-import com.hoc.weatherapp.data.models.apiresponse.TemperatureUnit
-import com.hoc.weatherapp.data.models.apiresponse.WindDirection
+import com.hoc.weatherapp.data.models.PressureUnit
+import com.hoc.weatherapp.data.models.SpeedUnit
+import com.hoc.weatherapp.data.models.TemperatureUnit
+import com.hoc.weatherapp.data.models.WindDirection
 import com.hoc.weatherapp.data.models.entity.DailyWeather
 import com.hoc.weatherapp.ui.main.fivedayforecast.DailyWeatherContract.*
 import com.hoc.weatherapp.ui.main.fivedayforecast.DailyWeatherContract.PartialStateChange.Weather
 import com.hoc.weatherapp.utils.*
-import com.hoc.weatherapp.work.WorkerUtil
+import com.hoc.weatherapp.worker.WorkerUtil
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.rxkotlin.Observables
@@ -88,7 +88,8 @@ class DailyWeatherPresenter(
       }
       .doOnNext { debug("refreshDailyWeatherIntent $it", "_daily_weather_") }
       .switchMap {
-        fiveDayForecastRepository.refreshFiveDayForecastOfSelectedCity()
+        fiveDayForecastRepository
+          .refreshFiveDayForecastOfSelectedCity()
           .doOnSuccess {
             WorkerUtil.enqueueUpdateDailyWeatherWorkWorkRequest()
           }

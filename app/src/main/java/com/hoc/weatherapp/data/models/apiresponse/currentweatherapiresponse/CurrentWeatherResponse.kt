@@ -12,7 +12,7 @@ class CurrentWeatherResponse(
   val base: String? = null,
   @Json(name = "main")
   val main: Main? = null,
-  @Json(name = "visibility")
+  @Json(name = "visibilityKm")
   val visibility: Double? = null,
   @Json(name = "wind")
   val wind: Wind? = null,

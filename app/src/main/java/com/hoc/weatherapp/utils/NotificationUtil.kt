@@ -10,14 +10,16 @@ import com.hoc.weatherapp.App
 import com.hoc.weatherapp.BuildConfig
 import com.hoc.weatherapp.CancelNotificationReceiver
 import com.hoc.weatherapp.R
-import com.hoc.weatherapp.data.models.apiresponse.TemperatureUnit
+import com.hoc.weatherapp.data.models.TemperatureUnit
 import com.hoc.weatherapp.data.models.entity.CurrentWeather
 import com.hoc.weatherapp.ui.main.MainActivity
-import com.hoc.weatherapp.ui.main.currentweather.CurrentWeatherFragment
 import com.hoc.weatherapp.utils.ui.getIconDrawableFromCurrentWeather
+import java.text.SimpleDateFormat
+import java.util.*
 
 const val WEATHER_NOTIFICATION_ID = 2
 const val ACTION_CANCEL_NOTIFICATION = "com.hoc.weatherapp.CancelNotificationReceiver"
+private val SIMPLE_DATE_FORMAT = SimpleDateFormat("dd/MM/yy HH:mm", Locale.US)
 
 fun Context.showOrUpdateNotification(
   weather: CurrentWeather,
@@ -28,7 +30,7 @@ fun Context.showOrUpdateNotification(
   val temperature = unit.format(weather.temperature)
 
   val text = HtmlCompat.fromHtml(
-    "$temperature<br>${weather.description.capitalize()}<br><i>Update time: ${CurrentWeatherFragment.SIMPLE_DATE_FORMAT.format(
+    "$temperature<br>${weather.description.capitalize()}<br><i>Update time: ${SIMPLE_DATE_FORMAT.format(
       weather.dataTime
     )}</i>",
     HtmlCompat.FROM_HTML_MODE_LEGACY

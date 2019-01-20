@@ -1,4 +1,4 @@
-package com.hoc.weatherapp.work
+package com.hoc.weatherapp.worker
 
 import android.content.Context
 import androidx.work.Worker
@@ -12,11 +12,11 @@ import org.koin.standalone.inject
 
 class UpdateDailyWeatherWork(context: Context, workerParams: WorkerParameters) :
   Worker(context, workerParams), KoinComponent {
-  private val repository by inject<FiveDayForecastRepository>()
+  private val fiveDayForecastRepository by inject<FiveDayForecastRepository>()
 
   override fun doWork(): Result {
     return runCatching {
-      repository
+      fiveDayForecastRepository
         .refreshFiveDayForecastOfSelectedCity()
         .blockingGet()
     }.fold(

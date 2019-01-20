@@ -8,9 +8,9 @@ import androidx.preference.PreferenceFragmentCompat
 import com.hoc.weatherapp.R
 import com.hoc.weatherapp.data.CurrentWeatherRepository
 import com.hoc.weatherapp.data.local.SettingPreferences
-import com.hoc.weatherapp.data.models.apiresponse.PressureUnit
-import com.hoc.weatherapp.data.models.apiresponse.SpeedUnit
-import com.hoc.weatherapp.data.models.apiresponse.TemperatureUnit
+import com.hoc.weatherapp.data.models.PressureUnit
+import com.hoc.weatherapp.data.models.SpeedUnit
+import com.hoc.weatherapp.data.models.TemperatureUnit
 import com.hoc.weatherapp.utils.*
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers

@@ -11,14 +11,10 @@ import com.google.android.material.snackbar.Snackbar
 import com.hannesdorfmann.mosby3.mvi.MviFragment
 import com.hoc.weatherapp.R
 import com.hoc.weatherapp.data.NoSelectedCityException
-import com.hoc.weatherapp.data.local.SettingPreferences
-import com.hoc.weatherapp.data.models.apiresponse.NUMBER_FORMAT
-import com.hoc.weatherapp.data.models.apiresponse.WindDirection
-import com.hoc.weatherapp.data.models.entity.CurrentWeather
+import com.hoc.weatherapp.data.models.WindDirection
 import com.hoc.weatherapp.ui.LiveWeatherActivity
 import com.hoc.weatherapp.ui.main.currentweather.CurrentWeatherContract.RefreshIntent
 import com.hoc.weatherapp.ui.main.currentweather.CurrentWeatherContract.ViewState
-import com.hoc.weatherapp.utils.UnitConverter
 import com.hoc.weatherapp.utils.debug
 import com.hoc.weatherapp.utils.snackBar
 import com.hoc.weatherapp.utils.startActivity
@@ -29,7 +25,7 @@ import io.reactivex.rxkotlin.cast
 import io.reactivex.subjects.PublishSubject
 import kotlinx.android.synthetic.main.fragment_current_weather.*
 import org.koin.android.ext.android.get
-import org.koin.android.ext.android.inject
+import java.text.DecimalFormat
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -37,7 +33,6 @@ private const val TAG = "currentweather"
 
 class CurrentWeatherFragment : MviFragment<CurrentWeatherContract.View, CurrentWeatherPresenter>(),
   CurrentWeatherContract.View {
-  private val sharedPrefUtil by inject<SettingPreferences>()
   private var errorSnackBar: Snackbar? = null
   private var refreshSnackBar: Snackbar? = null
   private val refreshInitial = PublishSubject.create<RefreshIntent.InitialRefreshIntent>()
@@ -88,7 +83,7 @@ class CurrentWeatherFragment : MviFragment<CurrentWeatherContract.View, CurrentW
   private fun noSelectedCity() {
     image_icon.setImageResource(R.drawable.weather_icon_null)
     text_temperature.text =
-        getString(R.string.temperature_degree, "__")
+      getString(R.string.temperature_degree, "__")
     text_main_weather.text = getString(R.string.no_main_weather)
     text_last_update.text = getString(
       R.string.last_updated,
@@ -100,17 +95,13 @@ class CurrentWeatherFragment : MviFragment<CurrentWeatherContract.View, CurrentW
   }
 
   private fun updateUi(weather: CurrentWeather) {
-    val temperature = UnitConverter.convertTemperature(
-      weather.temperature,
-      sharedPrefUtil.temperatureUnitPreference.value
-    )
     updateWeatherIcon(
       weatherConditionId = weather.weatherConditionId,
-      weatherIcon = weather.icon
+      weatherIcon = weather.weatherIcon
     )
     text_temperature.text =
-        getString(R.string.temperature_degree, NUMBER_FORMAT.format(temperature))
-    text_main_weather.text = weather.description.capitalize()
+      getString(R.string.temperature_degree, NUMBER_FORMAT.format(weather.temperature))
+    text_main_weather.text = weather.description
     text_last_update.text = getString(
       R.string.last_updated,
       SIMPLE_DATE_FORMAT.format(weather.dataTime)
@@ -119,19 +110,19 @@ class CurrentWeatherFragment : MviFragment<CurrentWeatherContract.View, CurrentW
     button_live.visibility = View.VISIBLE
 
     card_view1.visibility = View.VISIBLE
-    text_pressure.text = sharedPrefUtil.pressureUnitPreference.value.format(weather.pressure)
+    text_pressure.text = NUMBER_FORMAT.format(weather.pressure)
     text_humidity.text = getString(R.string.humidity, weather.humidity)
-    text_rain.text = getString(R.string.rain_mm, NUMBER_FORMAT.format(weather.rainVolumeForThe3Hours))
-    text_visibility.text =getString(R.string.visibility_km, NUMBER_FORMAT.format(weather.visibility / 1_000))
+    text_rain.text =
+      getString(R.string.rain_mm, NUMBER_FORMAT.format(weather.rainVolumeForThe3HoursMm))
+    text_visibility.text =
+      getString(R.string.visibility_km, NUMBER_FORMAT.format(weather.visibilityKm))
 
     card_view2.visibility = View.VISIBLE
     windmill1.winSpeed = weather.winSpeed
     windmill2.winSpeed = weather.winSpeed
-    text_wind_dir.text = getString(
-      R.string.wind_direction,
-      WindDirection.fromDegrees(weather.winDegrees)
-    )
-    text_wind_speed.text = getString(R.string.wind_speed, sharedPrefUtil.speedUnitPreference.value.format(weather.winSpeed))
+    text_wind_dir.text =
+      getString(R.string.wind_direction, WindDirection.fromDegrees(weather.winDegrees))
+    text_wind_speed.text = getString(R.string.wind_speed, NUMBER_FORMAT.format(weather.winSpeed))
   }
 
   override fun createPresenter() = get<CurrentWeatherPresenter>()
@@ -167,7 +158,7 @@ class CurrentWeatherFragment : MviFragment<CurrentWeatherContract.View, CurrentW
   }
 
   companion object {
-    @JvmField
-    val SIMPLE_DATE_FORMAT = SimpleDateFormat("dd/MM/yy HH:mm", Locale.US)
+    private val SIMPLE_DATE_FORMAT = SimpleDateFormat("dd/MM/yy HH:mm", Locale.US)
+    private val NUMBER_FORMAT = DecimalFormat("#.#")
   }
 }

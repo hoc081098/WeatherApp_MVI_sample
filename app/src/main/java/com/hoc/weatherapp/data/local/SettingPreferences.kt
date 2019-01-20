@@ -3,9 +3,9 @@ package com.hoc.weatherapp.data.local
 import android.app.Application
 import android.content.SharedPreferences
 import com.hoc.weatherapp.R
-import com.hoc.weatherapp.data.models.apiresponse.PressureUnit
-import com.hoc.weatherapp.data.models.apiresponse.SpeedUnit
-import com.hoc.weatherapp.data.models.apiresponse.TemperatureUnit
+import com.hoc.weatherapp.data.models.PressureUnit
+import com.hoc.weatherapp.data.models.SpeedUnit
+import com.hoc.weatherapp.data.models.TemperatureUnit
 import com.hoc.weatherapp.utils.delegateVal
 import io.reactivex.Observable
 import io.reactivex.subjects.BehaviorSubject

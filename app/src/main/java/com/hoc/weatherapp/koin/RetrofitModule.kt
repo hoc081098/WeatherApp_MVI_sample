@@ -1,7 +1,7 @@
 package com.hoc.weatherapp.koin
 
 import com.hoc.weatherapp.BuildConfig
-import com.hoc.weatherapp.data.models.apiresponse.TemperatureUnit
+import com.hoc.weatherapp.data.models.TemperatureUnit
 import com.hoc.weatherapp.data.remote.*
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory

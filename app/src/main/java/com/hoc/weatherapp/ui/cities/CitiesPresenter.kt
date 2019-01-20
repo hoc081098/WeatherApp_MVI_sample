@@ -14,7 +14,7 @@ import com.hoc.weatherapp.ui.cities.CitiesContract.*
 import com.hoc.weatherapp.ui.cities.CitiesContract.PartialStateChange.*
 import com.hoc.weatherapp.ui.cities.CitiesContract.SearchStringIntent.InitialSearchStringIntent
 import com.hoc.weatherapp.utils.*
-import com.hoc.weatherapp.work.WorkerUtil
+import com.hoc.weatherapp.worker.WorkerUtil
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
@@ -46,6 +46,7 @@ class CitiesPresenter(
       .map { it.value }
       .doOnNext { debug("searchStringIntent '$it'", TAG) }
       .switchMap(currentWeatherRepository::getAllCityAndCurrentWeathers)
+      .share()
 
     changeSelectedCity()
 
