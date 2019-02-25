@@ -10,13 +10,24 @@ import com.hoc.weatherapp.utils.Some
 import com.hoc.weatherapp.utils.debug
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.rxkotlin.addTo
 import io.reactivex.rxkotlin.ofType
 
-class MainPresenter(private val currentWeatherRepository: CurrentWeatherRepository) :
+class MainPresenter(
+  private val currentWeatherRepository: CurrentWeatherRepository,
+  private val colorHolderSource: ColorHolderSource
+) :
   MviBasePresenter<MainContract.View, MainContract.ViewState>() {
   private val tag = "main"
+  private val compositeDisposable = CompositeDisposable()
 
   override fun bindIntents() {
+    intent(MainContract.View::changeDarkVibrantColorIntent)
+      .observeOn(AndroidSchedulers.mainThread())
+      .subscribe(colorHolderSource::change)
+      .addTo(compositeDisposable)
+
     val cityAndCurrentWeather = currentWeatherRepository
       .getSelectedCityAndCurrentWeatherOfSelectedCity()
       .publish { shared ->
@@ -37,5 +48,10 @@ class MainPresenter(private val currentWeatherRepository: CurrentWeatherReposito
       .observeOn(AndroidSchedulers.mainThread())
 
     subscribeViewState(cityAndCurrentWeather, MainContract.View::render)
+  }
+
+  override fun unbindIntents() {
+    super.unbindIntents()
+    compositeDisposable.clear()
   }
 }

@@ -1,19 +1,18 @@
 package com.hoc.weatherapp.ui.main.fivedayforecast
 
 import android.app.Dialog
+import android.graphics.PorterDuff
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.annotation.ColorInt
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.DialogFragment
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
-import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
-import com.bumptech.glide.request.RequestOptions
 import com.google.android.material.snackbar.Snackbar
 import com.hannesdorfmann.mosby3.mvi.MviFragment
 import com.hoc.weatherapp.R
@@ -42,6 +41,7 @@ class DetailDialog : DialogFragment() {
     const val TAG = "com.hoc.weatherapp.ui.main.fivedayforecast.detail_dialog_tag"
     private const val ITEM_KEY = "com.hoc.weatherapp.ui.main.fivedayforecast.detail_dialog_item"
 
+    @JvmStatic
     fun newInstance(item: DailyWeatherListItem.Weather): DetailDialog {
       return DetailDialog().apply {
         arguments = Bundle().apply {
@@ -57,7 +57,9 @@ class DetailDialog : DialogFragment() {
 
     val view =
       LayoutInflater.from(requireContext()).inflate(R.layout.dialog_detail_daily_weather, null)
+
     view.image_icon.setImageResource(requireContext().getIconDrawableFromDailyWeather(item.weatherIcon))
+    view.image_icon.setBackgroundColor(item.iconBackgroundColor)
     view.text_data_time.text = SimpleDateFormat(
       "dd/MM/yyyy, HH:mm",
       Locale.getDefault()
@@ -67,8 +69,9 @@ class DetailDialog : DialogFragment() {
 
     view.recycler_detail.run {
       setHasFixedSize(true)
-      layoutManager = LinearLayoutManager(requireContext())
-      adapter = object : RecyclerView.Adapter<DailyWeatherFragment.VH>() {
+      isNestedScrollingEnabled = false
+      layoutManager = LinearLayoutManager(context)
+      adapter = object : RecyclerView.Adapter<VH>() {
         val list = listOf(
           R.drawable.ic_thermometer_black_24dp to "Temperature min: ${item.temperatureMin}",
           R.drawable.ic_thermometer_black_24dp to "Temperature max: ${item.temperatureMax}",
@@ -87,20 +90,32 @@ class DetailDialog : DialogFragment() {
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) =
           LayoutInflater.from(parent.context)
             .inflate(R.layout.detail_item_layout, parent, false)
-            .let(DailyWeatherFragment::VH)
+            .let(::VH)
 
         override fun getItemCount() = list.size
 
-        override fun onBindViewHolder(holder: DailyWeatherFragment.VH, position: Int) =
-          holder.bind(list[position])
+        override fun onBindViewHolder(holder: VH, position: Int) =
+          holder.bind(list[position], item.iconBackgroundColor).also {
+            debug("Bind $position", "######")
+          }
       }
     }
 
     return AlertDialog.Builder(requireContext())
-      .setMessage("Detail")
       .setView(view)
-      .setPositiveButton("Close") { dialog, _ -> dialog.dismiss() }
       .show()
+  }
+
+  class VH(itemView: View) : RecyclerView.ViewHolder(itemView) {
+    private val image = itemView.imageView5
+    private val text = itemView.textView
+
+    fun bind(pair: Pair<Int, String>, @ColorInt iconBackgroundColor: Int) {
+      itemView.context.getDrawable(pair.first)!!.mutate()
+        .apply { setColorFilter(iconBackgroundColor, PorterDuff.Mode.SRC_IN) }
+        .let { image.setImageDrawable(it) }
+      text.text = pair.second
+    }
   }
 }
 
@@ -138,6 +153,7 @@ class DailyWeatherFragment : MviFragment<DailyWeatherContract.View, DailyWeather
       val linearLayoutManager = LinearLayoutManager(context)
       layoutManager = linearLayoutManager
       adapter = dailyWeatherAdapter
+
       DividerItemDecoration(context, linearLayoutManager.orientation)
         .apply {
           ContextCompat.getDrawable(
@@ -188,20 +204,6 @@ class DailyWeatherFragment : MviFragment<DailyWeatherContract.View, DailyWeather
       refreshSnackBar = view?.snackBar("Refresh successfully")
     } else {
       refreshSnackBar?.dismiss()
-    }
-  }
-
-  class VH(itemView: View) : RecyclerView.ViewHolder(itemView) {
-    private val image = itemView.imageView5
-    private val text = itemView.textView
-
-    fun bind(pair: Pair<Int, String>) {
-      Glide.with(itemView)
-        .load(pair.first)
-        .apply(RequestOptions.fitCenterTransform().centerCrop())
-        .transition(DrawableTransitionOptions.withCrossFade())
-        .into(image)
-      text.text = pair.second
     }
   }
 }

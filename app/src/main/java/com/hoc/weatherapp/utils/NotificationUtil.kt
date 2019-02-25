@@ -4,10 +4,11 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.media.RingtoneManager
+import android.media.RingtoneManager.TYPE_NOTIFICATION
 import androidx.core.app.NotificationCompat
 import androidx.core.text.HtmlCompat
 import com.hoc.weatherapp.App
-import com.hoc.weatherapp.BuildConfig
 import com.hoc.weatherapp.CancelNotificationReceiver
 import com.hoc.weatherapp.R
 import com.hoc.weatherapp.data.models.TemperatureUnit
@@ -25,14 +26,18 @@ fun Context.showOrUpdateNotification(
   weather: CurrentWeather,
   cityName: String,
   cityCountry: String,
-  unit: TemperatureUnit
+  unit: TemperatureUnit,
+  popUpAndSound: Boolean
 ) {
   val temperature = unit.format(weather.temperature)
 
   val text = HtmlCompat.fromHtml(
-    "$temperature<br>${weather.description.capitalize()}<br><i>Update time: ${SIMPLE_DATE_FORMAT.format(
-      weather.dataTime
-    )}</i>",
+    """$temperature
+      |<br>
+      |${weather.description.capitalize()}
+      |<br>
+      |<i>Update time: ${SIMPLE_DATE_FORMAT.format(weather.dataTime)}</i>
+      """.trimMargin(),
     HtmlCompat.FROM_HTML_MODE_LEGACY
   )
   val builder = NotificationCompat.Builder(this, App.CHANNEL_ID)
@@ -61,8 +66,10 @@ fun Context.showOrUpdateNotification(
     .setOngoing(true)
     .setWhen(System.currentTimeMillis())
     .apply {
-      if (BuildConfig.DEBUG) {
-        setPriority(NotificationCompat.PRIORITY_HIGH).setDefaults(NotificationCompat.DEFAULT_ALL)
+      if (popUpAndSound) {
+        priority = NotificationCompat.PRIORITY_HIGH
+        setDefaults(NotificationCompat.DEFAULT_ALL)
+        setSound(RingtoneManager.getDefaultUri(TYPE_NOTIFICATION))
       }
     }
 

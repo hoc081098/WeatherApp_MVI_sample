@@ -8,11 +8,14 @@ import com.hoc.weatherapp.data.local.SettingPreferences
 import com.hoc.weatherapp.data.models.PressureUnit
 import com.hoc.weatherapp.data.models.SpeedUnit
 import com.hoc.weatherapp.data.models.TemperatureUnit
+import com.hoc.weatherapp.data.models.WindDirection
+import com.hoc.weatherapp.data.models.entity.CityAndCurrentWeather
 import com.hoc.weatherapp.ui.main.currentweather.CurrentWeatherContract.*
 import com.hoc.weatherapp.utils.*
 import com.hoc.weatherapp.worker.WorkerUtil
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.rxkotlin.Observables
 import io.reactivex.rxkotlin.cast
 import io.reactivex.rxkotlin.ofType
 import java.util.concurrent.TimeUnit
@@ -36,23 +39,43 @@ class CurrentWeatherPresenter(
     )
   }
 
+  private data class Tuple4(
+    val speedUnit: SpeedUnit,
+    val pressureUnit: PressureUnit,
+    val temperatureUnit: TemperatureUnit,
+    val optional: Optional<CityAndCurrentWeather>
+  )
+
   private fun cityAndWeatherPartialChange(): Observable<PartialStateChange> {
-    return currentWeatherRepository
-      .getSelectedCityAndCurrentWeatherOfSelectedCity()
-      .switchMap { optional ->
-        when (optional) {
-          is None -> showError(NoSelectedCityException)
-          is Some -> PartialStateChange.Weather(
-            weather = toCurrentWeather(
-              optional.value.currentWeather,
-              settingPreferences.speedUnitPreference.value,
-              settingPreferences.pressureUnitPreference.value,
-              settingPreferences.temperatureUnitPreference.value
-            )
-          ).let { Observable.just<PartialStateChange>(it) }.onErrorResumeNext(::showError)
-        }
+    return Observables.combineLatest(
+      settingPreferences.speedUnitPreference.observable.doOnNext { debug("speed=$it", TAG) },
+      settingPreferences.pressureUnitPreference.observable.doOnNext { debug("pressure=$it", TAG) },
+      settingPreferences.temperatureUnitPreference.observable.doOnNext { debug("temp=$it", TAG) },
+      currentWeatherRepository.getSelectedCityAndCurrentWeatherOfSelectedCity().doOnNext {
+        debug("current weather and city=$it", TAG)
       }
-      .doOnNext { debug("cityAndWeather $it", TAG) }
+    ) { speedUnit, pressureUnit, temperatureUnit, optional ->
+      Tuple4(
+        speedUnit,
+        pressureUnit,
+        temperatureUnit,
+        optional
+      )
+    }
+      .doOnNext { debug("tuple4 = $it", TAG) }
+      .switchMap { (speedUnit, pressureUnit, temperatureUnit, optional) ->
+        when (optional) {
+          None -> showError(NoSelectedCityException)
+          is Some -> Observable.just(
+            toCurrentWeather(
+              optional.value.currentWeather,
+              speedUnit,
+              pressureUnit,
+              temperatureUnit
+            )
+          ).map { PartialStateChange.Weather(it) }.cast()
+        }.onErrorResumeNext { throwable: Throwable -> showError(throwable) }
+      }.doOnNext { debug("current weather = $it", TAG) }
   }
 
   private fun toCurrentWeather(
@@ -62,8 +85,8 @@ class CurrentWeatherPresenter(
     temperatureUnit: TemperatureUnit
   ): CurrentWeather {
     return CurrentWeather(
-      temperature = UnitConverter.convertTemperature(entity.temperature, temperatureUnit),
-      pressure = UnitConverter.convertPressure(entity.pressure, pressureUnit),
+      temperatureString = temperatureUnit.format(entity.temperature),
+      pressureString = pressureUnit.format(entity.pressure),
       rainVolumeForThe3HoursMm = entity.rainVolumeForThe3Hours,
       visibilityKm = entity.visibility / 1_000,
       humidity = entity.humidity,
@@ -71,8 +94,9 @@ class CurrentWeatherPresenter(
       dataTime = entity.dataTime,
       weatherConditionId = entity.weatherConditionId,
       weatherIcon = entity.icon,
-      winSpeed = UnitConverter.convertSpeed(entity.winSpeed, speedUnit),
-      winDegrees = entity.winDegrees
+      winSpeed = entity.winSpeed,
+      winSpeedString = speedUnit.format(entity.winSpeed),
+      winDirection = WindDirection.fromDegrees(entity.winDegrees).toString()
     )
   }
 
@@ -85,17 +109,21 @@ class CurrentWeatherPresenter(
         )
       }
       .doOnNext { debug("refresh intent $it") }
-      .switchMap {
+      .exhaustMap {
         currentWeatherRepository
           .refreshCurrentWeatherOfSelectedCity()
           .doOnSuccess {
-            WorkerUtil.enqueueUpdateCurrentWeatherWorkRequest()
+            if (settingPreferences.autoUpdatePreference.value) {
+              WorkerUtil.enqueueUpdateCurrentWeatherWorkRequest()
+            }
+
             if (settingPreferences.showNotificationPreference.value) {
               androidApplication.showOrUpdateNotification(
                 cityName = it.city.name,
                 unit = settingPreferences.temperatureUnitPreference.value,
                 cityCountry = it.city.country,
-                weather = it.currentWeather
+                weather = it.currentWeather,
+                popUpAndSound = settingPreferences.soundNotificationPreference.value
               )
             }
           }
@@ -105,7 +133,6 @@ class CurrentWeatherPresenter(
               WorkerUtil.cancelUpdateCurrentWeatherWorkRequest()
             }
           }
-          .toObservable()
           .map {
             toCurrentWeather(
               it.currentWeather,
@@ -114,6 +141,7 @@ class CurrentWeatherPresenter(
               settingPreferences.temperatureUnitPreference.value
             )
           }
+          .toObservable()
           .observeOn(AndroidSchedulers.mainThread())
           .switchMap(::showWeather)
           .onErrorResumeNext(::showError)

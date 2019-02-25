@@ -1,40 +1,65 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <androidx.preference.SwitchPreferenceCompat
-        android:defaultValue="true"
-        android:key="@string/key_show_notification"
-        android:summary="Show weather information in notification"
-        android:title="Show notification" />
+    <androidx.preference.PreferenceCategory android:title="Notification and update weather">
+        <androidx.preference.SwitchPreferenceCompat
+            android:defaultValue="true"
+            android:key="@string/key_show_notification"
+            android:summary="Show weather information in notification"
+            android:title="Show notification" />
 
-    <androidx.preference.ListPreference
-        android:defaultValue="Kelvin"
-        android:entries="@array/pref_list_temperature_units_titles"
-        android:entryValues="@array/pref_list_temperature_units_values"
-        android:key="@string/key_temperature_unit"
-        android:negativeButtonText="@null"
-        android:positiveButtonText="@null"
-        android:summary="%s"
-        android:title="@string/pref_title_select_temperature_unit" />
+        <androidx.preference.SwitchPreferenceCompat
+            android:defaultValue="false"
+            android:key="@string/key_sound_notification"
+            android:summary="Enable sound when push notification"
+            android:title="Sound notification" />
 
-    <androidx.preference.ListPreference
-        android:defaultValue="METERS_PER_SECOND"
-        android:entries="@array/pref_list_speed_units_titles"
-        android:entryValues="@array/pref_list_speed_units_values"
-        android:key="@string/key_speed_unit"
-        android:negativeButtonText="@null"
-        android:positiveButtonText="@null"
-        android:summary="%s"
-        android:title="@string/pref_title_select_speed_unit" />
+        <androidx.preference.SwitchPreferenceCompat
+            android:defaultValue="true"
+            android:key="@string/key_auto_update"
+            android:summary="Update weather data automatically"
+            android:title="Auto update" />
+    </androidx.preference.PreferenceCategory>
 
-    <androidx.preference.ListPreference
-        android:defaultValue="HPA"
-        android:entries="@array/pref_list_pressure_units_titles"
-        android:entryValues="@array/pref_list_pressure_units_values"
-        android:key="@string/key_pressure_unit"
-        android:negativeButtonText="@null"
-        android:positiveButtonText="@null"
-        android:summary="%s"
-        android:title="@string/pref_title_select_pressure_unit" />
+    <androidx.preference.PreferenceCategory android:title="Units">
+        <androidx.preference.ListPreference
+            android:defaultValue="Kelvin"
+            android:entries="@array/pref_list_temperature_units_titles"
+            android:entryValues="@array/pref_list_temperature_units_values"
+            android:key="@string/key_temperature_unit"
+            android:negativeButtonText="@null"
+            android:positiveButtonText="@null"
+            android:summary="%s"
+            android:title="@string/pref_title_select_temperature_unit" />
+
+        <androidx.preference.ListPreference
+            android:defaultValue="METERS_PER_SECOND"
+            android:entries="@array/pref_list_speed_units_titles"
+            android:entryValues="@array/pref_list_speed_units_values"
+            android:key="@string/key_speed_unit"
+            android:negativeButtonText="@null"
+            android:positiveButtonText="@null"
+            android:summary="%s"
+            android:title="@string/pref_title_select_speed_unit" />
+
+        <androidx.preference.ListPreference
+            android:defaultValue="HPA"
+            android:entries="@array/pref_list_pressure_units_titles"
+            android:entryValues="@array/pref_list_pressure_units_values"
+            android:key="@string/key_pressure_unit"
+            android:negativeButtonText="@null"
+            android:positiveButtonText="@null"
+            android:summary="%s"
+            android:title="@string/pref_title_select_pressure_unit" />
+    </androidx.preference.PreferenceCategory>
+
+    <androidx.preference.PreferenceCategory android:title="About me">
+        <androidx.preference.Preference
+            android:enabled="true"
+            android:key="About"
+            android:selectable="false"
+            android:summary="Github: https://github.com/hoc081098/WeatherApp.git"
+            android:title="Petrus Nguyễn Thái Học" />
+    </androidx.preference.PreferenceCategory>
 
 </androidx.preference.PreferenceScreen>

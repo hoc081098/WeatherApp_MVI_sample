@@ -1,13 +1,16 @@
 package com.hoc.weatherapp.ui.main.fivedayforecast
 
 import android.annotation.SuppressLint
+import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.annotation.ColorInt
 import androidx.annotation.IntDef
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.ColorUtils
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -44,15 +47,20 @@ class DailyWeatherAdapter : ListAdapter<DailyWeatherListItem, RecyclerView.ViewH
 ), HeaderItemDecoration.StickyHeaderInterface {
   override val headerLayout = R.layout.daily_weather_header_layout
 
-  override fun getHeaderPositionForItem(itemPosition: Int): Int {
+  override fun getHeaderPositionForItem(itemPosition: Int): Int? {
+    if (itemPosition == 0) return null
     return (itemPosition downTo 0).find { isHeader(it) } ?: 0
   }
 
   override fun bindHeaderData(header: View, headerPosition: Int) {
     val textViewDate = header.textViewDate!!
     val headerItem = getItem(headerPosition) as? DailyWeatherListItem.Header ?: return
-    bindHeader(textViewDate, headerItem)
-    header.setBackgroundColor(ContextCompat.getColor(header.context, R.color.colorHeaderBackground))
+
+    val weather =
+      (runCatching { getItem(headerPosition - 1) }.getOrNull() as? DailyWeatherListItem.Weather
+        ?: runCatching { getItem(headerPosition + 1) }.getOrNull() as? DailyWeatherListItem.Weather)
+
+    bindHeader(textViewDate, headerItem, header, weather?.iconBackgroundColor)
     textViewDate.setTextColor(ContextCompat.getColor(header.context, R.color.colorHeaderText))
   }
 
@@ -99,8 +107,7 @@ class DailyWeatherAdapter : ListAdapter<DailyWeatherListItem, RecyclerView.ViewH
 
   class HeaderViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
     private val textViewDate = itemView.textViewDate!!
-
-    fun bind(header: DailyWeatherListItem.Header) = bindHeader(textViewDate, header)
+    fun bind(header: DailyWeatherListItem.Header) = bindHeader(textViewDate, header, itemView)
   }
 
   inner class DailyWeatherViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView),
@@ -127,18 +134,13 @@ class DailyWeatherAdapter : ListAdapter<DailyWeatherListItem, RecyclerView.ViewH
       textTempMax.text = weather.temperatureMax
       textWeather.text = weather.weatherDescription
       textViewDataTime.text = ITEM_DATE_FORMAT.format(weather.dataTime)
+      imageIconCityItem.setBackgroundColor(weather.iconBackgroundColor)
 
       Glide.with(itemView.context)
         .load(itemView.context.getIconDrawableFromDailyWeather(weather.weatherIcon))
         .apply(RequestOptions.fitCenterTransform().centerCrop())
         .transition(DrawableTransitionOptions.withCrossFade())
-        .apply(
-          ContextCompat.getColor(
-            itemView.context,
-            R.color.colorPrimaryDark
-          ).let(::ColorDrawable)
-            .let(RequestOptions::placeholderOf)
-        )
+        .apply(ColorDrawable(weather.iconBackgroundColor).let(RequestOptions::placeholderOf))
         .into(imageIconCityItem)
     }
   }
@@ -163,9 +165,13 @@ class DailyWeatherAdapter : ListAdapter<DailyWeatherListItem, RecyclerView.ViewH
     const val HEADER_TYPE = 1
     const val DAILY_WEATHER_TYPE = 3
 
-    private fun bindHeader(textView: TextView, headerItem: DailyWeatherListItem.Header) {
-      val current = Calendar.getInstance()
-        .apply { time = time.trim() }
+    private fun bindHeader(
+      textView: TextView,
+      headerItem: DailyWeatherListItem.Header,
+      itemView: View,
+      @ColorInt iconBackgroundColor: Int? = null
+    ) {
+      val current = Calendar.getInstance().apply { time = time.trim() }
       CALENDAR.time = headerItem.date
 
       if (current == CALENDAR) {
@@ -180,6 +186,10 @@ class DailyWeatherAdapter : ListAdapter<DailyWeatherListItem, RecyclerView.ViewH
       }
 
       textView.text = HEADER_DATE_FORMAT.format(headerItem.date)
+
+      @ColorInt val bgColor =
+        iconBackgroundColor?.let { ColorUtils.setAlphaComponent(it, 0xCC) } ?: Color.TRANSPARENT
+      itemView.setBackgroundColor(bgColor)
     }
   }
 }

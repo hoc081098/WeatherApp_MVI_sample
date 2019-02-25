@@ -10,7 +10,7 @@ import com.hoc.weatherapp.utils.cancelNotificationById
 import org.koin.standalone.KoinComponent
 import org.koin.standalone.inject
 
-class UpdateDailyWeatherWork(context: Context, workerParams: WorkerParameters) :
+class UpdateDailyWeatherWorker(context: Context, workerParams: WorkerParameters) :
   Worker(context, workerParams), KoinComponent {
   private val fiveDayForecastRepository by inject<FiveDayForecastRepository>()
 
@@ -19,20 +19,16 @@ class UpdateDailyWeatherWork(context: Context, workerParams: WorkerParameters) :
       fiveDayForecastRepository
         .refreshFiveDayForecastOfSelectedCity()
         .blockingGet()
-    }.fold(
-      onSuccess = { Result.success() },
-      onFailure = {
-        if (it is NoSelectedCityException) {
-          applicationContext.cancelNotificationById(WEATHER_NOTIFICATION_ID)
-          WorkerUtil.cancelUpdateDailyWeatherWorkWorkRequest()
-        }
-        Result.failure()
+    }.onFailure {
+      if (it is NoSelectedCityException) {
+        applicationContext.cancelNotificationById(WEATHER_NOTIFICATION_ID)
+        WorkerUtil.cancelUpdateDailyWeatherWorkWorkRequest()
       }
-    )
+    }.fold({ Result.success() }, { Result.failure() })
   }
 
   companion object {
-    const val UNIQUE_WORK_NAME = "UpdateDailyWeatherWork"
-    const val TAG = "UpdateDailyWeatherWork"
+    const val UNIQUE_WORK_NAME = "UpdateDailyWeatherWorker"
+    const val TAG = "UpdateDailyWeatherWorker"
   }
 }

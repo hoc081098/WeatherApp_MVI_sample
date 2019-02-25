@@ -37,6 +37,8 @@ class CurrentWeatherRepositoryImpl(
         is None -> Observable.just(None)
       }
     }
+    .replay(1)
+    .autoConnect(0)
 
   /**
    * Get all pair of city and current weather, get from local database

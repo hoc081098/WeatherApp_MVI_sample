@@ -39,20 +39,21 @@ object WorkerUtil {
   }
 
   internal fun enqueueUpdateDailyWeatherWorkRequestImmediately(): Operation {
-    val updateDailyWeathers = PeriodicWorkRequestBuilder<UpdateDailyWeatherWork>(
+    val updateDailyWeathers = PeriodicWorkRequestBuilder<UpdateDailyWeatherWorker>(
       repeatInterval = 15,
       repeatIntervalTimeUnit = TimeUnit.MINUTES
-    ).addTag(UpdateDailyWeatherWork.TAG).build()
+    ).addTag(UpdateDailyWeatherWorker.TAG).build()
 
     return WorkManager
       .getInstance()
       .enqueueUniquePeriodicWork(
-        UpdateDailyWeatherWork.UNIQUE_WORK_NAME,
+        UpdateDailyWeatherWorker.UNIQUE_WORK_NAME,
         ExistingPeriodicWorkPolicy.REPLACE,
         updateDailyWeathers
       )
   }
 
+  @JvmStatic
   fun enqueueUpdateCurrentWeatherWorkRequest() {
     cancelUpdateCurrentWeatherWorkRequest()
       .result
@@ -61,15 +62,18 @@ object WorkerUtil {
       }, backgroundExecutor)
   }
 
+  @JvmStatic
   fun enqueueUpdateDailyWeatherWorkWorkRequest() {
     cancelUpdateDailyWeatherWorkWorkRequest()
       .result
       .addListener(Runnable {
-        enqueuePeriodicWorkRequestWithInitialDelay(UpdateDailyWeatherWork.TAG)
+        enqueuePeriodicWorkRequestWithInitialDelay(UpdateDailyWeatherWorker.TAG)
       }, backgroundExecutor)
   }
 
+  @JvmStatic
   fun cancelUpdateCurrentWeatherWorkRequest() = cancelAllWorkByTag(UpdateCurrentWeatherWorker.TAG)
 
-  fun cancelUpdateDailyWeatherWorkWorkRequest() = cancelAllWorkByTag(UpdateDailyWeatherWork.TAG)
+  @JvmStatic
+  fun cancelUpdateDailyWeatherWorkWorkRequest() = cancelAllWorkByTag(UpdateDailyWeatherWorker.TAG)
 }

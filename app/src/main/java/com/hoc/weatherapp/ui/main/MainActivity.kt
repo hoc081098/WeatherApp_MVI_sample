@@ -36,10 +36,15 @@ import com.hoc.weatherapp.utils.startActivity
 import com.hoc.weatherapp.utils.ui.ZoomOutPageTransformer
 import com.hoc.weatherapp.utils.ui.getBackgroundDrawableFromWeather
 import com.hoc.weatherapp.utils.ui.getSoundUriFromCurrentWeather
+import io.reactivex.subjects.PublishSubject
 import kotlinx.android.synthetic.main.activity_main.*
 import org.koin.android.ext.android.get
 
 class MainActivity : MviActivity<MainContract.View, MainPresenter>(), MainContract.View {
+  private val darkVibrantColorSubject = PublishSubject.create<Int>()
+
+  override fun changeDarkVibrantColorIntent() = darkVibrantColorSubject
+
   private var mediaPlayer: MediaPlayer? = null
 
   override fun onCreate(savedInstanceState: Bundle?) {
@@ -146,12 +151,14 @@ class MainActivity : MviActivity<MainContract.View, MainPresenter>(), MainContra
           view.setImageBitmap(resource)
           Palette.from(resource)
             .generate {
-              window.statusBarColor = (it ?: return@generate).getDarkVibrantColor(
+              val darkVibrantColor = (it ?: return@generate).getDarkVibrantColor(
                 ContextCompat.getColor(
                   this@MainActivity,
                   R.color.colorPrimaryDark
                 )
               )
+              darkVibrantColorSubject.onNext(darkVibrantColor)
+              window.statusBarColor = darkVibrantColor
             }
         }
       })

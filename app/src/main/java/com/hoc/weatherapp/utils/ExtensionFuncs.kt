@@ -14,6 +14,8 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.google.android.gms.location.*
 import com.google.android.material.snackbar.Snackbar
+import com.hoc.weatherapp.BuildConfig
+import io.reactivex.BackpressureStrategy
 import io.reactivex.Observable
 import io.reactivex.ObservableEmitter
 import io.reactivex.Single
@@ -46,7 +48,11 @@ inline fun <reified T : Context> Context.startActivity() =
   startActivity(Intent(this, T::class.java))
 
 inline fun <reified T : Any> T.debug(msg: Any?, tag: String? = null) {
-  Log.d(tag ?: this::class.java.simpleName, msg.toString())
+  if (BuildConfig.DEBUG) {
+    Log.d(tag ?: this::class.java.simpleName, msg.toString())
+  } else {
+    //Not logging in release mode
+  }
 }
 
 @SuppressLint("MissingPermission")
@@ -122,4 +128,11 @@ private fun Context.isAccessLocationPermissionDenied(emitter: ObservableEmitter<
 
 inline fun <reified R : Any> Observable<*>.notOfType(): Observable<out Any> =
   filter { !R::class.java.isInstance(it) }
+
+inline fun <T, R> Observable<T>.exhaustMap(crossinline transform: (T) -> Observable<R>): Observable<R> {
+  return this
+    .toFlowable(BackpressureStrategy.DROP)
+    .flatMap({ transform(it).toFlowable(BackpressureStrategy.MISSING) }, 1)
+    .toObservable()
+}
 

@@ -1,5 +1,6 @@
 package com.hoc.weatherapp.ui.main.currentweather
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -11,7 +12,6 @@ import com.google.android.material.snackbar.Snackbar
 import com.hannesdorfmann.mosby3.mvi.MviFragment
 import com.hoc.weatherapp.R
 import com.hoc.weatherapp.data.NoSelectedCityException
-import com.hoc.weatherapp.data.models.WindDirection
 import com.hoc.weatherapp.ui.LiveWeatherActivity
 import com.hoc.weatherapp.ui.main.currentweather.CurrentWeatherContract.RefreshIntent
 import com.hoc.weatherapp.ui.main.currentweather.CurrentWeatherContract.ViewState
@@ -57,7 +57,6 @@ class CurrentWeatherFragment : MviFragment<CurrentWeatherContract.View, CurrentW
     if (error is NoSelectedCityException) {
       noSelectedCity()
     }
-
     if (error != null && state.showError) {
       errorSnackBar?.dismiss()
       errorSnackBar = view?.snackBar(
@@ -82,16 +81,16 @@ class CurrentWeatherFragment : MviFragment<CurrentWeatherContract.View, CurrentW
 
   private fun noSelectedCity() {
     image_icon.setImageResource(R.drawable.weather_icon_null)
-    text_temperature.text =
-      getString(R.string.temperature_degree, "__")
+    @SuppressLint("SetTextI18n")
+    text_temperature.text = "__"
     text_main_weather.text = getString(R.string.no_main_weather)
     text_last_update.text = getString(
       R.string.last_updated,
       "__/__/__ __:__"
     )
-    button_live.visibility = View.INVISIBLE
-    card_view1.visibility = View.INVISIBLE
-    card_view2.visibility = View.INVISIBLE
+    button_live.visibility = View.GONE
+    card_view1.visibility = View.GONE
+    card_view2.visibility = View.GONE
   }
 
   private fun updateUi(weather: CurrentWeather) {
@@ -99,30 +98,31 @@ class CurrentWeatherFragment : MviFragment<CurrentWeatherContract.View, CurrentW
       weatherConditionId = weather.weatherConditionId,
       weatherIcon = weather.weatherIcon
     )
-    text_temperature.text =
-      getString(R.string.temperature_degree, NUMBER_FORMAT.format(weather.temperature))
+    text_temperature.text = weather.temperatureString
     text_main_weather.text = weather.description
     text_last_update.text = getString(
       R.string.last_updated,
       SIMPLE_DATE_FORMAT.format(weather.dataTime)
     )
 
+
     button_live.visibility = View.VISIBLE
 
+
     card_view1.visibility = View.VISIBLE
-    text_pressure.text = NUMBER_FORMAT.format(weather.pressure)
+    text_pressure.text = weather.pressureString
     text_humidity.text = getString(R.string.humidity, weather.humidity)
     text_rain.text =
       getString(R.string.rain_mm, NUMBER_FORMAT.format(weather.rainVolumeForThe3HoursMm))
     text_visibility.text =
       getString(R.string.visibility_km, NUMBER_FORMAT.format(weather.visibilityKm))
 
+
     card_view2.visibility = View.VISIBLE
     windmill1.winSpeed = weather.winSpeed
     windmill2.winSpeed = weather.winSpeed
-    text_wind_dir.text =
-      getString(R.string.wind_direction, WindDirection.fromDegrees(weather.winDegrees))
-    text_wind_speed.text = getString(R.string.wind_speed, NUMBER_FORMAT.format(weather.winSpeed))
+    text_wind_dir.text = getString(R.string.wind_direction, weather.winDirection)
+    text_wind_speed.text = getString(R.string.wind_speed, weather.winSpeedString)
   }
 
   override fun createPresenter() = get<CurrentWeatherPresenter>()

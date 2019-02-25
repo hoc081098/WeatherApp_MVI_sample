@@ -5,10 +5,14 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
 import android.os.Build
+import androidx.work.WorkManager
 import com.hoc.weatherapp.koin.dataSourceModule
 import com.hoc.weatherapp.koin.presenterModule
 import com.hoc.weatherapp.koin.retrofitModule
 import com.hoc.weatherapp.koin.sharePrefUtilModule
+import com.hoc.weatherapp.utils.debug
+import com.hoc.weatherapp.worker.UpdateCurrentWeatherWorker
+import com.hoc.weatherapp.worker.UpdateDailyWeatherWorker
 import org.koin.android.ext.android.startKoin
 
 class App : Application() {
@@ -24,6 +28,20 @@ class App : Application() {
       )
     )
     createNotificationChannel()
+
+    WorkManager.getInstance().run {
+      getWorkInfosByTagLiveData(UpdateDailyWeatherWorker.TAG)
+        .observeForever {
+          debug("UpdateDailyWeatherWorker", "UpdateDailyWeatherWorker")
+          it.forEach { debug("info=$it", "UpdateDailyWeatherWorker") }
+        }
+
+      getWorkInfosByTagLiveData(UpdateCurrentWeatherWorker.TAG)
+        .observeForever {
+          debug("UpdateCurrentWeatherWorker", "UpdateCurrentWeatherWorker")
+          it.forEach { debug("info=$it", "UpdateCurrentWeatherWorker") }
+        }
+    }
   }
 
   private fun createNotificationChannel() {

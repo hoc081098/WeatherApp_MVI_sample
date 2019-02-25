@@ -64,7 +64,7 @@ class CitiesPresenter(
   }
 
   private fun refreshWeather(cityAndCurrentWeathers: Observable<List<CityAndCurrentWeather>>): Observable<PartialStateChange> {
-    return intent { it.refreshCurrentWeatherAtPosition() }
+    return intent(View::refreshCurrentWeatherAtPosition)
       .filter { it != RecyclerView.NO_POSITION }
       .withLatestFrom(cityAndCurrentWeathers)
       .map { (position, list) -> list[position] }
@@ -73,15 +73,25 @@ class CitiesPresenter(
         currentWeatherRepository
           .refreshWeatherOf(city)
           .doOnSuccess { (cityAndCurrentWeather) ->
-            WorkerUtil.enqueueUpdateCurrentWeatherWorkRequest()
-            WorkerUtil.enqueueUpdateDailyWeatherWorkWorkRequest()
-            if (settingPreferences.showNotificationPreference.value) {
-              androidApplication.showOrUpdateNotification(
-                cityName = cityAndCurrentWeather.city.name,
-                unit = settingPreferences.temperatureUnitPreference.value,
-                cityCountry = cityAndCurrentWeather.city.country,
-                weather = cityAndCurrentWeather.currentWeather
-              )
+            /**
+             * If refresh current selected city
+             */
+            if (city == selectedCityPreference.value.getOrNull()) {
+
+              if (settingPreferences.autoUpdatePreference.value) {
+                WorkerUtil.enqueueUpdateCurrentWeatherWorkRequest()
+                WorkerUtil.enqueueUpdateDailyWeatherWorkWorkRequest()
+              }
+
+              if (settingPreferences.showNotificationPreference.value) {
+                androidApplication.showOrUpdateNotification(
+                  cityName = cityAndCurrentWeather.city.name,
+                  unit = settingPreferences.temperatureUnitPreference.value,
+                  cityCountry = cityAndCurrentWeather.city.country,
+                  weather = cityAndCurrentWeather.currentWeather,
+                  popUpAndSound = settingPreferences.soundNotificationPreference.value
+                )
+              }
             }
           }
           .map { it.first.city }
@@ -93,7 +103,7 @@ class CitiesPresenter(
   }
 
   private fun deleteCityPartialChange(cityAndCurrentWeathers: Observable<List<CityAndCurrentWeather>>): Observable<PartialStateChange> {
-    return intent { it.deleteCityAtPosition() }
+    return intent(View::deleteCityAtPosition)
       .filter { it != RecyclerView.NO_POSITION }
       .withLatestFrom(cityAndCurrentWeathers)
       .map { (position, list) -> list[position] }
@@ -102,6 +112,9 @@ class CitiesPresenter(
         cityRepository
           .deleteCity(it)
           .doOnSuccess {
+            /**
+             * If delete selected city
+             */
             if (selectedCityPreference.value is None) {
               androidApplication.cancelNotificationById(WEATHER_NOTIFICATION_ID)
               WorkerUtil.cancelUpdateCurrentWeatherWorkRequest()
@@ -116,32 +129,33 @@ class CitiesPresenter(
   }
 
   private fun changeSelectedCity() {
+    val getWeatherSingle = currentWeatherRepository
+      .refreshCurrentWeatherOfSelectedCity()
+      .zipWith(fiveDayForecastRepository.refreshFiveDayForecastOfSelectedCity())
+      .doOnSuccess { (cityAndCurrentWeather) ->
+
+        if (settingPreferences.autoUpdatePreference.value) {
+          WorkerUtil.enqueueUpdateCurrentWeatherWorkRequest()
+          WorkerUtil.enqueueUpdateDailyWeatherWorkWorkRequest()
+        }
+
+        if (settingPreferences.showNotificationPreference.value) {
+          androidApplication.showOrUpdateNotification(
+            cityName = cityAndCurrentWeather.city.name,
+            unit = settingPreferences.temperatureUnitPreference.value,
+            cityCountry = cityAndCurrentWeather.city.country,
+            weather = cityAndCurrentWeather.currentWeather,
+            popUpAndSound = settingPreferences.soundNotificationPreference.value
+          )
+        }
+
+      }
+
     intent(View::changeSelectedCity)
       .switchMap { city ->
         cityRepository
           .changeSelectedCity(city)
-          .doOnComplete {
-            currentWeatherRepository
-              .refreshCurrentWeatherOfSelectedCity()
-              .zipWith(fiveDayForecastRepository.refreshFiveDayForecastOfSelectedCity())
-              .doOnSuccess { (cityAndCurrentWeather) ->
-
-                WorkerUtil.enqueueUpdateCurrentWeatherWorkRequest()
-                WorkerUtil.enqueueUpdateDailyWeatherWorkWorkRequest()
-
-                if (settingPreferences.showNotificationPreference.value) {
-                  androidApplication.showOrUpdateNotification(
-                    cityName = cityAndCurrentWeather.city.name,
-                    unit = settingPreferences.temperatureUnitPreference.value,
-                    cityCountry = cityAndCurrentWeather.city.country,
-                    weather = cityAndCurrentWeather.currentWeather
-                  )
-                }
-
-              }
-              .subscribeBy(onError = {})
-              .addTo(compositeDisposable)
-          }
+          .doOnComplete { getWeatherSingle.subscribeBy(onError = {}).addTo(compositeDisposable) }
           .toObservable<Unit>()
           .onErrorResumeNext(Observable.empty())
       }
@@ -153,16 +167,20 @@ class CitiesPresenter(
   }
 
   private fun cityListItemsPartialChange(cityAndCurrentWeathers: Observable<List<CityAndCurrentWeather>>): Observable<PartialStateChange> {
-    return combineLatest(cityRepository.getSelectedCity(), cityAndCurrentWeathers)
-      .map { (city, list) ->
+    return combineLatest(
+      cityRepository.getSelectedCity(),
+      cityAndCurrentWeathers,
+      settingPreferences.temperatureUnitPreference.observable
+    )
+      .map { (city, list, temperatureUnit) ->
         list.map {
           CityListItem(
             city = it.city,
             weatherIcon = it.currentWeather.icon,
             weatherConditionId = it.currentWeather.weatherConditionId,
             isSelected = it.city == city.getOrNull(),
-            temperatureMax = settingPreferences.temperatureUnitPreference.value.format(it.currentWeather.temperatureMax),
-            temperatureMin = settingPreferences.temperatureUnitPreference.value.format(it.currentWeather.temperatureMin),
+            temperatureMax = temperatureUnit.format(it.currentWeather.temperatureMax),
+            temperatureMin = temperatureUnit.format(it.currentWeather.temperatureMin),
             weatherDescription = it.currentWeather.description
           )
         }

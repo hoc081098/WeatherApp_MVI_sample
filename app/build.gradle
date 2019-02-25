@@ -55,12 +55,13 @@ dependencies {
     implementation 'com.google.android.gms:play-services-maps:15.0.1'
 
     // roomdb
-    implementation 'androidx.room:room-runtime:2.1.0-alpha03'
-    kapt 'androidx.room:room-compiler:2.1.0-alpha03'
-    implementation 'androidx.room:room-rxjava2:2.1.0-alpha03'
+    def roomVersion='2.1.0-alpha04'
+    implementation "androidx.room:room-runtime:$roomVersion"
+    kapt "androidx.room:room-compiler:$roomVersion"
+    implementation "androidx.room:room-rxjava2:$roomVersion"
 
     // work manager
-    def workVersion = '1.0.0-beta01'
+    def workVersion = '1.0.0-rc02'
     implementation "android.arch.work:work-runtime-ktx:$workVersion"
 
     // mosby
@@ -72,29 +73,29 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.1'
 
     // retrofit, moshi
-    implementation 'com.squareup.retrofit2:retrofit:2.4.0'
-    implementation 'com.squareup.retrofit2:converter-moshi:2.4.0'
+    implementation 'com.squareup.retrofit2:retrofit:2.5.0'
+    implementation 'com.squareup.retrofit2:converter-moshi:2.5.0'
     implementation 'com.squareup.retrofit2:adapter-rxjava2:2.4.0'
-    implementation 'com.squareup.okhttp3:logging-interceptor:3.11.0'
-    implementation 'com.squareup.moshi:moshi-kotlin:1.6.0'
+    implementation 'com.squareup.okhttp3:logging-interceptor:3.13.1'
+    implementation 'com.squareup.moshi:moshi-kotlin:1.8.0'
 
     // rxkotlin and rxandroid
-    implementation 'io.reactivex.rxjava2:rxkotlin:2.2.0'
-    implementation 'io.reactivex.rxjava2:rxandroid:2.1.0'
+    implementation 'io.reactivex.rxjava2:rxkotlin:2.3.0'
+    implementation 'io.reactivex.rxjava2:rxandroid:2.1.1'
 
     // rxbinding
-    implementation 'com.jakewharton.rxbinding3:rxbinding:3.0.0-alpha1'
-    implementation 'com.jakewharton.rxbinding3:rxbinding-swiperefreshlayout:3.0.0-alpha1'
+    implementation 'com.jakewharton.rxbinding3:rxbinding:3.0.0-alpha2'
+    implementation 'com.jakewharton.rxbinding3:rxbinding-swiperefreshlayout:3.0.0-alpha2'
 
     // koin
-    implementation 'org.koin:koin-android:1.0.1'
+    implementation 'org.koin:koin-android:1.0.2'
 
     // view pager indicator
     implementation 'com.tbuonomo.andrui:viewpagerdotsindicator:2.1.2'
 
     // glide
-    implementation 'com.github.bumptech.glide:glide:4.8.0'
-    kapt 'com.github.bumptech.glide:compiler:4.8.0'
+    implementation 'com.github.bumptech.glide:glide:4.9.0'
+    kapt 'com.github.bumptech.glide:compiler:4.9.0'
 
     implementation 'com.diogobernardino:williamchart:2.5.0'
     implementation 'com.miguelcatalan:materialsearchview:1.4.0'
