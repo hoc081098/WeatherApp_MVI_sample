@@ -9,7 +9,6 @@
     <string name="pressure_chart_title">Pressure (%s)</string>
     <string name="wind_speed_chart_title">Wind speed (%s)</string>
 
-    <string name="temperature_degree" translatable="false">%s°</string>
     <string name="humidity" translatable="false">%d%%</string>
     <string name="city_name_and_country" translatable="false">%s - %s</string>
     <string name="no_main_weather" translatable="false">____</string>
@@ -58,6 +57,8 @@
     <string name="key_speed_unit" translatable="false">speed_unit</string>
     <string name="key_pressure_unit" translatable="false">pressure_unit</string>
     <string name="key_show_notification" translatable="false">show_notification</string>
+    <string name="key_auto_update" translatable="false">key_auto_update</string>
+    <string name="key_sound_notification" translatable="false">key_sound_notification</string>
 
     <string name="pref_title_select_temperature_unit">Select temperature unit</string>
     <string name="pref_title_select_speed_unit">Select wind speed unit</string>

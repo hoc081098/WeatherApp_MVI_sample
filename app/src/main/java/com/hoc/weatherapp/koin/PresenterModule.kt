@@ -2,6 +2,7 @@ package com.hoc.weatherapp.koin
 
 import com.hoc.weatherapp.ui.addcity.AddCityPresenter
 import com.hoc.weatherapp.ui.cities.CitiesPresenter
+import com.hoc.weatherapp.ui.main.ColorHolderSource
 import com.hoc.weatherapp.ui.main.MainPresenter
 import com.hoc.weatherapp.ui.main.chart.ChartPresenter
 import com.hoc.weatherapp.ui.main.currentweather.CurrentWeatherPresenter
@@ -22,18 +23,22 @@ val presenterModule = module {
   factory { getMainPresenter() }
 
   factory { getChartPresenter() }
+
+  single { getColorHolderSource() }
 }
+
+fun getColorHolderSource() = ColorHolderSource()
 
 private fun ModuleDefinition.getChartPresenter(): ChartPresenter {
   return ChartPresenter(get(), get())
 }
 
 private fun ModuleDefinition.getMainPresenter(): MainPresenter {
-  return MainPresenter(get())
+  return MainPresenter(get(), get())
 }
 
 private fun ModuleDefinition.getDailyWeatherPresenter(): DailyWeatherPresenter {
-  return DailyWeatherPresenter(get(), get(), androidApplication())
+  return DailyWeatherPresenter(get(), get(), get(), androidApplication())
 }
 
 private fun ModuleDefinition.getAddCityPresenter(): AddCityPresenter {

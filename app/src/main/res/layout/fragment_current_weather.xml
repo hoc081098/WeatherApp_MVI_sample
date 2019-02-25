@@ -5,6 +5,7 @@
     android:id="@+id/swipe_refresh_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    tools:layout_height="200dp"
     tools:background="@drawable/clear_night_bg"
     tools:context=".ui.main.MainActivity">
 
@@ -63,6 +64,7 @@
                 tools:text="Cloudy" />
 
             <TextView
+                app:layout_goneMarginBottom="48dp"
                 android:id="@+id/text_last_update"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -103,6 +105,7 @@
 
             <androidx.cardview.widget.CardView
                 android:id="@+id/card_view1"
+                tools:visibility="gone"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
@@ -116,7 +119,7 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/button_live"
-                tools:visibility="visible">
+                >
 
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="match_parent"
@@ -433,6 +436,7 @@
 
             <androidx.cardview.widget.CardView
                 android:id="@+id/card_view2"
+                tools:visibility="gone"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
@@ -446,7 +450,7 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/card_view1"
-                tools:visibility="visible">
+                >
 
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="match_parent"

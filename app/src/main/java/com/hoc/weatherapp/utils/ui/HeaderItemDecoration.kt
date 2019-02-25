@@ -17,6 +17,11 @@ class HeaderItemDecoration(private val listener: StickyHeaderInterface) :
     if (topChildPosition == RecyclerView.NO_POSITION) return
 
     val headerPosition = listener.getHeaderPositionForItem(topChildPosition)
+    /**
+     * Fix header issue for first item
+     */
+    if (headerPosition == null) return
+
     if (!::headerView.isInitialized) {
       headerView = LayoutInflater.from(parent.context).inflate(listener.headerLayout, parent, false)
       fixLayoutSize(parent, headerView)
@@ -80,7 +85,7 @@ class HeaderItemDecoration(private val listener: StickyHeaderInterface) :
   interface StickyHeaderInterface {
     val headerLayout: Int
 
-    fun getHeaderPositionForItem(itemPosition: Int): Int
+    fun getHeaderPositionForItem(itemPosition: Int): Int?
 
     fun bindHeaderData(header: View, headerPosition: Int)
 

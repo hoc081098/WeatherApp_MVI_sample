@@ -28,6 +28,8 @@ class FiveDayForecastRepositoryImpl(
         is None -> Observable.just(None)
       }
     }
+   .replay(1)
+   .autoConnect(0)
 
   /**
    * Get stream of five day weather, get from local database

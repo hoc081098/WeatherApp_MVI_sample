@@ -3,6 +3,7 @@ package com.hoc.weatherapp.ui.main
 import com.hannesdorfmann.mosby3.mvp.MvpView
 import com.hoc.weatherapp.data.models.entity.City
 import com.hoc.weatherapp.data.models.entity.CurrentWeather
+import io.reactivex.Observable
 
 interface MainContract {
   sealed class ViewState {
@@ -15,6 +16,8 @@ interface MainContract {
   }
 
   interface View : MvpView {
+    fun changeDarkVibrantColorIntent(): Observable<Int>
+
     fun render(state: ViewState)
   }
 }

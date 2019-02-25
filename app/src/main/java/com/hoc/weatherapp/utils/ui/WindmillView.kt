@@ -17,6 +17,7 @@ class WindmillView @JvmOverloads constructor(
   defStyleRes: Int = 0
 ) : RelativeLayout(context, attrs, defStyleAttr, defStyleRes) {
   private val bladeImageView: ImageView
+
   var winSpeed: Double = 0.0
     set(value) {
       val anim = AnimationUtils.loadAnimation(context, R.anim.windmill)
@@ -28,7 +29,7 @@ class WindmillView @JvmOverloads constructor(
     }
 
   private fun calculateDuration(value: Double): Long {
-    return (maxOf((1 - value / 10.0), 0.0) * MAX_ANIM_DURATION).toLong()
+    return (maxOf((1 - value / MAX_WIND_SPEED), 0.0) * MAX_ANIM_DURATION).toLong()
   }
 
   init {
@@ -43,6 +44,7 @@ class WindmillView @JvmOverloads constructor(
   }
 
   companion object {
-    const val MAX_ANIM_DURATION = 10_000
+    private const val MAX_ANIM_DURATION = 10_000
+    private const val MAX_WIND_SPEED = 20.0
   }
 }

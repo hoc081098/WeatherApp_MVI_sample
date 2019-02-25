@@ -10,7 +10,7 @@ class Main(
   val temp: Double? = null,
 
   /**
-   * Minimum temperature at the moment of calculation.
+   * Minimum temperatureString at the moment of calculation.
    * This is deviation from 'temp' that is possible for large cities and megalopolises geographically expanded (use these parameter optionally).
    * Unit Default: Kelvin, Metric: Celsius, Imperial: Fahrenheit.
    */
@@ -18,7 +18,7 @@ class Main(
   val tempMin: Double? = null,
 
   /**
-   *  Maximum temperature at the moment of calculation.
+   *  Maximum temperatureString at the moment of calculation.
    *  This is deviation from 'temp' that is possible for large cities and megalopolises geographically expanded (use these parameter optionally).
    *  Unit Default: Kelvin, Metric: Celsius, Imperial: Fahrenheit.
    */

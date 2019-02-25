@@ -15,7 +15,7 @@ import org.koin.standalone.inject
 class UpdateCurrentWeatherWorker(context: Context, workerParams: WorkerParameters) :
   Worker(context, workerParams), KoinComponent {
   private val currentWeatherRepository by inject<CurrentWeatherRepository>()
-  private val sharedPrefUtil by inject<SettingPreferences>()
+  private val settingPreferences by inject<SettingPreferences>()
 
   override fun doWork(): Result {
     return runCatching {
@@ -23,26 +23,22 @@ class UpdateCurrentWeatherWorker(context: Context, workerParams: WorkerParameter
         .refreshCurrentWeatherOfSelectedCity()
         .blockingGet()
 
-    }.fold(
-      onSuccess = {
-        if (sharedPrefUtil.showNotificationPreference.value) {
-          applicationContext.showOrUpdateNotification(
-            cityName = it.city.name,
-            unit = sharedPrefUtil.temperatureUnitPreference.value,
-            cityCountry = it.city.country,
-            weather = it.currentWeather
-          )
-        }
-        Result.success()
-      },
-      onFailure = {
-        if (it is NoSelectedCityException) {
-          applicationContext.cancelNotificationById(WEATHER_NOTIFICATION_ID)
-          WorkerUtil.cancelUpdateCurrentWeatherWorkRequest()
-        }
-        Result.failure()
+    }.onSuccess {
+      if (settingPreferences.showNotificationPreference.value) {
+        applicationContext.showOrUpdateNotification(
+          cityName = it.city.name,
+          unit = settingPreferences.temperatureUnitPreference.value,
+          cityCountry = it.city.country,
+          weather = it.currentWeather,
+          popUpAndSound = settingPreferences.soundNotificationPreference.value
+        )
       }
-    )
+    }.onFailure {
+      if (it is NoSelectedCityException) {
+        applicationContext.cancelNotificationById(WEATHER_NOTIFICATION_ID)
+        WorkerUtil.cancelUpdateCurrentWeatherWorkRequest()
+      }
+    }.fold({ Result.success() }, { Result.failure() })
   }
 
   companion object {

@@ -1,6 +1,7 @@
 package com.hoc.weatherapp.ui.main.fivedayforecast
 
 import android.os.Parcelable
+import androidx.annotation.ColorInt
 import com.hoc.weatherapp.data.models.WindDirection
 import kotlinx.android.parcel.Parcelize
 import java.util.*
@@ -8,6 +9,7 @@ import java.util.*
 interface DailyWeatherListItem {
   @Parcelize
   data class Weather(
+    @ColorInt val iconBackgroundColor: Int,
     val weatherIcon: String,
     val dataTime: Date,
     val weatherDescription: String,

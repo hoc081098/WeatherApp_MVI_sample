@@ -85,4 +85,18 @@ class SettingPreferences(sharedPreferences: SharedPreferences, androidApplicatio
     getter = SharedPreferences::getBoolean,
     sharedPreferences = sharedPreferences
   )
+
+  val autoUpdatePreference = BaseSettingPreference(
+    key = androidApplication.getString(R.string.key_auto_update),
+    defaultValue = true,
+    getter = SharedPreferences::getBoolean,
+    sharedPreferences = sharedPreferences
+  )
+
+  val soundNotificationPreference = BaseSettingPreference(
+    key = androidApplication.getString(R.string.key_sound_notification),
+    defaultValue = true,
+    getter = SharedPreferences::getBoolean,
+    sharedPreferences = sharedPreferences
+  )
 }
