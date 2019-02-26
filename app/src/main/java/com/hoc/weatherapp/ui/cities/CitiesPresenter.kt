@@ -1,5 +1,6 @@
 package com.hoc.weatherapp.ui.cities
 
+import android.annotation.SuppressLint
 import android.app.Application
 import androidx.recyclerview.widget.RecyclerView
 import com.hannesdorfmann.mosby3.mvi.MviBasePresenter
@@ -17,7 +18,6 @@ import com.hoc.weatherapp.utils.*
 import com.hoc.weatherapp.worker.WorkerUtil
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.*
 import io.reactivex.rxkotlin.Observables.combineLatest
 import java.util.concurrent.TimeUnit
@@ -32,7 +32,6 @@ class CitiesPresenter(
   private val selectedCityPreference: SelectedCityPreference,
   private val androidApplication: Application
 ) : MviBasePresenter<View, ViewState>() {
-  private val compositeDisposable = CompositeDisposable()
 
   override fun bindIntents() {
     val cityAndCurrentWeathers = intent(View::searchStringIntent)
@@ -128,6 +127,7 @@ class CitiesPresenter(
       }
   }
 
+  @SuppressLint("CheckResult")
   private fun changeSelectedCity() {
     val getWeatherSingle = currentWeatherRepository
       .refreshCurrentWeatherOfSelectedCity()
@@ -155,15 +155,14 @@ class CitiesPresenter(
       .switchMap { city ->
         cityRepository
           .changeSelectedCity(city)
-          .doOnComplete { getWeatherSingle.subscribeBy(onError = {}).addTo(compositeDisposable) }
-          .toObservable<Unit>()
+          .andThen(getWeatherSingle)
+          .toObservable()
           .onErrorResumeNext(Observable.empty())
       }
       .subscribeBy(
         onNext = { debug("changeSelectedCity onNext=$it", TAG) },
         onError = { debug("changeSelectedCity onNext=$it", TAG) }
       )
-      .addTo(compositeDisposable)
   }
 
   private fun cityListItemsPartialChange(cityAndCurrentWeathers: Observable<List<CityAndCurrentWeather>>): Observable<PartialStateChange> {
@@ -192,10 +191,6 @@ class CitiesPresenter(
       .doOnNext { debug("cityListItems $it", TAG) }
   }
 
-  override fun unbindIntents() {
-    super.unbindIntents()
-    compositeDisposable.clear()
-  }
 
   private fun reduce(viewState: ViewState, partialStateChange: PartialStateChange): ViewState {
     return when (partialStateChange) {

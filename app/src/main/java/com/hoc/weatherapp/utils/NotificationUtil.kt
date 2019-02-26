@@ -13,7 +13,7 @@ import com.hoc.weatherapp.CancelNotificationReceiver
 import com.hoc.weatherapp.R
 import com.hoc.weatherapp.data.models.TemperatureUnit
 import com.hoc.weatherapp.data.models.entity.CurrentWeather
-import com.hoc.weatherapp.ui.main.MainActivity
+import com.hoc.weatherapp.ui.SplashActivity
 import com.hoc.weatherapp.utils.ui.getIconDrawableFromCurrentWeather
 import java.text.SimpleDateFormat
 import java.util.*
@@ -76,7 +76,7 @@ fun Context.showOrUpdateNotification(
   val resultPendingIntent = PendingIntent.getActivity(
     this,
     0,
-    Intent(applicationContext, MainActivity::class.java),
+    Intent(applicationContext, SplashActivity::class.java),
     PendingIntent.FLAG_UPDATE_CURRENT
   )
   builder.setContentIntent(resultPendingIntent)

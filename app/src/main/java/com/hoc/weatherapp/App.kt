@@ -13,11 +13,20 @@ import com.hoc.weatherapp.koin.sharePrefUtilModule
 import com.hoc.weatherapp.utils.debug
 import com.hoc.weatherapp.worker.UpdateCurrentWeatherWorker
 import com.hoc.weatherapp.worker.UpdateDailyWeatherWorker
+import com.jakewharton.threetenabp.AndroidThreeTen
+import io.reactivex.plugins.RxJavaPlugins
 import org.koin.android.ext.android.startKoin
 
 class App : Application() {
   override fun onCreate() {
     super.onCreate()
+
+    AndroidThreeTen.init(this)
+
+    RxJavaPlugins.setErrorHandler {
+      debug("RxJava error: $it", "RXJAVA_ERROR", it)
+    }
+
     startKoin(
       this,
       listOf(

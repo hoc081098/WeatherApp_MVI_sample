@@ -47,9 +47,9 @@ fun Fragment.toast(message: CharSequence) = context?.toast(message)
 inline fun <reified T : Context> Context.startActivity() =
   startActivity(Intent(this, T::class.java))
 
-inline fun <reified T : Any> T.debug(msg: Any?, tag: String? = null) {
+inline fun <reified T : Any> T.debug(msg: Any?, tag: String? = null, throwable: Throwable? = null) {
   if (BuildConfig.DEBUG) {
-    Log.d(tag ?: this::class.java.simpleName, msg.toString())
+    Log.d(tag ?: this::class.java.simpleName, msg.toString(), throwable)
   } else {
     //Not logging in release mode
   }

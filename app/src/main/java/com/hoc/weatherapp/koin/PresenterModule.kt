@@ -42,7 +42,7 @@ private fun ModuleDefinition.getDailyWeatherPresenter(): DailyWeatherPresenter {
 }
 
 private fun ModuleDefinition.getAddCityPresenter(): AddCityPresenter {
-  return AddCityPresenter(get(), androidApplication())
+  return AddCityPresenter(get(), get(), androidApplication())
 }
 
 private fun ModuleDefinition.getCurrentWeatherPresenter(): CurrentWeatherPresenter {
