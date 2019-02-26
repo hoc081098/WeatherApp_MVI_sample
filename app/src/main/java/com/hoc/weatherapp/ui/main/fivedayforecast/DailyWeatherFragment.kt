@@ -44,6 +44,7 @@ class DetailDialog : DialogFragment() {
     @JvmStatic
     fun newInstance(item: DailyWeatherListItem.Weather): DetailDialog {
       return DetailDialog().apply {
+        setStyle(STYLE_NO_TITLE, 0)
         arguments = Bundle().apply {
           putParcelable(ITEM_KEY, item)
         }

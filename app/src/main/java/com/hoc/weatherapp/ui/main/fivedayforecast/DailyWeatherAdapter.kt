@@ -188,7 +188,7 @@ class DailyWeatherAdapter : ListAdapter<DailyWeatherListItem, RecyclerView.ViewH
       textView.text = HEADER_DATE_FORMAT.format(headerItem.date)
 
       @ColorInt val bgColor =
-        iconBackgroundColor?.let { ColorUtils.setAlphaComponent(it, 0xCC) } ?: Color.TRANSPARENT
+        iconBackgroundColor?.let { ColorUtils.setAlphaComponent(it, 0xE6) } ?: Color.TRANSPARENT
       itemView.setBackgroundColor(bgColor)
     }
   }

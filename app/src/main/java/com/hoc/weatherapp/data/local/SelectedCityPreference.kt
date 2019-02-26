@@ -1,6 +1,7 @@
 package com.hoc.weatherapp.data.local
 
 import android.content.SharedPreferences
+import androidx.annotation.WorkerThread
 import com.hoc.weatherapp.data.models.entity.City
 import com.hoc.weatherapp.utils.Optional
 import com.hoc.weatherapp.utils.delegate
@@ -27,6 +28,7 @@ class SelectedCityPreference(sharedPreferences: SharedPreferences, private val m
    * Save [value] to shared preference
    * @param value
    */
+  @WorkerThread
   override fun save(value: Optional<City>) {
     selectedCityJsonString = moshi
       .adapter(City::class.java)

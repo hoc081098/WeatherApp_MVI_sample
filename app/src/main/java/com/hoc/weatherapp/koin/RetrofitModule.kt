@@ -14,7 +14,7 @@ import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.moshi.MoshiConverterFactory
 
 const val OPEN_WEATHER_MAP_RETROFIT = "OPEN_WEATHER_MAP_RETROFIT"
-const val HELPER_RETROFIT = "HELPER_RETROFIT"
+const val TIMEZONE_DB_RETROFIT = "TIMEZONE_DB_RETROFIT"
 
 val retrofitModule = module {
   single { getOkHttpClient() }
@@ -25,20 +25,18 @@ val retrofitModule = module {
 
   single { getWeatherApiService() }
 
-  single(name = HELPER_RETROFIT) { getHelperRetrofit() }
+  single(name = TIMEZONE_DB_RETROFIT) { getTimezoneDbRetrofit() }
 
-  single { getHelperApiService() }
+  single { getTimezoneDbApiService() }
 }
 
-private fun ModuleDefinition.getHelperApiService(): HelperApiService {
-  return get<Retrofit>(name = HELPER_RETROFIT).create(
-    HelperApiService::class.java
-  )
+private fun ModuleDefinition.getTimezoneDbApiService(): TimezoneDbApiService {
+  return get<Retrofit>(name = TIMEZONE_DB_RETROFIT).create(TimezoneDbApiService::class.java)
 }
 
-private fun ModuleDefinition.getHelperRetrofit(): Retrofit {
+private fun ModuleDefinition.getTimezoneDbRetrofit(): Retrofit {
   return Retrofit.Builder()
-    .baseUrl(BASE_URL_HELPER)
+    .baseUrl(BASE_URL_TIMEZONE_DB)
     .client(get())
     .addConverterFactory(MoshiConverterFactory.create(get()))
     .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
@@ -46,14 +44,13 @@ private fun ModuleDefinition.getHelperRetrofit(): Retrofit {
 }
 
 private fun ModuleDefinition.getWeatherApiService(): OpenWeatherMapApiService {
-  return get<Retrofit>(name = OPEN_WEATHER_MAP_RETROFIT).create(
-    OpenWeatherMapApiService::class.java
-  )
+  return get<Retrofit>(name = OPEN_WEATHER_MAP_RETROFIT)
+    .create(OpenWeatherMapApiService::class.java)
 }
 
 private fun ModuleDefinition.getOpenWeatherMapRetrofit(): Retrofit {
   return Retrofit.Builder()
-    .baseUrl(BASE_URL)
+    .baseUrl(OPEN_WEATHER_MAP_BASE_URL)
     .client(get())
     .addConverterFactory(MoshiConverterFactory.create(get()))
     .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
@@ -76,19 +73,37 @@ private fun getOkHttpClient(): OkHttpClient {
       }
     }
     .addInterceptor { chain ->
-      chain.request().let { originalRequest ->
-        originalRequest
+      val originalRequest = chain.request()
+      val host = originalRequest.url().host()
+
+      when {
+        "openweathermap" in host -> originalRequest
           .newBuilder()
           .url(
             originalRequest.url()
               .newBuilder()
               .addQueryParameter("units", TemperatureUnit.KELVIN.toString())
-              .addQueryParameter("appid", APP_ID)
+              .addQueryParameter("appid", OPEN_WEATHER_MAP_APP_ID)
               .build()
           )
-          .build()
-          .let(chain::proceed)
-      }
+        "timezonedb" in host -> {
+          if ("get-time-zone" in originalRequest.url().encodedPath()) {
+            originalRequest
+              .newBuilder()
+              .url(
+                originalRequest.url()
+                  .newBuilder()
+                  .addQueryParameter("format", "json")
+                  .addQueryParameter("key", TIMEZONE_DB_API_KEY)
+                  .addQueryParameter("by", "position")
+                  .build()
+              )
+          } else {
+            return@addInterceptor chain.proceed(originalRequest)
+          }
+        }
+        else -> return@addInterceptor chain.proceed(originalRequest)
+      }.build().let(chain::proceed)
     }
     .build()
 }

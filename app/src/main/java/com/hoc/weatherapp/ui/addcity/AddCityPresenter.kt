@@ -6,6 +6,7 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.LocationSettingsRequest
 import com.hannesdorfmann.mosby3.mvi.MviBasePresenter
 import com.hoc.weatherapp.data.CityRepository
+import com.hoc.weatherapp.data.CurrentWeatherRepository
 import com.hoc.weatherapp.ui.addcity.AddCityContract.View
 import com.hoc.weatherapp.ui.addcity.AddCityContract.ViewState
 import com.hoc.weatherapp.utils.MyUnsafeLazyImpl
@@ -15,12 +16,14 @@ import io.reactivex.Observable
 import io.reactivex.ObservableTransformer
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.rxkotlin.cast
+import io.reactivex.rxkotlin.subscribeBy
 import io.reactivex.rxkotlin.toObservable
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 
 class AddCityPresenter(
   private val cityRepository: CityRepository,
+  private val currentWeatherRepository: CurrentWeatherRepository,
   private val application: Application
 ) :
   MviBasePresenter<View, ViewState>() {
@@ -50,51 +53,42 @@ class AddCityPresenter(
 
   private val tag = "_add_city_"
 
-  private val addCityTransformer = ObservableTransformer<Pair<Double, Double>, ViewState> {
-    it.flatMap { (latitude, longitude) ->
-      cityRepository
-        .addCityByLatLng(latitude, longitude)
-        .doOnSubscribe { debug("addCityByLatLng...", tag) }
-        .toObservable()
-        .flatMapIterable {
-          listOf(
-            ViewState.AddCitySuccessfully(city = it, showMessage = true),
-            ViewState.AddCitySuccessfully(city = it, showMessage = false)
-          )
+  private val addCityTransformer =
+    ObservableTransformer<Pair<Double, Double>, ViewState> { intent ->
+      intent
+        .flatMap { (latitude, longitude) ->
+          cityRepository
+            .addCityByLatLng(latitude, longitude)
+            .doOnSubscribe { debug("addCityByLatLng...", tag) }
+            .doOnSuccess {
+              currentWeatherRepository
+                .refreshWeatherOf(it)
+                .subscribeBy(onSuccess = {
+                  debug("refreshWeatherOf success.. $it", tag)
+                })
+            }
+            .toObservable()
+            .flatMapIterable {
+              listOf(
+                ViewState.AddCitySuccessfully(city = it, showMessage = true),
+                ViewState.AddCitySuccessfully(city = it, showMessage = false)
+              )
+            }
+            .cast<ViewState>()
+            .onErrorResumeNext { throwable: Throwable ->
+              listOf(
+                ViewState.Error(showMessage = true, throwable = throwable),
+                ViewState.Error(showMessage = false, throwable = throwable)
+              ).toObservable()
+            }
+            .observeOn(AndroidSchedulers.mainThread())
+            .startWith(ViewState.Loading)
+            .doOnNext { debug("addCityTransformer $it", tag) }
         }
-        .cast<ViewState>()
-        .onErrorResumeNext { throwable: Throwable ->
-          listOf(
-            ViewState.Error(showMessage = true, throwable = throwable),
-            ViewState.Error(showMessage = false, throwable = throwable)
-          ).toObservable()
-        }
-        .observeOn(AndroidSchedulers.mainThread())
-        .startWith(ViewState.Loading)
-        .doOnNext { debug("addCityTransformer $it", tag) }
     }
-  }
 
-  override fun bindIntents() {
-    val addCurrentLocation = intent(View::addCurrentLocationIntent)
-      .flatMap(::addCurrentLocationIntentToViewState)
-      .doOnNext { debug("addCurrentLocation $it", tag) }
-      .doOnError { debug("addCurrentLocation $it", tag) }
-      .doOnComplete { debug("addCurrentLocation", tag) }
-
-    val addCityByLatLng = intent(View::addCityByLatLngIntent).compose(addCityTransformer)
-
-    subscribeViewState(
-      Observable.mergeArray(addCityByLatLng, addCurrentLocation)
-        .distinctUntilChanged()
-        .doOnNext { debug("ViewState = $it", tag) }
-        .observeOn(AndroidSchedulers.mainThread()),
-      View::render
-    )
-  }
-
-  private fun addCurrentLocationIntentToViewState(ignored: Unit): Observable<ViewState> {
-    return application.checkLocationSettingAndGetCurrentLocation(
+  private val addCurrentLocationProcessor = ObservableTransformer<Unit, ViewState> { _ ->
+    application.checkLocationSettingAndGetCurrentLocation(
       settingsClient = settingsClient,
       fusedLocationProviderClient = fusedLocationProviderClient,
       locationRequest = locationRequest,
@@ -120,6 +114,25 @@ class AddCityPresenter(
       .observeOn(AndroidSchedulers.mainThread())
       .doOnNext { debug("viewState $it", tag) }
       .startWith(ViewState.Loading)
+  }
+
+  override fun bindIntents() {
+    val addCurrentLocation = intent(View::addCurrentLocationIntent)
+      .compose(addCurrentLocationProcessor)
+      .doOnNext { debug("addCurrentLocation $it", tag) }
+      .doOnError { debug("addCurrentLocation $it", tag) }
+      .doOnComplete { debug("addCurrentLocation", tag) }
+
+    val addCityByLatLng = intent(View::addCityByLatLngIntent)
+      .compose(addCityTransformer)
+
+    subscribeViewState(
+      Observable.mergeArray(addCityByLatLng, addCurrentLocation)
+        .distinctUntilChanged()
+        .doOnNext { debug("ViewState = $it", tag) }
+        .observeOn(AndroidSchedulers.mainThread()),
+      View::render
+    )
   }
 
   override fun unbindIntents() {
