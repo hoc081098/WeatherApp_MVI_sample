@@ -9,6 +9,7 @@ import com.hoc.weatherapp.data.models.PressureUnit
 import com.hoc.weatherapp.data.models.SpeedUnit
 import com.hoc.weatherapp.data.models.TemperatureUnit
 import com.hoc.weatherapp.data.models.WindDirection
+import com.hoc.weatherapp.data.models.entity.City
 import com.hoc.weatherapp.data.models.entity.DailyWeather
 import com.hoc.weatherapp.ui.main.ColorHolderSource
 import com.hoc.weatherapp.ui.main.fivedayforecast.DailyWeatherContract.*
@@ -32,7 +33,7 @@ class DailyWeatherPresenter(
   private val tag = "_five_day_forecast_"
 
   private data class Tuple5(
-    val weathers: List<DailyWeather>,
+    val weathers: Pair<City, List<DailyWeather>>,
     val temperatureUnit: TemperatureUnit,
     val speedUnit: SpeedUnit,
     val pressureUnit: PressureUnit,
@@ -40,13 +41,16 @@ class DailyWeatherPresenter(
   )
 
   private fun mapListDailyWeathersToListItem(tuple5: Tuple5): List<DailyWeatherListItem> {
-    val (weathers, temperatureUnit, windSpeedUnit, pressureUnit, iconBackgroundColor) = tuple5
+    val (cityAndWeathers, temperatureUnit, windSpeedUnit, pressureUnit, iconBackgroundColor) = tuple5
 
-    return weathers
+    return cityAndWeathers
+      .second
       .groupBy { it.timeOfDataForecasted.trim() }
       .toSortedMap()
       .flatMap { (date, weathers) ->
-        listOf(DailyWeatherListItem.Header(date)) +
+        val zoneId = cityAndWeathers.first.zoneId
+
+        listOf(DailyWeatherListItem.Header(date.toZonedDateTime(zoneId))) +
           weathers.map {
             DailyWeatherListItem.Weather(
               weatherIcon = it.icon,
@@ -55,7 +59,7 @@ class DailyWeatherPresenter(
               temperatureMin = temperatureUnit.format(it.temperatureMin),
               temperatureMax = temperatureUnit.format(it.temperatureMax),
               temperature = temperatureUnit.format(it.temperature),
-              dataTime = it.timeOfDataForecasted,
+              dataTime = it.timeOfDataForecasted.toZonedDateTime(zoneId),
               cloudiness = "${it.cloudiness}%",
               humidity = "${it.humidity}%",
               rainVolumeForTheLast3Hours = "${it.rainVolumeForTheLast3Hours}mm",
@@ -115,7 +119,7 @@ class DailyWeatherPresenter(
                 settingPreferences.temperatureUnitPreference.value,
                 settingPreferences.speedUnitPreference.value,
                 settingPreferences.pressureUnitPreference.value,
-                colorHolderSource.darkVibrantColor
+                colorHolderSource.vibrantColor
               )
             )
           }
@@ -128,11 +132,12 @@ class DailyWeatherPresenter(
   private fun weatherChangePartialState(): Observable<PartialStateChange> {
     return Observables.combineLatest(
       source1 = fiveDayForecastRepository.getFiveDayForecastOfSelectedCity()
-        .map { it.getOrNull().orEmpty() },
+        .ofType<Some<Pair<City, List<DailyWeather>>>>()
+        .map { it.value },
       source2 = settingPreferences.temperatureUnitPreference.observable,
       source3 = settingPreferences.speedUnitPreference.observable,
       source4 = settingPreferences.pressureUnitPreference.observable,
-      source5 = colorHolderSource.darkVibrantColorObservable,
+      source5 = colorHolderSource.vibrantColorObservable,
       combineFunction = { list, temperatureUnit, speedUnit, pressureUnit, color ->
         Tuple5(list, temperatureUnit, speedUnit, pressureUnit, color)
       }

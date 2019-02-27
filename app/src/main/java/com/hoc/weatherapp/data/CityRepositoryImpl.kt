@@ -8,16 +8,19 @@ import com.hoc.weatherapp.data.local.FiveDayForecastLocalDataSource
 import com.hoc.weatherapp.data.local.SelectedCityPreference
 import com.hoc.weatherapp.data.models.entity.City
 import com.hoc.weatherapp.data.remote.OpenWeatherMapApiService
-import com.hoc.weatherapp.utils.Optional
+import com.hoc.weatherapp.data.remote.TimezoneDbApiService
+import com.hoc.weatherapp.data.remote.getZoneId
 import com.hoc.weatherapp.utils.getOrNull
 import com.hoc.weatherapp.utils.toOptional
 import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
+import io.reactivex.rxkotlin.Singles
 import io.reactivex.schedulers.Schedulers
 
 class CityRepositoryImpl(
   private val openWeatherMapApiService: OpenWeatherMapApiService,
+  private val timezoneDbApiService: TimezoneDbApiService,
   private val cityLocalDataSource: CityLocalDataSource,
   private val fiveDayForecastLocalDataSource: FiveDayForecastLocalDataSource,
   private val currentWeatherLocalDataSource: CurrentWeatherLocalDataSource,
@@ -27,9 +30,7 @@ class CityRepositoryImpl(
    * Get stream of selected city
    * @return [Observable] emit [None] when having no selected city, otherwise emit [Some] of [City]
    */
-  override fun getSelectedCity(): Observable<Optional<City>> {
-    return selectedCityPreference.observable
-  }
+  override fun getSelectedCity() = selectedCityPreference.observable
 
   /**
    * Delete [city]
@@ -58,10 +59,20 @@ class CityRepositoryImpl(
    * @return a [Single] emit added city or emit error
    */
   override fun addCityByLatLng(latitude: Double, longitude: Double): Single<City> {
-    return openWeatherMapApiService
-      .getCurrentWeatherByLatLng(latitude, longitude)
-      .subscribeOn(Schedulers.io())
-      .flatMap { saveCityAndCurrentWeather(cityLocalDataSource, currentWeatherLocalDataSource, it) }
+    return Singles.zip(
+      openWeatherMapApiService
+        .getCurrentWeatherByLatLng(latitude, longitude)
+        .subscribeOn(Schedulers.io()),
+      getZoneId(timezoneDbApiService, latitude, longitude)
+    )
+      .flatMap {
+        saveCityAndCurrentWeather(
+          cityLocalDataSource,
+          currentWeatherLocalDataSource,
+          it.first,
+          it.second
+        )
+      }
       .map { it.city }
       .flatMap { city ->
         openWeatherMapApiService

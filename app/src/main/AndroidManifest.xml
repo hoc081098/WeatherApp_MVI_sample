@@ -31,9 +31,9 @@
         </activity>
 
         <activity
-            android:launchMode="singleTop"
             android:name=".ui.main.MainActivity"
             android:label="@string/app_name"
+            android:launchMode="singleTop"
             android:theme="@style/AppTheme.NoActionBar" />
 
         <activity android:name=".ui.cities.CitiesActivity" />
@@ -62,6 +62,10 @@
         <activity android:name=".ui.map.MapActivity" />
 
         <activity android:name=".ui.addcity.AddCityActivity" />
+
+        <activity
+            android:name=".ui.main.fivedayforecast.DailyDetailActivity"
+            android:theme="@style/AppTheme.NoActionBar" />
 
         <receiver
             android:name=".CancelNotificationReceiver"

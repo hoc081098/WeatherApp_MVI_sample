@@ -17,7 +17,9 @@
 
     <string name="wind_direction">Direction: %s</string>
     <string name="wind_speed">Speed: %s</string>
-    <string name="last_updated">Last updated: %s</string>
+    <string name="last_updated">Last updated: %s (%s)</string>
+    <string name="last_updated_none">Last updated: %s</string>
+
 
     <string-array name="pref_list_temperature_units_titles">
         <item>Kelvin</item>

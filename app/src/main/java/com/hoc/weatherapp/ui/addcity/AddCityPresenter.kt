@@ -12,6 +12,7 @@ import com.hoc.weatherapp.ui.addcity.AddCityContract.ViewState
 import com.hoc.weatherapp.utils.MyUnsafeLazyImpl
 import com.hoc.weatherapp.utils.checkLocationSettingAndGetCurrentLocation
 import com.hoc.weatherapp.utils.debug
+import com.hoc.weatherapp.utils.exhaustMap
 import io.reactivex.Observable
 import io.reactivex.ObservableTransformer
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -25,8 +26,7 @@ class AddCityPresenter(
   private val cityRepository: CityRepository,
   private val currentWeatherRepository: CurrentWeatherRepository,
   private val application: Application
-) :
-  MviBasePresenter<View, ViewState>() {
+) : MviBasePresenter<View, ViewState>() {
   private val locationRequestLazy = MyUnsafeLazyImpl {
     LocationRequest()
       .setInterval(500)
@@ -54,18 +54,18 @@ class AddCityPresenter(
   private val tag = "_add_city_"
 
   private val addCityTransformer =
-    ObservableTransformer<Pair<Double, Double>, ViewState> { intent ->
-      intent
+    ObservableTransformer<Pair<Double, Double>, ViewState> { latLng ->
+      latLng
         .flatMap { (latitude, longitude) ->
           cityRepository
             .addCityByLatLng(latitude, longitude)
-            .doOnSubscribe { debug("addCityByLatLng...", tag) }
             .doOnSuccess {
               currentWeatherRepository
                 .refreshWeatherOf(it)
-                .subscribeBy(onSuccess = {
-                  debug("refreshWeatherOf success.. $it", tag)
-                })
+                .subscribeBy(
+                  onSuccess = { debug("refreshWeatherOf success.. $it", tag) },
+                  onError = { debug("refreshWeatherOf failure... $it", tag, it) }
+                )
             }
             .toObservable()
             .flatMapIterable {
@@ -83,53 +83,49 @@ class AddCityPresenter(
             }
             .observeOn(AndroidSchedulers.mainThread())
             .startWith(ViewState.Loading)
-            .doOnNext { debug("addCityTransformer $it", tag) }
         }
     }
 
-  private val addCurrentLocationProcessor = ObservableTransformer<Unit, ViewState> { _ ->
-    application.checkLocationSettingAndGetCurrentLocation(
-      settingsClient = settingsClient,
-      fusedLocationProviderClient = fusedLocationProviderClient,
-      locationRequest = locationRequest,
-      locationSettingsRequest = locationSettingsRequest
-    ).subscribeOn(AndroidSchedulers.mainThread())
-      .timeout(5_000, TimeUnit.MILLISECONDS) //  5 seconds timeout
-      .retry { t1, t2 -> t2 is TimeoutException && t1 < 3 } // Try 3 times
-      .toObservable()
-      .doOnNext { debug("currentLocation $it", tag) }
-      .map { it.latitude to it.longitude }
-      .compose(addCityTransformer)
-      .onErrorResumeNext { it: Throwable ->
-        val throwable = if (it is TimeoutException) {
-          TimeoutException("timeout to get current location. Try again!")
-        } else {
-          it
+  private val addCurrentLocationProcessor =
+    ObservableTransformer<Unit, ViewState> { addCurrentLocationIntent ->
+      addCurrentLocationIntent
+        .exhaustMap {
+          application.checkLocationSettingAndGetCurrentLocation(
+            settingsClient = settingsClient,
+            fusedLocationProviderClient = fusedLocationProviderClient,
+            locationRequest = locationRequest,
+            locationSettingsRequest = locationSettingsRequest
+          ).subscribeOn(AndroidSchedulers.mainThread())
+            .timeout(5_000, TimeUnit.MILLISECONDS) //  5 seconds timeout
+            .retry { count, throwable -> throwable is TimeoutException && count < 3 } // Try 3 times
+            .toObservable()
+            .map { it.latitude to it.longitude }
+            .compose(addCityTransformer)
+            .onErrorResumeNext { throwable: Throwable ->
+              val newThrowable = if (throwable is TimeoutException) {
+                TimeoutException("timeout to get current location. Try again!")
+              } else {
+                throwable
+              }
+              listOf(
+                ViewState.Error(showMessage = true, throwable = newThrowable),
+                ViewState.Error(showMessage = false, throwable = newThrowable)
+              ).toObservable()
+            }
+            .observeOn(AndroidSchedulers.mainThread())
+            .startWith(ViewState.Loading)
         }
-        listOf(
-          ViewState.Error(showMessage = true, throwable = throwable),
-          ViewState.Error(showMessage = false, throwable = throwable)
-        ).toObservable()
-      }
-      .observeOn(AndroidSchedulers.mainThread())
-      .doOnNext { debug("viewState $it", tag) }
-      .startWith(ViewState.Loading)
-  }
+    }
 
   override fun bindIntents() {
-    val addCurrentLocation = intent(View::addCurrentLocationIntent)
-      .compose(addCurrentLocationProcessor)
-      .doOnNext { debug("addCurrentLocation $it", tag) }
-      .doOnError { debug("addCurrentLocation $it", tag) }
-      .doOnComplete { debug("addCurrentLocation", tag) }
-
-    val addCityByLatLng = intent(View::addCityByLatLngIntent)
-      .compose(addCityTransformer)
+    val addCurrentLocation =
+      intent(View::addCurrentLocationIntent).compose(addCurrentLocationProcessor)
+    val addCityByLatLng = intent(View::addCityByLatLngIntent).compose(addCityTransformer)
 
     subscribeViewState(
       Observable.mergeArray(addCityByLatLng, addCurrentLocation)
         .distinctUntilChanged()
-        .doOnNext { debug("ViewState = $it", tag) }
+        .doOnNext { debug("viewState = $it", tag) }
         .observeOn(AndroidSchedulers.mainThread()),
       View::render
     )

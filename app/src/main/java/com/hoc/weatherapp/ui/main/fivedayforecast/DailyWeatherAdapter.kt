@@ -1,6 +1,5 @@
 package com.hoc.weatherapp.ui.main.fivedayforecast
 
-import android.annotation.SuppressLint
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.view.LayoutInflater
@@ -18,15 +17,13 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.bumptech.glide.request.RequestOptions
 import com.hoc.weatherapp.R
-import com.hoc.weatherapp.utils.trim
 import com.hoc.weatherapp.utils.ui.HeaderItemDecoration
 import com.hoc.weatherapp.utils.ui.getIconDrawableFromDailyWeather
 import io.reactivex.subjects.PublishSubject
 import kotlinx.android.synthetic.main.daily_weather_header_layout.view.*
 import kotlinx.android.synthetic.main.daily_weather_item_layout.view.*
-import java.text.DateFormat
-import java.text.SimpleDateFormat
-import java.util.*
+import org.threeten.bp.ZonedDateTime
+import org.threeten.bp.format.DateTimeFormatter
 
 class DailyWeatherAdapter : ListAdapter<DailyWeatherListItem, RecyclerView.ViewHolder>(
   object : DiffUtil.ItemCallback<DailyWeatherListItem>() {
@@ -133,7 +130,7 @@ class DailyWeatherAdapter : ListAdapter<DailyWeatherListItem, RecyclerView.ViewH
       textTempMin.text = weather.temperatureMin
       textTempMax.text = weather.temperatureMax
       textWeather.text = weather.weatherDescription
-      textViewDataTime.text = ITEM_DATE_FORMAT.format(weather.dataTime)
+      textViewDataTime.text = ITEM_DATE_FORMATTER.format(weather.dataTime)
       imageIconCityItem.setBackgroundColor(weather.iconBackgroundColor)
 
       Glide.with(itemView.context)
@@ -151,45 +148,36 @@ class DailyWeatherAdapter : ListAdapter<DailyWeatherListItem, RecyclerView.ViewH
   annotation class ViewType
 
   companion object {
-    @SuppressLint("SimpleDateFormat")
-    @JvmField
-    val HEADER_DATE_FORMAT: DateFormat = SimpleDateFormat("dd/MM/yyyy, E")
-
-    @SuppressLint("SimpleDateFormat")
-    @JvmField
-    val ITEM_DATE_FORMAT: DateFormat = SimpleDateFormat("HH:mm")
-
-    @JvmField
-    val CALENDAR = Calendar.getInstance()!!
-
-    const val HEADER_TYPE = 1
-    const val DAILY_WEATHER_TYPE = 3
+    private val HEADER_DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy, E")
+    private val ITEM_DATE_FORMATTER = DateTimeFormatter.ofPattern("HH:mm")
+    private const val HEADER_TYPE = 1
+    private const val DAILY_WEATHER_TYPE = 3
 
     private fun bindHeader(
       textView: TextView,
       headerItem: DailyWeatherListItem.Header,
-      itemView: View,
-      @ColorInt iconBackgroundColor: Int? = null
+      itemView: View, @ColorInt iconBackgroundColor: Int? = null
     ) {
-      val current = Calendar.getInstance().apply { time = time.trim() }
-      CALENDAR.time = headerItem.date
-
-      if (current == CALENDAR) {
-        textView.text = textView.context.getString(R.string.today)
-        return
-      }
-
-      current.add(Calendar.DATE, 1)
-      if (current == CALENDAR) {
-        textView.text = textView.context.getString(R.string.tomorrow)
-        return
-      }
-
-      textView.text = HEADER_DATE_FORMAT.format(headerItem.date)
-
-      @ColorInt val bgColor =
-        iconBackgroundColor?.let { ColorUtils.setAlphaComponent(it, 0xE6) } ?: Color.TRANSPARENT
+      /**
+       * Set background color
+       */
+      @ColorInt val bgColor = iconBackgroundColor
+        ?.let { ColorUtils.setAlphaComponent(it, 0xE6) }
+        ?: Color.TRANSPARENT
       itemView.setBackgroundColor(bgColor)
+
+      /**
+       * Set text
+       */
+      val headerDate = headerItem.date
+      val headerLocaleDate = headerDate.toLocalDate()
+      val nowLocaleDate = ZonedDateTime.now(headerDate.zone).toLocalDate()
+
+      textView.text = when {
+        nowLocaleDate == headerLocaleDate -> textView.context.getString(R.string.today)
+        nowLocaleDate.plusDays(1) == headerLocaleDate -> textView.context.getString(R.string.tomorrow)
+        else -> headerDate.format(HEADER_DATE_FORMATTER)
+      }
     }
   }
 }

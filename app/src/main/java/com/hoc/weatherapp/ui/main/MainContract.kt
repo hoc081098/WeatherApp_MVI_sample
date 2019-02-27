@@ -16,7 +16,7 @@ interface MainContract {
   }
 
   interface View : MvpView {
-    fun changeDarkVibrantColorIntent(): Observable<Int>
+    fun changeVibrantColorIntent(): Observable<Int>
 
     fun render(state: ViewState)
   }

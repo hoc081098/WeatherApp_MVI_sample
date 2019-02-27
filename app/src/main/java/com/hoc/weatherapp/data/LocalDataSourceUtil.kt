@@ -22,9 +22,10 @@ object LocalDataSourceUtil {
   fun saveCityAndCurrentWeather(
     cityLocalDataSource: CityLocalDataSource,
     currentWeatherLocalDataSource: CurrentWeatherLocalDataSource,
-    response: CurrentWeatherResponse
+    response: CurrentWeatherResponse,
+    zoneId: String
   ): Single<CityAndCurrentWeather> {
-    val city = Mapper.responseToCity(response)
+    val city = Mapper.responseToCity(response, zoneId)
     val weather = Mapper.responseToCurrentWeatherEntity(response)
     return cityLocalDataSource
       .insertOrUpdateCity(city)

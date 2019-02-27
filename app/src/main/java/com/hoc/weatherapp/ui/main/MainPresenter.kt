@@ -17,13 +17,12 @@ import io.reactivex.rxkotlin.ofType
 class MainPresenter(
   private val currentWeatherRepository: CurrentWeatherRepository,
   private val colorHolderSource: ColorHolderSource
-) :
-  MviBasePresenter<MainContract.View, MainContract.ViewState>() {
+) : MviBasePresenter<MainContract.View, MainContract.ViewState>() {
   private val tag = "main"
   private val compositeDisposable = CompositeDisposable()
 
   override fun bindIntents() {
-    intent(MainContract.View::changeDarkVibrantColorIntent)
+    intent(MainContract.View::changeVibrantColorIntent)
       .observeOn(AndroidSchedulers.mainThread())
       .subscribe(colorHolderSource::change)
       .addTo(compositeDisposable)

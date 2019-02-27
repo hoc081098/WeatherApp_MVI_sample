@@ -57,23 +57,13 @@ private fun ModuleDefinition.getAppDatabase(): AppDatabase {
 }
 
 private fun ModuleDefinition.getCurrentWeatherRepositoryImpl(): CurrentWeatherRepositoryImpl {
-  return CurrentWeatherRepositoryImpl(get(), get(), get(), get(), get())
+  return CurrentWeatherRepositoryImpl(get(), get(), get(), get(), get(), get())
 }
 
 private fun ModuleDefinition.getCityRepositoryImpl(): CityRepositoryImpl {
-  return CityRepositoryImpl(
-    get(),
-    get(),
-    get(),
-    get(),
-    get()
-  )
+  return CityRepositoryImpl(get(), get(), get(), get(), get(), get())
 }
 
 private fun ModuleDefinition.getFiveDayForecastRepositoryImpl(): FiveDayForecastRepositoryImpl {
-  return FiveDayForecastRepositoryImpl(
-    get(),
-    get(),
-    get()
-  )
+  return FiveDayForecastRepositoryImpl(get(), get(), get())
 }

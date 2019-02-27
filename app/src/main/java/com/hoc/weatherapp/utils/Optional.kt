@@ -2,7 +2,6 @@ package com.hoc.weatherapp.utils
 
 import java.util.*
 
-@Suppress("unused")
 sealed class Optional<out T>
 
 data class Some<T : Any>(val value: T) : Optional<T>()
