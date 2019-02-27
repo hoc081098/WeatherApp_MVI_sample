@@ -1,15 +1,14 @@
 package com.hoc.weatherapp.ui.main.fivedayforecast
 
-import android.app.Dialog
+import android.content.Intent
 import android.graphics.PorterDuff
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.ColorInt
-import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import androidx.fragment.app.DialogFragment
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -17,7 +16,6 @@ import com.google.android.material.snackbar.Snackbar
 import com.hannesdorfmann.mosby3.mvi.MviFragment
 import com.hoc.weatherapp.R
 import com.hoc.weatherapp.ui.main.fivedayforecast.DailyWeatherContract.RefreshIntent
-import com.hoc.weatherapp.ui.main.fivedayforecast.DetailDialog.Companion.TAG
 import com.hoc.weatherapp.utils.debug
 import com.hoc.weatherapp.utils.snackBar
 import com.hoc.weatherapp.utils.ui.HeaderItemDecoration
@@ -29,48 +27,33 @@ import io.reactivex.rxkotlin.addTo
 import io.reactivex.rxkotlin.cast
 import io.reactivex.rxkotlin.subscribeBy
 import io.reactivex.subjects.PublishSubject
+import kotlinx.android.synthetic.main.activity_detail_daily_weather.*
 import kotlinx.android.synthetic.main.detail_item_layout.view.*
-import kotlinx.android.synthetic.main.dialog_detail_daily_weather.view.*
 import kotlinx.android.synthetic.main.fragment_daily_weather.*
 import org.koin.android.ext.android.get
-import java.text.SimpleDateFormat
-import java.util.*
+import org.threeten.bp.format.DateTimeFormatter
 
-class DetailDialog : DialogFragment() {
+class DailyDetailActivity : AppCompatActivity() {
   companion object {
-    const val TAG = "com.hoc.weatherapp.ui.main.fivedayforecast.detail_dialog_tag"
-    private const val ITEM_KEY = "com.hoc.weatherapp.ui.main.fivedayforecast.detail_dialog_item"
-
-    @JvmStatic
-    fun newInstance(item: DailyWeatherListItem.Weather): DetailDialog {
-      return DetailDialog().apply {
-        setStyle(STYLE_NO_TITLE, 0)
-        arguments = Bundle().apply {
-          putParcelable(ITEM_KEY, item)
-        }
-      }
-    }
+    const val TAG = "com.hoc.weatherapp.ui.main.fivedayforecast.daily_detail_activity"
+    const val ITEM_KEY =
+      "com.hoc.weatherapp.ui.main.fivedayforecast.daily_detail_activity_item"
   }
 
-  override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-    val item = arguments?.getParcelable<DailyWeatherListItem.Weather>(ITEM_KEY)
-      ?: return super.onCreateDialog(savedInstanceState)
+  override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
+    setContentView(R.layout.activity_detail_daily_weather)
 
-    val view =
-      LayoutInflater.from(requireContext()).inflate(R.layout.dialog_detail_daily_weather, null)
+    val item = intent.getParcelableExtra<DailyWeatherListItem.Weather>(ITEM_KEY)!!
 
-    view.image_icon.setImageResource(requireContext().getIconDrawableFromDailyWeather(item.weatherIcon))
-    view.image_icon.setBackgroundColor(item.iconBackgroundColor)
-    view.text_data_time.text = SimpleDateFormat(
-      "dd/MM/yyyy, HH:mm",
-      Locale.getDefault()
-    ).format(item.dataTime)
-    view.text_main.text = item.main
-    view.text_description.text = item.weatherDescription
+    image_icon.setImageResource(getIconDrawableFromDailyWeather(item.weatherIcon))
+    image_icon.setBackgroundColor(item.iconBackgroundColor)
+    text_data_time.text = item.dataTime.format(DateTimeFormatter.ofPattern("dd/MM/yyyy, HH:mm"))
+    text_main.text = item.main
+    text_description.text = item.weatherDescription
 
-    view.recycler_detail.run {
+    recycler_detail.run {
       setHasFixedSize(true)
-      isNestedScrollingEnabled = false
       layoutManager = LinearLayoutManager(context)
       adapter = object : RecyclerView.Adapter<VH>() {
         val list = listOf(
@@ -97,14 +80,10 @@ class DetailDialog : DialogFragment() {
 
         override fun onBindViewHolder(holder: VH, position: Int) =
           holder.bind(list[position], item.iconBackgroundColor).also {
-            debug("Bind $position", "######")
+            debug("Bind $position ${list[position]}", "######")
           }
       }
     }
-
-    return AlertDialog.Builder(requireContext())
-      .setView(view)
-      .show()
   }
 
   class VH(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -172,18 +151,21 @@ class DailyWeatherFragment : MviFragment<DailyWeatherContract.View, DailyWeather
     initialRefreshSubject.onNext(RefreshIntent.InitialRefreshIntent)
     dailyWeatherAdapter
       .clickObservable
-      .subscribeBy(onNext = ::showDetailDialog)
+      .subscribeBy(onNext = ::showDetail)
       .addTo(compositeDisposable)
   }
 
-  private fun showDetailDialog(item: DailyWeatherListItem.Weather) {
-    (fragmentManager?.findFragmentByTag(TAG) as? DetailDialog)?.dismiss()
-    DetailDialog.newInstance(item).show(fragmentManager, TAG)
+  private fun showDetail(item: DailyWeatherListItem.Weather) {
+    val context = requireContext()
+    context.startActivity(
+      Intent(context, DailyDetailActivity::class.java).apply {
+        putExtra(DailyDetailActivity.ITEM_KEY, item)
+      }
+    )
   }
 
   override fun onPause() {
     super.onPause()
-    (fragmentManager?.findFragmentByTag(TAG) as? DetailDialog)?.dismiss()
     compositeDisposable.clear()
   }
 

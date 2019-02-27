@@ -43,5 +43,11 @@ data class City(
    * Longitude of city
    */
   @ColumnInfo(name = "lng")
-  val lng: Double = Double.NEGATIVE_INFINITY
+  val lng: Double = Double.NEGATIVE_INFINITY,
+
+  /**
+   * The time zone name.
+   */
+  @ColumnInfo(name = "zone_id")
+  val zoneId: String
 ) : Parcelable

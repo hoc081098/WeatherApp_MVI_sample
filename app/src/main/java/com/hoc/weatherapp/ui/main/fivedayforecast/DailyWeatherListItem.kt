@@ -4,14 +4,14 @@ import android.os.Parcelable
 import androidx.annotation.ColorInt
 import com.hoc.weatherapp.data.models.WindDirection
 import kotlinx.android.parcel.Parcelize
-import java.util.*
+import org.threeten.bp.ZonedDateTime
 
 interface DailyWeatherListItem {
   @Parcelize
   data class Weather(
     @ColorInt val iconBackgroundColor: Int,
     val weatherIcon: String,
-    val dataTime: Date,
+    val dataTime: ZonedDateTime,
     val weatherDescription: String,
     val temperatureMin: String,
     val temperatureMax: String,
@@ -28,5 +28,5 @@ interface DailyWeatherListItem {
     val snowVolumeForTheLast3Hours: String
   ) : DailyWeatherListItem, Parcelable
 
-  data class Header(val date: Date) : DailyWeatherListItem
+  data class Header(val date: ZonedDateTime) : DailyWeatherListItem
 }

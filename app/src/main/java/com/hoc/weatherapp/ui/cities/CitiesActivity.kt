@@ -6,8 +6,6 @@ import android.view.Menu
 import android.view.MenuItem
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
-import androidx.recyclerview.widget.DividerItemDecoration
-import androidx.recyclerview.widget.DividerItemDecoration.VERTICAL
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -53,12 +51,14 @@ class CitiesActivity : MviActivity<View, CitiesPresenter>(), View {
   override fun deleteCityAtPosition() = deletePositionPublishSubject.hide()!!
 
   override fun changeSelectedCity(): Observable<City> {
-    return cityAdapter.itemClickObservable.throttleFirst(500, TimeUnit.MILLISECONDS)
+    return cityAdapter
+      .itemClickObservable
+      .throttleFirst(600, TimeUnit.MILLISECONDS)
   }
 
   override fun searchStringIntent(): Observable<SearchStringIntent> {
     return search_view.textChanges()
-      .debounce(500, TimeUnit.MILLISECONDS)
+      .debounce(600, TimeUnit.MILLISECONDS)
       .map { SearchStringIntent.UserSearchStringIntent(it) }
       .cast<SearchStringIntent>()
       .mergeWith(searchStringInitial)
@@ -134,7 +134,6 @@ class CitiesActivity : MviActivity<View, CitiesPresenter>(), View {
       layoutManager = LinearLayoutManager(this@CitiesActivity)
       adapter = cityAdapter
 
-      addItemDecoration(DividerItemDecoration(this@CitiesActivity, VERTICAL))
       addOnScrollListener(object : RecyclerView.OnScrollListener() {
         override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
           super.onScrolled(recyclerView, dx, dy)

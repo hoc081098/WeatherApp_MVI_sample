@@ -15,6 +15,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentPagerAdapter
 import androidx.palette.graphics.Palette
+import androidx.palette.graphics.Target
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.BitmapTransitionOptions
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
@@ -39,12 +40,10 @@ import com.hoc.weatherapp.utils.ui.getSoundUriFromCurrentWeather
 import io.reactivex.subjects.PublishSubject
 import kotlinx.android.synthetic.main.activity_main.*
 import org.koin.android.ext.android.get
+import java.lang.ref.WeakReference
 
 class MainActivity : MviActivity<MainContract.View, MainPresenter>(), MainContract.View {
-  private val darkVibrantColorSubject = PublishSubject.create<Int>()
-
-  override fun changeDarkVibrantColorIntent() = darkVibrantColorSubject
-
+  private val vibrantColorSubject = PublishSubject.create<Int>()
   private var mediaPlayer: MediaPlayer? = null
 
   override fun onCreate(savedInstanceState: Bundle?) {
@@ -74,7 +73,10 @@ class MainActivity : MviActivity<MainContract.View, MainPresenter>(), MainContra
   override fun onDestroy() {
     super.onDestroy()
 
+    vibrantColorSubject.onComplete()
+
     stopSound()
+
     // free memory
     mediaPlayer?.release()
     mediaPlayer = null
@@ -132,7 +134,8 @@ class MainActivity : MviActivity<MainContract.View, MainPresenter>(), MainContra
   }
 
   private fun updateBackground(weather: CurrentWeather) {
-    Glide.with(this)
+    Glide
+      .with(this)
       .asBitmap()
       .load(getBackgroundDrawableFromWeather(weather))
       .apply(
@@ -149,20 +152,11 @@ class MainActivity : MviActivity<MainContract.View, MainPresenter>(), MainContra
 
         override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
           view.setImageBitmap(resource)
-          Palette.from(resource)
-            .generate {
-              val darkVibrantColor = (it ?: return@generate).getDarkVibrantColor(
-                ContextCompat.getColor(
-                  this@MainActivity,
-                  R.color.colorPrimaryDark
-                )
-              )
-              darkVibrantColorSubject.onNext(darkVibrantColor)
-              window.statusBarColor = darkVibrantColor
-            }
+          getVibrantColor(resource, WeakReference(this@MainActivity))
         }
       })
   }
+
 
   private fun stopSound() {
     runCatching {
@@ -188,6 +182,8 @@ class MainActivity : MviActivity<MainContract.View, MainPresenter>(), MainContra
       is MainContract.ViewState.CityAndWeather -> renderCityAndWeather(state)
     }
   }
+
+  override fun changeVibrantColorIntent() = vibrantColorSubject
 
   private fun renderCityAndWeather(state: MainContract.ViewState.CityAndWeather) {
     updateBackground(state.weather)
@@ -218,4 +214,30 @@ class MainActivity : MviActivity<MainContract.View, MainPresenter>(), MainContra
   }
 
   override fun createPresenter() = get<MainPresenter>()
+
+  companion object {
+    private fun getVibrantColor(resource: Bitmap, mainActivity: WeakReference<MainActivity>) {
+      Palette
+        .from(resource)
+        .generate { palette ->
+          palette ?: return@generate
+
+          val vibrantColor = listOf(
+            palette.getSwatchForTarget(Target.DARK_VIBRANT)?.rgb,
+            palette.getSwatchForTarget(Target.VIBRANT)?.rgb,
+            palette.getSwatchForTarget(Target.LIGHT_VIBRANT)?.rgb
+          ).find { it != null }
+            ?: mainActivity.get()?.let {
+              ContextCompat.getColor(
+                it,
+                R.color.colorPrimaryDark
+              )
+            }
+            ?: return@generate
+
+          mainActivity.get()?.vibrantColorSubject?.onNext(vibrantColor)
+          mainActivity.get()?.window?.statusBarColor = vibrantColor
+        }
+    }
+  }
 }

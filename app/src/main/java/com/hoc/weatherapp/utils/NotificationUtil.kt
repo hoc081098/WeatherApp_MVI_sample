@@ -27,7 +27,7 @@ fun Context.showOrUpdateNotification(
   cityName: String,
   cityCountry: String,
   unit: TemperatureUnit,
-  popUpAndSound: Boolean
+  popUpAndSound: Boolean//TODO:something is wrong
 ) {
   val temperature = unit.format(weather.temperature)
 
@@ -37,7 +37,7 @@ fun Context.showOrUpdateNotification(
       |${weather.description.capitalize()}
       |<br>
       |<i>Update time: ${SIMPLE_DATE_FORMAT.format(weather.dataTime)}</i>
-      """.trimMargin(),
+      """.trimMargin(),//TODO: format date
     HtmlCompat.FROM_HTML_MODE_LEGACY
   )
   val builder = NotificationCompat.Builder(this, App.CHANNEL_ID)

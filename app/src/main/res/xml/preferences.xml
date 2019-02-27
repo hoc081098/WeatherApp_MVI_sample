@@ -17,7 +17,7 @@
         <androidx.preference.SwitchPreferenceCompat
             android:defaultValue="true"
             android:key="@string/key_auto_update"
-            android:summary="Update weather data automatically"
+            android:summary="Update weather data automatically per 15 minutes"
             android:title="Auto update" />
     </androidx.preference.PreferenceCategory>
 

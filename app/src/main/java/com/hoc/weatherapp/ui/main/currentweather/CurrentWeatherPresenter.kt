@@ -18,6 +18,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.rxkotlin.Observables
 import io.reactivex.rxkotlin.cast
 import io.reactivex.rxkotlin.ofType
+import org.threeten.bp.format.DateTimeFormatter
 import java.util.concurrent.TimeUnit
 
 private const val TAG = "currrentweather"
@@ -68,7 +69,7 @@ class CurrentWeatherPresenter(
           None -> showError(NoSelectedCityException)
           is Some -> Observable.just(
             toCurrentWeather(
-              optional.value.currentWeather,
+              optional.value,
               speedUnit,
               pressureUnit,
               temperatureUnit
@@ -79,24 +80,30 @@ class CurrentWeatherPresenter(
   }
 
   private fun toCurrentWeather(
-    entity: com.hoc.weatherapp.data.models.entity.CurrentWeather,
+    cityAndCurrentWeather: CityAndCurrentWeather,
     speedUnit: SpeedUnit,
     pressureUnit: PressureUnit,
     temperatureUnit: TemperatureUnit
   ): CurrentWeather {
+    val weather = cityAndCurrentWeather.currentWeather
+    val dataTimeString = weather
+      .dataTime
+      .toZonedDateTime(cityAndCurrentWeather.city.zoneId)
+      .format(LAST_UPDATED_FORMATTER)
     return CurrentWeather(
-      temperatureString = temperatureUnit.format(entity.temperature),
-      pressureString = pressureUnit.format(entity.pressure),
-      rainVolumeForThe3HoursMm = entity.rainVolumeForThe3Hours,
-      visibilityKm = entity.visibility / 1_000,
-      humidity = entity.humidity,
-      description = entity.description.capitalize(),
-      dataTime = entity.dataTime,
-      weatherConditionId = entity.weatherConditionId,
-      weatherIcon = entity.icon,
-      winSpeed = entity.winSpeed,
-      winSpeedString = speedUnit.format(entity.winSpeed),
-      winDirection = WindDirection.fromDegrees(entity.winDegrees).toString()
+      temperatureString = temperatureUnit.format(weather.temperature),
+      pressureString = pressureUnit.format(weather.pressure),
+      rainVolumeForThe3HoursMm = weather.rainVolumeForThe3Hours,
+      visibilityKm = weather.visibility / 1_000,
+      humidity = weather.humidity,
+      description = weather.description.capitalize(),
+      dataTimeString = dataTimeString,
+      weatherConditionId = weather.weatherConditionId,
+      weatherIcon = weather.icon,
+      winSpeed = weather.winSpeed,
+      winSpeedString = speedUnit.format(weather.winSpeed),
+      winDirection = WindDirection.fromDegrees(weather.winDegrees).toString(),
+      zoneId = cityAndCurrentWeather.city.zoneId
     )
   }
 
@@ -135,7 +142,7 @@ class CurrentWeatherPresenter(
           }
           .map {
             toCurrentWeather(
-              it.currentWeather,
+              it,
               settingPreferences.speedUnitPreference.value,
               settingPreferences.pressureUnitPreference.value,
               settingPreferences.temperatureUnitPreference.value
@@ -198,5 +205,9 @@ class CurrentWeatherPresenter(
         )
       )
       .cast()
+  }
+
+  companion object {
+    private val LAST_UPDATED_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yy HH:mm")
   }
 }

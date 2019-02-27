@@ -16,11 +16,7 @@ class HeaderItemDecoration(private val listener: StickyHeaderInterface) :
     val topChildPosition = parent.getChildAdapterPosition(parent.getChildAt(0) ?: return)
     if (topChildPosition == RecyclerView.NO_POSITION) return
 
-    val headerPosition = listener.getHeaderPositionForItem(topChildPosition)
-    /**
-     * Fix header issue for first item
-     */
-    if (headerPosition == null) return
+    val headerPosition = listener.getHeaderPositionForItem(topChildPosition) ?: return
 
     if (!::headerView.isInitialized) {
       headerView = LayoutInflater.from(parent.context).inflate(listener.headerLayout, parent, false)

@@ -72,13 +72,14 @@ object Mapper {
   }
 
   @JvmStatic
-  fun responseToCity(response: CurrentWeatherResponse): City {
+  fun responseToCity(response: CurrentWeatherResponse, zoneId: String): City {
     return City(
       id = response.id ?: Long.MIN_VALUE,
       name = response.name ?: "",
       country = response.sys?.country ?: "",
       lng = response.coord?.lon ?: Double.NEGATIVE_INFINITY,
-      lat = response.coord?.lat ?: Double.NEGATIVE_INFINITY
+      lat = response.coord?.lat ?: Double.NEGATIVE_INFINITY,
+      zoneId = zoneId
     )
   }
 
@@ -90,7 +91,8 @@ object Mapper {
       name = city?.name ?: "",
       country = city?.country ?: "",
       lng = city?.coord?.lon ?: Double.NEGATIVE_INFINITY,
-      lat = city?.coord?.lat ?: Double.NEGATIVE_INFINITY
+      lat = city?.coord?.lat ?: Double.NEGATIVE_INFINITY,
+      zoneId = "" // not need
     )
   }
 }

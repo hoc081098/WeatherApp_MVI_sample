@@ -1,5 +1,6 @@
 package com.hoc.weatherapp.ui.cities
 
+import android.annotation.SuppressLint
 import android.graphics.drawable.ColorDrawable
 import android.view.LayoutInflater
 import android.view.View
@@ -17,6 +18,7 @@ import com.hoc.weatherapp.data.models.entity.City
 import com.hoc.weatherapp.utils.ui.getIconDrawableFromCurrentWeather
 import io.reactivex.subjects.PublishSubject
 import kotlinx.android.synthetic.main.city_item_layout.view.*
+import org.threeten.bp.format.DateTimeFormatter
 
 class CitiesAdapter : ListAdapter<CityListItem, CitiesAdapter.ViewHolder>(object :
   DiffUtil.ItemCallback<CityListItem>() {
@@ -42,7 +44,9 @@ class CitiesAdapter : ListAdapter<CityListItem, CitiesAdapter.ViewHolder>(object
   inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView),
     View.OnClickListener {
     private val textName = itemView.text_name!!
-    private val textWeather = itemView.text_weather!!
+    private val textMain = itemView.text_main!!
+    private val textLastUpdated = itemView.text_last_updated!!
+    private val textTemps = itemView.text_temps!!
     private val imageIconCityItem = itemView.image_icon_city_item!!
     private val radioButtonSelectedCity = itemView.radio_button_selected_city!!
 
@@ -57,15 +61,17 @@ class CitiesAdapter : ListAdapter<CityListItem, CitiesAdapter.ViewHolder>(object
       }
     }
 
+    @SuppressLint("SetTextI18n")
     fun bind(item: CityListItem) = item.run {
       textName.text = itemView.context.getString(
         R.string.city_name_and_country,
         city.name,
         city.country
       )
-      textWeather.text =
-          "${weatherDescription.capitalize()}, ${temperatureMin} ~ ${temperatureMax}"
+      textMain.text = weatherDescription.capitalize()
       radioButtonSelectedCity.isChecked = isSelected
+      textLastUpdated.text = "${lastUpdated.format(TIME_FORMATTER)} (${lastUpdated.zone.id}): "
+      textTemps.text = "$temperatureMin ~ $temperatureMax"
 
       Glide.with(itemView.context)
         .load(
@@ -85,5 +91,9 @@ class CitiesAdapter : ListAdapter<CityListItem, CitiesAdapter.ViewHolder>(object
         .into(imageIconCityItem)
       Unit
     }
+  }
+
+  companion object {
+    private val TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm, dd/MM/yy")
   }
 }

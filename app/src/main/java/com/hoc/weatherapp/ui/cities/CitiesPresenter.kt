@@ -66,8 +66,7 @@ class CitiesPresenter(
     return intent(View::refreshCurrentWeatherAtPosition)
       .filter { it != RecyclerView.NO_POSITION }
       .withLatestFrom(cityAndCurrentWeathers)
-      .map { (position, list) -> list[position] }
-      .map { it.city }
+      .map { (position, list) -> list[position].city }
       .flatMap { city ->
         currentWeatherRepository
           .refreshWeatherOf(city)
@@ -105,8 +104,7 @@ class CitiesPresenter(
     return intent(View::deleteCityAtPosition)
       .filter { it != RecyclerView.NO_POSITION }
       .withLatestFrom(cityAndCurrentWeathers)
-      .map { (position, list) -> list[position] }
-      .map { it.city }
+      .map { (position, list) -> list[position].city }
       .flatMap {
         cityRepository
           .deleteCity(it)
@@ -175,12 +173,13 @@ class CitiesPresenter(
         list.map {
           CityListItem(
             city = it.city,
-            weatherIcon = it.currentWeather.icon,
-            weatherConditionId = it.currentWeather.weatherConditionId,
-            isSelected = it.city == city.getOrNull(),
-            temperatureMax = temperatureUnit.format(it.currentWeather.temperatureMax),
             temperatureMin = temperatureUnit.format(it.currentWeather.temperatureMin),
-            weatherDescription = it.currentWeather.description
+            temperatureMax = temperatureUnit.format(it.currentWeather.temperatureMax),
+            weatherDescription = it.currentWeather.description,
+            weatherConditionId = it.currentWeather.weatherConditionId,
+            weatherIcon = it.currentWeather.icon,
+            isSelected = it.city == city.getOrNull(),
+            lastUpdated = it.currentWeather.dataTime.toZonedDateTime(it.city.zoneId)
           )
         }
       }

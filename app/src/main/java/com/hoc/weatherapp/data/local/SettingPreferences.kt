@@ -95,7 +95,7 @@ class SettingPreferences(sharedPreferences: SharedPreferences, androidApplicatio
 
   val soundNotificationPreference = BaseSettingPreference(
     key = androidApplication.getString(R.string.key_sound_notification),
-    defaultValue = true,
+    defaultValue = false,
     getter = SharedPreferences::getBoolean,
     sharedPreferences = sharedPreferences
   )

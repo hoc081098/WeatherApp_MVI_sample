@@ -113,13 +113,13 @@ class SwipeController(private val buttonsActions: SwipeControllerActions) :
   ) {
     recyclerView.setOnTouchListener { v, event ->
       swipeBack = event.action == MotionEvent.ACTION_CANCEL || event.action ==
-          MotionEvent.ACTION_UP
+        MotionEvent.ACTION_UP
       if (swipeBack) {
         when {
           dX < -buttonWidth -> buttonShowedState =
-              ButtonState.RIGHT_VISIBLE
+            ButtonState.RIGHT_VISIBLE
           dX > buttonWidth -> buttonShowedState =
-              ButtonState.LEFT_VISIBLE
+            ButtonState.LEFT_VISIBLE
         }
 
         if (buttonShowedState != ButtonState.GONE) {
@@ -218,10 +218,10 @@ class SwipeController(private val buttonsActions: SwipeControllerActions) :
     val p = Paint()
 
     val leftButton = RectF(
-      itemView.left.toFloat(),
-      itemView.top.toFloat(),
+      itemView.left.toFloat() + 4,
+      itemView.top.toFloat() + 8,
       itemView.left + buttonWidthWithoutPadding,
-      itemView.bottom.toFloat()
+      itemView.bottom.toFloat() - 8
     )
     p.color = ContextCompat.getColor(itemView.context, R.color.colorPrimary)
     c.drawRoundRect(leftButton, corners, corners, p)
@@ -229,9 +229,9 @@ class SwipeController(private val buttonsActions: SwipeControllerActions) :
 
     val rightButton = RectF(
       itemView.right - buttonWidthWithoutPadding,
-      itemView.top.toFloat(),
-      itemView.right.toFloat(),
-      itemView.bottom.toFloat()
+      itemView.top.toFloat() + 8,
+      itemView.right.toFloat() - 4,
+      itemView.bottom.toFloat() - 8
     )
     p.color = ContextCompat.getColor(itemView.context, R.color.colorAccent)
     c.drawRoundRect(rightButton, corners, corners, p)

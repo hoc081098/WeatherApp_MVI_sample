@@ -26,8 +26,6 @@ import io.reactivex.subjects.PublishSubject
 import kotlinx.android.synthetic.main.fragment_current_weather.*
 import org.koin.android.ext.android.get
 import java.text.DecimalFormat
-import java.text.SimpleDateFormat
-import java.util.*
 
 private const val TAG = "currentweather"
 
@@ -85,7 +83,7 @@ class CurrentWeatherFragment : MviFragment<CurrentWeatherContract.View, CurrentW
     text_temperature.text = "__"
     text_main_weather.text = getString(R.string.no_main_weather)
     text_last_update.text = getString(
-      R.string.last_updated,
+      R.string.last_updated_none,
       "__/__/__ __:__"
     )
     button_live.visibility = View.GONE
@@ -100,24 +98,31 @@ class CurrentWeatherFragment : MviFragment<CurrentWeatherContract.View, CurrentW
     )
     text_temperature.text = weather.temperatureString
     text_main_weather.text = weather.description
-    text_last_update.text = getString(
-      R.string.last_updated,
-      SIMPLE_DATE_FORMAT.format(weather.dataTime)
-    )
+    text_last_update.text = getString(R.string.last_updated, weather.dataTimeString, weather.zoneId)
 
-
+    /**
+     *
+     */
     button_live.visibility = View.VISIBLE
 
-
+    /**
+     *
+     */
     card_view1.visibility = View.VISIBLE
     text_pressure.text = weather.pressureString
     text_humidity.text = getString(R.string.humidity, weather.humidity)
-    text_rain.text =
-      getString(R.string.rain_mm, NUMBER_FORMAT.format(weather.rainVolumeForThe3HoursMm))
-    text_visibility.text =
-      getString(R.string.visibility_km, NUMBER_FORMAT.format(weather.visibilityKm))
+    text_rain.text = getString(
+      R.string.rain_mm,
+      NUMBER_FORMAT.format(weather.rainVolumeForThe3HoursMm)
+    )
+    text_visibility.text = getString(
+      R.string.visibility_km,
+      NUMBER_FORMAT.format(weather.visibilityKm)
+    )
 
-
+    /**
+     *
+     */
     card_view2.visibility = View.VISIBLE
     windmill1.winSpeed = weather.winSpeed
     windmill2.winSpeed = weather.winSpeed
@@ -158,7 +163,6 @@ class CurrentWeatherFragment : MviFragment<CurrentWeatherContract.View, CurrentW
   }
 
   companion object {
-    private val SIMPLE_DATE_FORMAT = SimpleDateFormat("dd/MM/yy HH:mm", Locale.US)
     private val NUMBER_FORMAT = DecimalFormat("#.#")
   }
 }

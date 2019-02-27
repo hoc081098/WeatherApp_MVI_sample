@@ -1,7 +1,5 @@
 package com.hoc.weatherapp.ui.main.currentweather
 
-import java.util.*
-
 data class CurrentWeather(
   val temperatureString: String,
   val pressureString: String,
@@ -10,7 +8,8 @@ data class CurrentWeather(
   val weatherConditionId: Long,
   val weatherIcon: String,
   val description: String,
-  val dataTime: Date,
+  val dataTimeString: String,
+  val zoneId: String,
   /**
    * m/s
    */

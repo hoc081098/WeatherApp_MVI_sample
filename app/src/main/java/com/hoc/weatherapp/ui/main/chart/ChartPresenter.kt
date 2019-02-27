@@ -36,7 +36,7 @@ class ChartPresenter(
       combineFunction = { optional, temperatureUnit, speedUnit, pressureUnit ->
         Tuple4(
           temperatureUnit = temperatureUnit,
-          weathers = optional.getOrNull().orEmpty(),
+          weathers = optional.getOrNull()?.second.orEmpty(),
           pressureUnit = pressureUnit,
           speedUnit = speedUnit
         )
