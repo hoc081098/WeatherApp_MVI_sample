@@ -25,11 +25,11 @@ fun getZoneId(
   return timezoneDbApiService
     .getTimezoneByLatLng(latitude, longitude)
     .subscribeOn(Schedulers.io())
-    .flatMap {
+    .map {
       if (it.status != "OK") {
-        Single.just("")
+        ""
       } else {
-        Single.just(it.zoneName)
+        it.zoneName
       }
     }
     .onErrorReturnItem("")
