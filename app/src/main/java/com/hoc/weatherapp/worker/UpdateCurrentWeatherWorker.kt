@@ -26,10 +26,9 @@ class UpdateCurrentWeatherWorker(context: Context, workerParams: WorkerParameter
     }.onSuccess {
       if (settingPreferences.showNotificationPreference.value) {
         applicationContext.showOrUpdateNotification(
-          cityName = it.city.name,
-          unit = settingPreferences.temperatureUnitPreference.value,
-          cityCountry = it.city.country,
           weather = it.currentWeather,
+          city = it.city,
+          unit = settingPreferences.temperatureUnitPreference.value,
           popUpAndSound = settingPreferences.soundNotificationPreference.value
         )
       }

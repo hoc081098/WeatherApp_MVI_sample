@@ -126,10 +126,9 @@ class CurrentWeatherPresenter(
 
             if (settingPreferences.showNotificationPreference.value) {
               androidApplication.showOrUpdateNotification(
-                cityName = it.city.name,
-                unit = settingPreferences.temperatureUnitPreference.value,
-                cityCountry = it.city.country,
                 weather = it.currentWeather,
+                city = it.city,
+                unit = settingPreferences.temperatureUnitPreference.value,
                 popUpAndSound = settingPreferences.soundNotificationPreference.value
               )
             }
@@ -138,6 +137,7 @@ class CurrentWeatherPresenter(
             if (it is NoSelectedCityException) {
               androidApplication.cancelNotificationById(WEATHER_NOTIFICATION_ID)
               WorkerUtil.cancelUpdateCurrentWeatherWorkRequest()
+              WorkerUtil.cancelUpdateDailyWeatherWorkWorkRequest()
             }
           }
           .map {

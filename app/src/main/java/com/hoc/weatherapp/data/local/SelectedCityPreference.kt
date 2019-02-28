@@ -1,21 +1,31 @@
 package com.hoc.weatherapp.data.local
 
+import android.annotation.SuppressLint
 import android.content.SharedPreferences
 import androidx.annotation.WorkerThread
 import com.hoc.weatherapp.data.models.entity.City
-import com.hoc.weatherapp.utils.Optional
-import com.hoc.weatherapp.utils.delegate
-import com.hoc.weatherapp.utils.getOrNull
-import com.hoc.weatherapp.utils.toOptional
+import com.hoc.weatherapp.utils.*
 import com.squareup.moshi.Moshi
+import io.reactivex.Single
+import io.reactivex.rxkotlin.subscribeBy
+import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.BehaviorSubject
 
+@SuppressLint("CheckResult")
 class SelectedCityPreference(sharedPreferences: SharedPreferences, private val moshi: Moshi) :
   PreferenceInterface<Optional<City>> {
   private var selectedCityJsonString by sharedPreferences.delegate<String>()
-  private val citySubject =
-    BehaviorSubject.createDefault(getSelectedCityFromSharedPref().toOptional())
+  private val citySubject = BehaviorSubject.createDefault<Optional<City>>(None)
 
+  init {
+    Single.fromCallable(::getSelectedCityFromSharedPref)
+      .subscribeOn(Schedulers.io())
+      .map { it.toOptional() }
+      .onErrorReturnItem(None)
+      .subscribeBy(onSuccess = citySubject::onNext)
+  }
+
+  @WorkerThread
   private fun getSelectedCityFromSharedPref(): City? {
     return runCatching {
       moshi
@@ -37,5 +47,6 @@ class SelectedCityPreference(sharedPreferences: SharedPreferences, private val m
   }
 
   override val observable get() = citySubject.hide()!!
-  override val value get() = citySubject.value ?: getSelectedCityFromSharedPref().toOptional()
+
+  override val value get() = citySubject.value ?: None
 }

@@ -108,6 +108,7 @@ class DailyWeatherPresenter(
           .doOnError {
             if (it is NoSelectedCityException) {
               androidApplication.cancelNotificationById(WEATHER_NOTIFICATION_ID)
+              WorkerUtil.cancelUpdateCurrentWeatherWorkRequest()
               WorkerUtil.cancelUpdateDailyWeatherWorkWorkRequest()
             }
           }
