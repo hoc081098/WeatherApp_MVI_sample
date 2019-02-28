@@ -24,6 +24,7 @@ import java.util.concurrent.TimeUnit
 
 const val TAG = "cities"
 
+
 class CitiesPresenter(
   private val cityRepository: CityRepository,
   private val currentWeatherRepository: CurrentWeatherRepository,
@@ -83,10 +84,9 @@ class CitiesPresenter(
 
               if (settingPreferences.showNotificationPreference.value) {
                 androidApplication.showOrUpdateNotification(
-                  cityName = cityAndCurrentWeather.city.name,
-                  unit = settingPreferences.temperatureUnitPreference.value,
-                  cityCountry = cityAndCurrentWeather.city.country,
                   weather = cityAndCurrentWeather.currentWeather,
+                  city = cityAndCurrentWeather.city,
+                  unit = settingPreferences.temperatureUnitPreference.value,
                   popUpAndSound = settingPreferences.soundNotificationPreference.value
                 )
               }
@@ -139,10 +139,9 @@ class CitiesPresenter(
 
         if (settingPreferences.showNotificationPreference.value) {
           androidApplication.showOrUpdateNotification(
-            cityName = cityAndCurrentWeather.city.name,
-            unit = settingPreferences.temperatureUnitPreference.value,
-            cityCountry = cityAndCurrentWeather.city.country,
             weather = cityAndCurrentWeather.currentWeather,
+            city = cityAndCurrentWeather.city,
+            unit = settingPreferences.temperatureUnitPreference.value,
             popUpAndSound = settingPreferences.soundNotificationPreference.value
           )
         }
@@ -189,7 +188,6 @@ class CitiesPresenter(
       .onErrorResumeNext(::showError)
       .doOnNext { debug("cityListItems $it", TAG) }
   }
-
 
   private fun reduce(viewState: ViewState, partialStateChange: PartialStateChange): ViewState {
     return when (partialStateChange) {

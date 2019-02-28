@@ -93,9 +93,8 @@ class SettingsActivity : AppCompatActivity() {
           is Some -> it.value.let { triple ->
             triple.first.run {
               context.showOrUpdateNotification(
-                cityCountry = city.country,
-                cityName = city.name,
                 weather = currentWeather,
+                city = city,
                 unit = triple.second,
                 popUpAndSound = triple.third
               )

@@ -2,6 +2,7 @@ package com.hoc.weatherapp.data.local
 
 import android.app.Application
 import android.content.SharedPreferences
+import androidx.annotation.MainThread
 import com.hoc.weatherapp.R
 import com.hoc.weatherapp.data.models.PressureUnit
 import com.hoc.weatherapp.data.models.SpeedUnit
@@ -46,6 +47,7 @@ class BaseSettingPreference<T : Any>(
    * Because value will be persisted by [androidx.preference.Preference], only set [value] to [subject]
    * @param value
    */
+  @MainThread
   override fun save(value: T) = subject.onNext(value)
 }
 
@@ -77,7 +79,6 @@ class SettingPreferences(sharedPreferences: SharedPreferences, androidApplicatio
     key = androidApplication.getString(R.string.key_pressure_unit),
     sharedPreferences = sharedPreferences
   )
-
 
   val showNotificationPreference = BaseSettingPreference(
     key = androidApplication.getString(R.string.key_show_notification),

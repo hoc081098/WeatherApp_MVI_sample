@@ -12,42 +12,42 @@ import com.hoc.weatherapp.App
 import com.hoc.weatherapp.CancelNotificationReceiver
 import com.hoc.weatherapp.R
 import com.hoc.weatherapp.data.models.TemperatureUnit
+import com.hoc.weatherapp.data.models.entity.City
 import com.hoc.weatherapp.data.models.entity.CurrentWeather
 import com.hoc.weatherapp.ui.SplashActivity
 import com.hoc.weatherapp.utils.ui.getIconDrawableFromCurrentWeather
-import java.text.SimpleDateFormat
-import java.util.*
+import org.threeten.bp.format.DateTimeFormatter
 
 const val WEATHER_NOTIFICATION_ID = 2
 const val ACTION_CANCEL_NOTIFICATION = "com.hoc.weatherapp.CancelNotificationReceiver"
-private val SIMPLE_DATE_FORMAT = SimpleDateFormat("dd/MM/yy HH:mm", Locale.US)
+
+private val DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm, dd/MM/yy")
+private const val TAG = "__notification__"
 
 fun Context.showOrUpdateNotification(
   weather: CurrentWeather,
-  cityName: String,
-  cityCountry: String,
+  city: City,
   unit: TemperatureUnit,
-  popUpAndSound: Boolean//TODO:something is wrong
+  popUpAndSound: Boolean // TODO:something is wrong
 ) {
   val temperature = unit.format(weather.temperature)
-
   val text = HtmlCompat.fromHtml(
     """$temperature
       |<br>
       |${weather.description.capitalize()}
       |<br>
-      |<i>Update time: ${SIMPLE_DATE_FORMAT.format(weather.dataTime)}</i>
-      """.trimMargin(),//TODO: format date
+      |<i>Update time: ${weather.dataTime.toZonedDateTime(city.zoneId).format(DATE_TIME_FORMATTER)}</i>
+      """.trimMargin(),
     HtmlCompat.FROM_HTML_MODE_LEGACY
   )
-  val builder = NotificationCompat.Builder(this, App.CHANNEL_ID)
+  val notification = NotificationCompat.Builder(this, App.CHANNEL_ID)
     .setSmallIcon(
       getIconDrawableFromCurrentWeather(
         weatherConditionId = weather.weatherConditionId,
         weatherIcon = weather.icon
       )
     )
-    .setContentTitle("$cityName - $cityCountry")
+    .setContentTitle("${city.name} - ${city.country}")
     .setContentText(temperature)
     .setStyle(NotificationCompat.BigTextStyle().bigText(text))
     .addAction(
@@ -71,23 +71,30 @@ fun Context.showOrUpdateNotification(
         setDefaults(NotificationCompat.DEFAULT_ALL)
         setSound(RingtoneManager.getDefaultUri(TYPE_NOTIFICATION))
       }
-    }
 
-  val resultPendingIntent = PendingIntent.getActivity(
-    this,
-    0,
-    Intent(applicationContext, SplashActivity::class.java),
-    PendingIntent.FLAG_UPDATE_CURRENT
+      val resultPendingIntent = PendingIntent.getActivity(
+        this@showOrUpdateNotification,
+        0,
+        Intent(applicationContext, SplashActivity::class.java),
+        PendingIntent.FLAG_UPDATE_CURRENT
+      )
+      setContentIntent(resultPendingIntent)
+    }.build()
+
+  debug(
+    "<top>.showOrUpdateNotification weather = [$weather], city = [$city], unit = [$unit], popUpAndSound = [$popUpAndSound]",
+    TAG
   )
-  builder.setContentIntent(resultPendingIntent)
+  debug(
+    "<top>.showOrUpdateNotification notification = [$notification]",
+    TAG
+  )
   (getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).notify(
     WEATHER_NOTIFICATION_ID,
-    builder.build()
+    notification
   )
-
-  debug("Show notification", "__showOrUpdateNotification__")
 }
 
 fun Context.cancelNotificationById(id: Int) =
   (applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager)
-    .cancel(id)
+    .cancel(id).also { debug("<top>.cancelNotificationById id = [$id]", TAG) }
