@@ -138,6 +138,6 @@ inline fun <T, R> Observable<T>.exhaustMap(crossinline transform: (T) -> Observa
 }
 
 @Suppress("nothing_to_inline")
-inline fun <T> Subject<T>.asObservable(): Observable<T> = this
+inline fun <T: Any> Subject<T>.asObservable(): Observable<T> = this
 
 
