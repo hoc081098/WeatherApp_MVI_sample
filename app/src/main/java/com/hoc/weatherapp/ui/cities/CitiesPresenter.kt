@@ -7,7 +7,6 @@ import com.hannesdorfmann.mosby3.mvi.MviBasePresenter
 import com.hoc.weatherapp.data.CityRepository
 import com.hoc.weatherapp.data.CurrentWeatherRepository
 import com.hoc.weatherapp.data.FiveDayForecastRepository
-import com.hoc.weatherapp.data.local.SelectedCityPreference
 import com.hoc.weatherapp.data.local.SettingPreferences
 import com.hoc.weatherapp.data.models.entity.City
 import com.hoc.weatherapp.data.models.entity.CityAndCurrentWeather
@@ -24,13 +23,11 @@ import java.util.concurrent.TimeUnit
 
 const val TAG = "cities"
 
-
 class CitiesPresenter(
   private val cityRepository: CityRepository,
   private val currentWeatherRepository: CurrentWeatherRepository,
   private val fiveDayForecastRepository: FiveDayForecastRepository,
   private val settingPreferences: SettingPreferences,
-  private val selectedCityPreference: SelectedCityPreference,
   private val androidApplication: Application
 ) : MviBasePresenter<View, ViewState>() {
 
@@ -75,21 +72,17 @@ class CitiesPresenter(
             /**
              * If refresh current selected city
              */
-            if (city == selectedCityPreference.value.getOrNull()) {
+            if (cityRepository.selectedCity === city) {
 
               if (settingPreferences.autoUpdatePreference.value) {
                 WorkerUtil.enqueueUpdateCurrentWeatherWorkRequest()
                 WorkerUtil.enqueueUpdateDailyWeatherWorkWorkRequest()
               }
 
-              if (settingPreferences.showNotificationPreference.value) {
-                androidApplication.showOrUpdateNotification(
-                  weather = cityAndCurrentWeather.currentWeather,
-                  city = cityAndCurrentWeather.city,
-                  unit = settingPreferences.temperatureUnitPreference.value,
-                  popUpAndSound = settingPreferences.soundNotificationPreference.value
-                )
-              }
+              androidApplication.showNotificationIfEnabled(
+                cityAndCurrentWeather,
+                settingPreferences
+              )
             }
           }
           .map { it.first.city }
@@ -112,7 +105,7 @@ class CitiesPresenter(
             /**
              * If delete selected city
              */
-            if (selectedCityPreference.value is None) {
+            if (cityRepository.selectedCity === null) {
               androidApplication.cancelNotificationById(WEATHER_NOTIFICATION_ID)
               WorkerUtil.cancelUpdateCurrentWeatherWorkRequest()
               WorkerUtil.cancelUpdateDailyWeatherWorkWorkRequest()
@@ -131,21 +124,11 @@ class CitiesPresenter(
       .refreshCurrentWeatherOfSelectedCity()
       .zipWith(fiveDayForecastRepository.refreshFiveDayForecastOfSelectedCity())
       .doOnSuccess { (cityAndCurrentWeather) ->
-
         if (settingPreferences.autoUpdatePreference.value) {
           WorkerUtil.enqueueUpdateCurrentWeatherWorkRequest()
           WorkerUtil.enqueueUpdateDailyWeatherWorkWorkRequest()
         }
-
-        if (settingPreferences.showNotificationPreference.value) {
-          androidApplication.showOrUpdateNotification(
-            weather = cityAndCurrentWeather.currentWeather,
-            city = cityAndCurrentWeather.city,
-            unit = settingPreferences.temperatureUnitPreference.value,
-            popUpAndSound = settingPreferences.soundNotificationPreference.value
-          )
-        }
-
+        androidApplication.showNotificationIfEnabled(cityAndCurrentWeather, settingPreferences)
       }
 
     intent(View::changeSelectedCity)

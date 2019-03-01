@@ -7,21 +7,20 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.appcompat.app.AppCompatActivity
 import com.hoc.weatherapp.R
-import com.hoc.weatherapp.data.local.SelectedCityPreference
+import com.hoc.weatherapp.data.CityRepository
 import com.hoc.weatherapp.data.models.entity.City
-import com.hoc.weatherapp.utils.getOrNull
 import kotlinx.android.synthetic.main.activity_map.*
 import org.koin.android.ext.android.inject
 
 class MapActivity : AppCompatActivity() {
-    private val cityPreference by inject<SelectedCityPreference>()
+    private val cityRepository by inject<CityRepository>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         window.addFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS)
         setContentView(R.layout.activity_map)
 
-        loadMap(cityPreference.value.getOrNull())
+        loadMap(cityRepository.selectedCity)
 
         bottom_nav.setOnNavigationItemSelectedListener {
             web_view.loadUrl(

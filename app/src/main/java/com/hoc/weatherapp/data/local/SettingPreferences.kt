@@ -7,6 +7,7 @@ import com.hoc.weatherapp.R
 import com.hoc.weatherapp.data.models.PressureUnit
 import com.hoc.weatherapp.data.models.SpeedUnit
 import com.hoc.weatherapp.data.models.TemperatureUnit
+import com.hoc.weatherapp.utils.asObservable
 import com.hoc.weatherapp.utils.delegateVal
 import io.reactivex.Observable
 import io.reactivex.subjects.BehaviorSubject
@@ -29,7 +30,7 @@ class BaseSettingPreference<T : Any>(
   sharedPreferences: SharedPreferences,
   getter: SharedPreferences.(key: String, defaultValue: T) -> T,
   defaultValue: T,
-  key: String?
+  private val key: String?
 ) : PreferenceInterface<T> {
   private val _value by sharedPreferences.delegateVal<T>(
     getter = getter,
@@ -38,8 +39,8 @@ class BaseSettingPreference<T : Any>(
   )
   private val subject = BehaviorSubject.createDefault(_value)
 
-  override val value: T = subject.value ?: _value
-  override val observable: Observable<T> = subject
+  override val value get() = subject.value ?: _value
+  override val observable = subject.asObservable()
 
   /**
    * We call this method in onPreferenceChange of [androidx.preference.Preference.OnPreferenceChangeListener]
@@ -49,8 +50,9 @@ class BaseSettingPreference<T : Any>(
    */
   @MainThread
   override fun save(value: T) = subject.onNext(value)
-}
 
+  override fun toString() = "BaseSettingPreference(value=$value, key=$key)"
+}
 
 class SettingPreferences(sharedPreferences: SharedPreferences, androidApplication: Application) {
   val temperatureUnitPreference = BaseSettingPreference(
@@ -100,4 +102,10 @@ class SettingPreferences(sharedPreferences: SharedPreferences, androidApplicatio
     getter = SharedPreferences::getBoolean,
     sharedPreferences = sharedPreferences
   )
+
+  override fun toString() =
+    "SettingPreferences($temperatureUnitPreference," +
+      " $speedUnitPreference, $pressureUnitPreference," +
+      " $showNotificationPreference, $autoUpdatePreference," +
+      " $soundNotificationPreference)"
 }

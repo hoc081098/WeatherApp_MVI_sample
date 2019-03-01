@@ -2,6 +2,7 @@ package com.hoc.weatherapp.ui.main.fivedayforecast
 
 import android.app.Application
 import com.hannesdorfmann.mosby3.mvi.MviBasePresenter
+import com.hoc.weatherapp.data.CityRepository
 import com.hoc.weatherapp.data.FiveDayForecastRepository
 import com.hoc.weatherapp.data.NoSelectedCityException
 import com.hoc.weatherapp.data.local.SettingPreferences
@@ -25,6 +26,7 @@ import java.util.concurrent.TimeUnit
 
 class DailyWeatherPresenter(
   private val fiveDayForecastRepository: FiveDayForecastRepository,
+  private val cityRepository: CityRepository,
   private val settingPreferences: SettingPreferences,
   private val colorHolderSource: ColorHolderSource,
   private val androidApplication: Application
@@ -90,7 +92,9 @@ class DailyWeatherPresenter(
     return intent { it.refreshDailyWeatherIntent() }
       .publish { shared ->
         Observable.mergeArray(
-          shared.ofType<RefreshIntent.InitialRefreshIntent>().take(1),
+          shared.ofType<RefreshIntent.InitialRefreshIntent>()
+            .take(1)
+            .delay { cityRepository.getSelectedCity().filter { it is Some } },
           shared.notOfType<RefreshIntent.InitialRefreshIntent>()
         )
       }

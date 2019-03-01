@@ -104,7 +104,7 @@
 
             <androidx.cardview.widget.CardView
                 android:id="@+id/card_view1"
-                tools:visibility="gone"
+                tools:visibility="visible"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
@@ -177,9 +177,8 @@
 
                             <TextView
                                 android:id="@+id/text_pressure"
-                                android:layout_width="0dp"
+                                android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_marginStart="8dp"
                                 android:layout_marginTop="16dp"
                                 android:layout_marginBottom="8dp"
                                 android:ellipsize="end"
@@ -198,9 +197,8 @@
 
                             <TextView
                                 android:id="@+id/textView2"
-                                android:layout_width="0dp"
+                                android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_marginStart="8dp"
                                 android:layout_marginBottom="16dp"
                                 android:fontFamily="@font/nunito"
                                 android:text="Pressure"
@@ -244,9 +242,8 @@
 
                             <TextView
                                 android:id="@+id/text_humidity"
-                                android:layout_width="0dp"
+                                android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_marginStart="8dp"
                                 android:layout_marginTop="16dp"
                                 android:layout_marginBottom="8dp"
                                 android:ellipsize="end"
@@ -265,9 +262,8 @@
 
                             <TextView
                                 android:id="@+id/textView3"
-                                android:layout_width="0dp"
+                                android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_marginStart="8dp"
                                 android:layout_marginBottom="16dp"
                                 android:fontFamily="@font/nunito"
                                 android:text="Humidity"
@@ -328,9 +324,8 @@
 
                             <TextView
                                 android:id="@+id/text_rain"
-                                android:layout_width="0dp"
+                                android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_marginStart="8dp"
                                 android:layout_marginTop="16dp"
                                 android:layout_marginBottom="8dp"
                                 android:ellipsize="end"
@@ -348,9 +343,8 @@
 
                             <TextView
                                 android:id="@+id/textView5"
-                                android:layout_width="0dp"
+                                android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_marginStart="8dp"
                                 android:layout_marginBottom="16dp"
                                 android:fontFamily="@font/nunito"
                                 android:text="Rainfall"
@@ -382,9 +376,8 @@
 
                             <TextView
                                 android:id="@+id/textView6"
-                                android:layout_width="0dp"
+                                android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_marginStart="8dp"
                                 android:layout_marginBottom="16dp"
                                 android:fontFamily="@font/nunito"
                                 android:text="Visibility"
@@ -409,9 +402,8 @@
 
                             <TextView
                                 android:id="@+id/text_visibility"
-                                android:layout_width="0dp"
+                                android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_marginStart="8dp"
                                 android:layout_marginTop="16dp"
                                 android:layout_marginBottom="8dp"
                                 android:ellipsize="end"
@@ -435,7 +427,7 @@
 
             <androidx.cardview.widget.CardView
                 android:id="@+id/card_view2"
-                tools:visibility="gone"
+                tools:visibility="visible"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
@@ -501,7 +493,7 @@
 
                     <TextView
                         android:id="@+id/text_wind_dir"
-                        android:layout_width="0dp"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="8dp"
                         android:layout_marginTop="16dp"
@@ -524,8 +516,6 @@
                         android:id="@+id/text_wind_speed"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="8dp"
-                        android:layout_marginEnd="8dp"
                         android:layout_marginBottom="16dp"
                         android:fontFamily="@font/noto_sans"
                         android:maxLines="1"
@@ -533,9 +523,9 @@
                         android:textColor="@android:color/white"
                         android:textSize="16sp"
                         app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintEnd_toEndOf="@+id/text_wind_dir"
                         app:layout_constraintHorizontal_bias="0.5"
-                        app:layout_constraintStart_toEndOf="@+id/windmill2"
+                        app:layout_constraintStart_toStartOf="@+id/text_wind_dir"
                         app:layout_constraintTop_toBottomOf="@+id/text_wind_dir" />
 
                 </androidx.constraintlayout.widget.ConstraintLayout>

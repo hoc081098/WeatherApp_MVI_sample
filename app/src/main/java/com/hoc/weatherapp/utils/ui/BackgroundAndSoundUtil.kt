@@ -4,9 +4,11 @@ import android.content.Context
 import androidx.annotation.DrawableRes
 import androidx.annotation.RawRes
 import com.hoc.weatherapp.R
+import com.hoc.weatherapp.data.models.entity.City
 import com.hoc.weatherapp.data.models.entity.CurrentWeather
-import com.hoc.weatherapp.utils.debug
-import java.util.*
+import com.hoc.weatherapp.utils.toZonedDateTime
+import org.threeten.bp.ZoneId
+import org.threeten.bp.ZonedDateTime
 
 /**
  * 01d, 01n -> clear sky
@@ -20,18 +22,19 @@ import java.util.*
  * 50d, 50n -> mist
  */
 
-private fun isDay(w: CurrentWeather): Boolean {
-  val calendar = Calendar.getInstance()
-  w.debug("${calendar.time} ${w.sunrise} ${w.sunset}")
-  return (calendar.time in w.sunrise..w.sunset)
-    .also { it.debug("isDay = $it", "@@@") }
+private fun isDay(
+  w: CurrentWeather,
+  city: City
+): Boolean {
+  val now = ZonedDateTime.now(ZoneId.of(city.zoneId))
+  return now in w.sunrise.toZonedDateTime(city.zoneId)..w.sunset.toZonedDateTime(city.zoneId)
 }
 
 @DrawableRes
-fun getBackgroundDrawableFromWeather(weather: CurrentWeather): Int {
+fun getBackgroundDrawableFromWeather(weather: CurrentWeather, city: City): Int {
   return when {
     weather.weatherConditionId == 800L
-        && isDay(weather)
+        && isDay(weather, city)
         && weather.temperature > 35 + 273.15 /* 35℃ */ -> {
       R.drawable.hot_bg
     }
@@ -45,7 +48,7 @@ fun getBackgroundDrawableFromWeather(weather: CurrentWeather): Int {
     }
 
     weather.weatherConditionId / 100 == 8L -> {
-      if (isDay(weather)) {
+      if (isDay(weather, city)) {
         R.drawable.cloud_day_bg
       } else {
         R.drawable.cloud_night_bg
@@ -53,7 +56,7 @@ fun getBackgroundDrawableFromWeather(weather: CurrentWeather): Int {
     }
 
     weather.weatherConditionId / 100 in listOf(5L, 2L) -> {
-      if (isDay(weather)) {
+      if (isDay(weather, city)) {
         R.drawable.rain_day_bg
       } else {
         R.drawable.rain_night_bg

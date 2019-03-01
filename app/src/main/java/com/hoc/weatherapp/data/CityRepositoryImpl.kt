@@ -10,8 +10,10 @@ import com.hoc.weatherapp.data.models.entity.City
 import com.hoc.weatherapp.data.remote.OpenWeatherMapApiService
 import com.hoc.weatherapp.data.remote.TimezoneDbApiService
 import com.hoc.weatherapp.data.remote.getZoneId
+import com.hoc.weatherapp.utils.None
+import com.hoc.weatherapp.utils.Optional
+import com.hoc.weatherapp.utils.Some
 import com.hoc.weatherapp.utils.getOrNull
-import com.hoc.weatherapp.utils.toOptional
 import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
@@ -26,6 +28,10 @@ class CityRepositoryImpl(
   private val currentWeatherLocalDataSource: CurrentWeatherLocalDataSource,
   private val selectedCityPreference: SelectedCityPreference
 ) : CityRepository {
+  /**
+   * Synchronous access  selected city
+   */
+  override val selectedCity get() = selectedCityPreference.value.getOrNull()
   /**
    * Get stream of selected city
    * @return [Observable] emit [None] when having no selected city, otherwise emit [Some] of [City]
@@ -48,7 +54,7 @@ class CityRepositoryImpl(
       Single
         .fromCallable { selectedCityPreference.value }
         .filter { it.getOrNull() == city }
-        .flatMapCompletable { changeSelectedCity(null) }
+        .flatMapCompletable { changeSelectedCity(None) }
     ).toSingleDefault(city)
   }
 
@@ -85,13 +91,21 @@ class CityRepositoryImpl(
 
   /**
    * Change selected city to [city]
-   * @param city if [city] is null, indicates that have not selected city
+   * @param city
    * @return a [Completable], emit [SaveSelectedCityError] when error
    */
-  override fun changeSelectedCity(city: City?): Completable {
+  override fun changeSelectedCity(city: City) = changeSelectedCity(Some(city))
+
+
+  /**
+   * Change selected city to [city]
+   * @param optionalCity if [optionalCity] is [None], indicates that have not selected city
+   * @return a [Completable], emit [SaveSelectedCityError] when error
+   */
+  private fun changeSelectedCity(optionalCity: Optional<City>): Completable {
     return Completable
-      .fromCallable { selectedCityPreference.save(city.toOptional()) }
-      .subscribeOn(Schedulers.io())
+      .fromCallable { selectedCityPreference.save(optionalCity) }
+      .subscribeOn(Schedulers.single())
       .onErrorResumeNext { Completable.error(SaveSelectedCityError(it)) }
   }
 }

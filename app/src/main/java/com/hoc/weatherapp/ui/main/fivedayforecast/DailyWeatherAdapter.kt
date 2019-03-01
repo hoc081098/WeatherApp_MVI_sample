@@ -17,6 +17,7 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.bumptech.glide.request.RequestOptions
 import com.hoc.weatherapp.R
+import com.hoc.weatherapp.utils.asObservable
 import com.hoc.weatherapp.utils.ui.HeaderItemDecoration
 import com.hoc.weatherapp.utils.ui.getIconDrawableFromDailyWeather
 import io.reactivex.subjects.PublishSubject
@@ -66,7 +67,7 @@ class DailyWeatherAdapter : ListAdapter<DailyWeatherListItem, RecyclerView.ViewH
   }
 
   private val _clickSubject = PublishSubject.create<DailyWeatherListItem.Weather>()
-  val clickObservable get() = _clickSubject.hide()!!
+  val clickObservable = _clickSubject.asObservable()
 
   @ViewType
   override fun getItemViewType(position: Int): Int {

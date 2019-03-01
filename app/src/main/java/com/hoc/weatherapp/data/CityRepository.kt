@@ -1,5 +1,6 @@
 package com.hoc.weatherapp.data
 
+import androidx.annotation.AnyThread
 import com.hoc.weatherapp.data.models.entity.City
 import com.hoc.weatherapp.utils.Optional
 import io.reactivex.Completable
@@ -10,10 +11,10 @@ import io.reactivex.Single
 interface CityRepository {
   /**
    * Change selected city to [city]
-   * @param city if [city] is null, indicates that have not selected city
+   * @param city
    * @return a [Completable], emit [SaveSelectedCityError] when error
    */
-  fun changeSelectedCity(city: City?): Completable
+  fun changeSelectedCity(city: City): Completable
 
   /**
    * Add city by [latitude] and [longitude]
@@ -35,4 +36,9 @@ interface CityRepository {
    * @return [Observable] emit [None] when having no selected city, otherwise emit [Some] of [City]
    */
   fun getSelectedCity(): Observable<Optional<City>>
+
+  /**
+   * Synchronous access  selected city
+   */
+  val selectedCity: City?
 }
