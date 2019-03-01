@@ -103,6 +103,7 @@ class SettingsActivity : AppCompatActivity() {
         }
       }
 
+      // TODO: merge 2 observable
       showNotificationS
         .switchMap {
           if (it) {
@@ -118,7 +119,6 @@ class SettingsActivity : AppCompatActivity() {
             Observable.just(None)
           }
         }
-        .observeOn(AndroidSchedulers.mainThread())
         .subscribeBy(onNext = onNext)
         .addTo(compositeDisposable)
 
