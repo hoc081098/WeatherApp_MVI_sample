@@ -2,6 +2,7 @@ package com.hoc.weatherapp.ui.main.currentweather
 
 import android.app.Application
 import com.hannesdorfmann.mosby3.mvi.MviBasePresenter
+import com.hoc.weatherapp.data.CityRepository
 import com.hoc.weatherapp.data.CurrentWeatherRepository
 import com.hoc.weatherapp.data.NoSelectedCityException
 import com.hoc.weatherapp.data.local.SettingPreferences
@@ -25,6 +26,7 @@ private const val TAG = "currrentweather"
 
 class CurrentWeatherPresenter(
   private val currentWeatherRepository: CurrentWeatherRepository,
+  private val cityRepository: CityRepository,
   private val androidApplication: Application,
   private val settingPreferences: SettingPreferences
 ) :
@@ -111,7 +113,9 @@ class CurrentWeatherPresenter(
     return intent(View::refreshCurrentWeatherIntent)
       .publish { shared ->
         Observable.mergeArray(
-          shared.ofType<RefreshIntent.InitialRefreshIntent>().take(1),
+          shared.ofType<RefreshIntent.InitialRefreshIntent>()
+            .take(1)
+            .delay { cityRepository.getSelectedCity().filter { it is Some } },
           shared.notOfType<RefreshIntent.InitialRefreshIntent>()
         )
       }
@@ -123,15 +127,7 @@ class CurrentWeatherPresenter(
             if (settingPreferences.autoUpdatePreference.value) {
               WorkerUtil.enqueueUpdateCurrentWeatherWorkRequest()
             }
-
-            if (settingPreferences.showNotificationPreference.value) {
-              androidApplication.showOrUpdateNotification(
-                weather = it.currentWeather,
-                city = it.city,
-                unit = settingPreferences.temperatureUnitPreference.value,
-                popUpAndSound = settingPreferences.soundNotificationPreference.value
-              )
-            }
+            androidApplication.showNotificationIfEnabled(it, settingPreferences)
           }
           .doOnError {
             if (it is NoSelectedCityException) {

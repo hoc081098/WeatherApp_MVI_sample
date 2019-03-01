@@ -24,6 +24,7 @@ import com.bumptech.glide.request.target.CustomViewTarget
 import com.bumptech.glide.request.transition.Transition
 import com.hannesdorfmann.mosby3.mvi.MviActivity
 import com.hoc.weatherapp.R
+import com.hoc.weatherapp.data.models.entity.City
 import com.hoc.weatherapp.data.models.entity.CurrentWeather
 import com.hoc.weatherapp.ui.cities.CitiesActivity
 import com.hoc.weatherapp.ui.main.chart.ChartFragment
@@ -62,6 +63,10 @@ class MainActivity : MviActivity<MainContract.View, MainPresenter>(), MainContra
     }
 
     setupViewPager()
+
+    if (savedInstanceState === null) {
+      vibrantColorSubject.onNext(R.color.colorPrimaryDark)
+    }
   }
 
   override fun onStop() {
@@ -133,11 +138,14 @@ class MainActivity : MviActivity<MainContract.View, MainPresenter>(), MainContra
     }
   }
 
-  private fun updateBackground(weather: CurrentWeather) {
+  private fun updateBackground(
+    weather: CurrentWeather,
+    city: City
+  ) {
     Glide
       .with(this)
       .asBitmap()
-      .load(getBackgroundDrawableFromWeather(weather))
+      .load(getBackgroundDrawableFromWeather(weather, city))
       .apply(
         RequestOptions
           .bitmapTransform(GlideBlurTransformation(this, 25f))
@@ -186,7 +194,7 @@ class MainActivity : MviActivity<MainContract.View, MainPresenter>(), MainContra
   override fun changeVibrantColorIntent() = vibrantColorSubject
 
   private fun renderCityAndWeather(state: MainContract.ViewState.CityAndWeather) {
-    updateBackground(state.weather)
+    updateBackground(state.weather, state.city)
     toolbar_title.text = getString(
       R.string.city_name_and_country,
       state.city.name,

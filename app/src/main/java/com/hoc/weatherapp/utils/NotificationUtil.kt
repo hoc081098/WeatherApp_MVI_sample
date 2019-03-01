@@ -11,8 +11,10 @@ import androidx.core.text.HtmlCompat
 import com.hoc.weatherapp.App
 import com.hoc.weatherapp.CancelNotificationReceiver
 import com.hoc.weatherapp.R
+import com.hoc.weatherapp.data.local.SettingPreferences
 import com.hoc.weatherapp.data.models.TemperatureUnit
 import com.hoc.weatherapp.data.models.entity.City
+import com.hoc.weatherapp.data.models.entity.CityAndCurrentWeather
 import com.hoc.weatherapp.data.models.entity.CurrentWeather
 import com.hoc.weatherapp.ui.SplashActivity
 import com.hoc.weatherapp.utils.ui.getIconDrawableFromCurrentWeather
@@ -89,7 +91,7 @@ fun Context.showOrUpdateNotification(
     "<top>.showOrUpdateNotification notification = [$notification]",
     TAG
   )
-  (getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).notify(
+  (applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).notify(
     WEATHER_NOTIFICATION_ID,
     notification
   )
@@ -98,3 +100,23 @@ fun Context.showOrUpdateNotification(
 fun Context.cancelNotificationById(id: Int) =
   (applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager)
     .cancel(id).also { debug("<top>.cancelNotificationById id = [$id]", TAG) }
+
+
+fun Context.showNotificationIfEnabled(
+  cityAndCurrentWeather: CityAndCurrentWeather,
+  settingPreferences: SettingPreferences
+) {
+  debug("<top>.showNotificationIfEnabled", TAG)
+  debug(
+    "cityAndCurrentWeather = [$cityAndCurrentWeather], settingPreferences = [$settingPreferences]",
+    TAG
+  )
+  if (settingPreferences.showNotificationPreference.value) {
+    showOrUpdateNotification(
+      weather = cityAndCurrentWeather.currentWeather,
+      city = cityAndCurrentWeather.city,
+      unit = settingPreferences.temperatureUnitPreference.value,
+      popUpAndSound = settingPreferences.soundNotificationPreference.value
+    )
+  }
+}

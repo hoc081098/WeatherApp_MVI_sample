@@ -8,7 +8,7 @@ import com.hoc.weatherapp.data.NoSelectedCityException
 import com.hoc.weatherapp.data.local.SettingPreferences
 import com.hoc.weatherapp.utils.WEATHER_NOTIFICATION_ID
 import com.hoc.weatherapp.utils.cancelNotificationById
-import com.hoc.weatherapp.utils.showOrUpdateNotification
+import com.hoc.weatherapp.utils.showNotificationIfEnabled
 import org.koin.standalone.KoinComponent
 import org.koin.standalone.inject
 
@@ -24,14 +24,7 @@ class UpdateCurrentWeatherWorker(context: Context, workerParams: WorkerParameter
         .blockingGet()
 
     }.onSuccess {
-      if (settingPreferences.showNotificationPreference.value) {
-        applicationContext.showOrUpdateNotification(
-          weather = it.currentWeather,
-          city = it.city,
-          unit = settingPreferences.temperatureUnitPreference.value,
-          popUpAndSound = settingPreferences.soundNotificationPreference.value
-        )
-      }
+      applicationContext.showNotificationIfEnabled(it, settingPreferences)
     }.onFailure {
       if (it is NoSelectedCityException) {
         applicationContext.cancelNotificationById(WEATHER_NOTIFICATION_ID)

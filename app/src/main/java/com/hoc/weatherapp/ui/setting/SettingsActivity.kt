@@ -122,7 +122,6 @@ class SettingsActivity : AppCompatActivity() {
         .subscribeBy(onNext = onNext)
         .addTo(compositeDisposable)
 
-
       tempUnitS
         .withLatestFrom(settingPreferences.showNotificationPreference.observable)
         .filter { it.second }
@@ -171,6 +170,7 @@ class SettingsActivity : AppCompatActivity() {
           }
         }
         key == getString(R.string.key_sound_notification) && newValue is Boolean -> {
+          debug("Sound: $newValue", "SETTINGS")
           settingPreferences.soundNotificationPreference.save(newValue)
         }
       }

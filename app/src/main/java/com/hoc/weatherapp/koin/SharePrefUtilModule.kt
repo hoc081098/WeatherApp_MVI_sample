@@ -13,7 +13,7 @@ val sharePrefUtilModule = module {
 
   single { getSettingPreference() }
 
-  single { getCityPreference() }
+  single(createOnStart = true) { getCityPreference() }
 }
 
 private fun ModuleDefinition.getCityPreference(): SelectedCityPreference {

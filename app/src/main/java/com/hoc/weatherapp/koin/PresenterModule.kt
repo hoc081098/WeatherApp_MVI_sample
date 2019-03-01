@@ -38,7 +38,7 @@ private fun ModuleDefinition.getMainPresenter(): MainPresenter {
 }
 
 private fun ModuleDefinition.getDailyWeatherPresenter(): DailyWeatherPresenter {
-  return DailyWeatherPresenter(get(), get(), get(), androidApplication())
+  return DailyWeatherPresenter(get(), get(), get(), get(), androidApplication())
 }
 
 private fun ModuleDefinition.getAddCityPresenter(): AddCityPresenter {
@@ -46,9 +46,9 @@ private fun ModuleDefinition.getAddCityPresenter(): AddCityPresenter {
 }
 
 private fun ModuleDefinition.getCurrentWeatherPresenter(): CurrentWeatherPresenter {
-  return CurrentWeatherPresenter(get(), androidApplication(), get())
+  return CurrentWeatherPresenter(get(), get(), androidApplication(), get())
 }
 
 private fun ModuleDefinition.getCitiesPresenter(): CitiesPresenter {
-  return CitiesPresenter(get(), get(), get(), get(), get(), androidApplication())
+  return CitiesPresenter(get(), get(), get(), get(), androidApplication())
 }

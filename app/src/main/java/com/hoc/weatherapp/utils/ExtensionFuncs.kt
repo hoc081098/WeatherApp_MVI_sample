@@ -19,6 +19,7 @@ import io.reactivex.BackpressureStrategy
 import io.reactivex.Observable
 import io.reactivex.ObservableEmitter
 import io.reactivex.Single
+import io.reactivex.subjects.Subject
 
 @IntDef(value = [Toast.LENGTH_SHORT, Toast.LENGTH_LONG])
 @Retention(AnnotationRetention.SOURCE)
@@ -135,4 +136,8 @@ inline fun <T, R> Observable<T>.exhaustMap(crossinline transform: (T) -> Observa
     .flatMap({ transform(it).toFlowable(BackpressureStrategy.MISSING) }, 1)
     .toObservable()
 }
+
+@Suppress("nothing_to_inline")
+inline fun <T> Subject<T>.asObservable(): Observable<T> = this
+
 

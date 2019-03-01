@@ -19,7 +19,7 @@ class SelectedCityPreference(sharedPreferences: SharedPreferences, private val m
 
   init {
     Single.fromCallable(::getSelectedCityFromSharedPref)
-      .subscribeOn(Schedulers.io())
+      .subscribeOn(Schedulers.single())
       .map { it.toOptional() }
       .onErrorReturnItem(None)
       .subscribeBy(onSuccess = citySubject::onNext)
@@ -46,7 +46,8 @@ class SelectedCityPreference(sharedPreferences: SharedPreferences, private val m
     citySubject.onNext(value)
   }
 
-  override val observable get() = citySubject.hide()!!
+  override val observable = citySubject.asObservable()
 
   override val value get() = citySubject.value ?: None
 }
+
