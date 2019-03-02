@@ -11,7 +11,6 @@ import com.hoc.weatherapp.data.local.SettingPreferences
 import com.hoc.weatherapp.data.models.PressureUnit
 import com.hoc.weatherapp.data.models.SpeedUnit
 import com.hoc.weatherapp.data.models.TemperatureUnit
-import com.hoc.weatherapp.data.models.entity.CityAndCurrentWeather
 import com.hoc.weatherapp.utils.*
 import com.hoc.weatherapp.worker.WorkerUtil.cancelUpdateCurrentWeatherWorkRequest
 import com.hoc.weatherapp.worker.WorkerUtil.cancelUpdateDailyWeatherWorkWorkRequest
@@ -67,7 +66,7 @@ class SettingsActivity : AppCompatActivity() {
       findPreference(getString(R.string.key_pressure_unit)).onPreferenceChangeListener = this
       findPreference(getString(R.string.key_speed_unit)).onPreferenceChangeListener = this
       findPreference(getString(R.string.key_auto_update)).onPreferenceChangeListener = this
-      findPreference(getString(R.string.key_sound_notification)).apply {
+      findPreference(getString(R.string.key_sound_notification)).run {
         onPreferenceChangeListener = this@SettingFragment
         /**
          * Only show `enable sound notification` when `show notification` is enabled
@@ -85,8 +84,35 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun setupSettingShowNotificationAndChangeTemperatureUnit() {
-      val onNext: (Optional<Triple<CityAndCurrentWeather, TemperatureUnit, Boolean>>) -> Unit = {
+      Observable.mergeArray(
+        showNotificationS
+          .switchMap {
+            if (it) {
+              repository
+                .getSelectedCityAndCurrentWeatherOfSelectedCity()
+                .take(1)
+                .withLatestFrom(
+                  settingPreferences.temperatureUnitPreference.observable,
+                  settingPreferences.soundNotificationPreference.observable
+                )
+                .map { triple -> triple.first.map { Triple(it, triple.second, triple.third) } }
+            } else {
+              Observable.just(None)
+            }
+          },
+        tempUnitS
+          .withLatestFrom(settingPreferences.showNotificationPreference.observable)
+          .filter { it.second }
+          .switchMap { pair1 ->
+            repository
+              .getSelectedCityAndCurrentWeatherOfSelectedCity()
+              .take(1)
+              .withLatestFrom(settingPreferences.soundNotificationPreference.observable)
+              .map { pair2 -> pair2.first.map { Triple(it, pair1.first, pair2.second) } }
+          }
+      ).subscribeBy(onNext = {
         debug("setting $it", "SETTINGS")
+
         val context = requireContext()
         when (it) {
           is None -> context.cancelNotificationById(WEATHER_NOTIFICATION_ID)
@@ -101,39 +127,7 @@ class SettingsActivity : AppCompatActivity() {
             }
           }
         }
-      }
-
-      // TODO: merge 2 observable
-      showNotificationS
-        .switchMap {
-          if (it) {
-            repository
-              .getSelectedCityAndCurrentWeatherOfSelectedCity()
-              .take(1)
-              .withLatestFrom(
-                settingPreferences.temperatureUnitPreference.observable,
-                settingPreferences.soundNotificationPreference.observable
-              )
-              .map { triple -> triple.first.map { Triple(it, triple.second, triple.third) } }
-          } else {
-            Observable.just(None)
-          }
-        }
-        .subscribeBy(onNext = onNext)
-        .addTo(compositeDisposable)
-
-      tempUnitS
-        .withLatestFrom(settingPreferences.showNotificationPreference.observable)
-        .filter { it.second }
-        .switchMap { pair1 ->
-          repository
-            .getSelectedCityAndCurrentWeatherOfSelectedCity()
-            .take(1)
-            .withLatestFrom(settingPreferences.soundNotificationPreference.observable)
-            .map { pair2 -> pair2.first.map { Triple(it, pair1.first, pair2.second) } }
-        }
-        .subscribeBy(onNext = onNext)
-        .addTo(compositeDisposable)
+      }).addTo(compositeDisposable)
     }
 
     override fun onDestroyView() {

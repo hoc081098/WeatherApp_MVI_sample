@@ -44,6 +44,14 @@ class DailyDetailActivity : AppCompatActivity() {
     super.onCreate(savedInstanceState)
     setContentView(R.layout.activity_detail_daily_weather)
 
+    setSupportActionBar(toolbar.apply {
+      setNavigationOnClickListener { finish() }
+    })
+    supportActionBar?.run {
+      setDisplayHomeAsUpEnabled(true)
+      setHomeAsUpIndicator(R.drawable.ic_navigate_before_black_24dp)
+    }
+
     val item = intent.getParcelableExtra<DailyWeatherListItem.Weather>(ITEM_KEY)!!
 
     image_icon.setImageResource(getIconDrawableFromDailyWeather(item.weatherIcon))
@@ -83,6 +91,13 @@ class DailyDetailActivity : AppCompatActivity() {
             debug("Bind $position ${list[position]}", "######")
           }
       }
+
+      addItemDecoration(
+        DividerItemDecoration(
+          context,
+          (layoutManager as LinearLayoutManager).orientation
+        )
+      )
     }
   }
 
