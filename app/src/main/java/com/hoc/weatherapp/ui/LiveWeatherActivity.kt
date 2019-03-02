@@ -14,7 +14,7 @@ class LiveWeatherActivity : AppCompatActivity() {
     setSupportActionBar(toolbar)
     supportActionBar?.run {
       setDisplayHomeAsUpEnabled(true)
-      setHomeAsUpIndicator(R.drawable.ic_navigate_before_black_24dp)
+      setHomeAsUpIndicator(R.drawable.ic_navigate_before_white_24dp)
     }
   }
 

@@ -1,29 +1,43 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?><?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="8dp">
+    android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/text_data_time"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:fontFamily="@font/nunito_sans"
-        android:textColor="#424242"
-        android:textSize="18sp"
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:layout_weight="1"
+        android:background="@null"
+        android:theme="@style/AppTheme.AppBarOverlay"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        tools:text="01/01/2018, 02:02" />
+        app:popupTheme="@style/AppTheme.PopupOverlay"
+        app:title="@string/app_name">
+
+        <TextView
+            android:id="@+id/text_data_time"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:fontFamily="@font/nunito_sans"
+            android:gravity="center"
+            android:maxLines="1"
+            android:textColor="#424242"
+            android:textSize="20sp"
+            tools:text="01/01/2018, 02:02" />
+
+    </androidx.appcompat.widget.Toolbar>
 
 
     <androidx.cardview.widget.CardView
         android:id="@+id/card_view"
         android:layout_width="72dp"
         android:layout_height="72dp"
+        android:layout_marginStart="16dp"
         android:layout_marginTop="8dp"
         app:cardBackgroundColor="@android:color/white"
         app:cardCornerRadius="36dp"
@@ -32,7 +46,7 @@
         app:cardPreventCornerOverlap="false"
         app:contentPadding="0dp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/text_data_time">
+        app:layout_constraintTop_toBottomOf="@+id/toolbar">
 
         <androidx.appcompat.widget.AppCompatImageView
             android:id="@+id/image_icon"
@@ -50,6 +64,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
+        android:layout_marginEnd="16dp"
         android:fontFamily="@font/nunito_sans"
         android:textColor="#424242"
         android:textSize="16sp"
@@ -66,6 +81,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:layout_marginTop="4dp"
+        android:layout_marginEnd="16dp"
         android:textAlignment="center"
         app:layout_constraintBottom_toBottomOf="@+id/card_view"
         app:layout_constraintEnd_toEndOf="parent"
@@ -88,5 +104,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/card_view"
         tools:listitem="@layout/detail_item_layout" />
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>
