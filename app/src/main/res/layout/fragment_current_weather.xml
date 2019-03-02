@@ -104,7 +104,6 @@
 
             <androidx.cardview.widget.CardView
                 android:id="@+id/card_view1"
-                tools:visibility="visible"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
@@ -118,7 +117,7 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/button_live"
-                >
+                tools:visibility="visible">
 
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="match_parent"
@@ -177,14 +176,14 @@
 
                             <TextView
                                 android:id="@+id/text_pressure"
-                                android:layout_width="wrap_content"
+                                android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="16dp"
                                 android:layout_marginBottom="8dp"
                                 android:ellipsize="end"
                                 android:fontFamily="@font/nunito_sans"
                                 android:maxLines="1"
-                                android:textAlignment="textStart"
+                                android:textAlignment="center"
                                 android:textColor="@android:color/white"
                                 android:textSize="16sp"
                                 app:layout_constraintBottom_toTopOf="@+id/textView2"
@@ -193,15 +192,16 @@
                                 app:layout_constraintStart_toEndOf="@+id/imageView"
                                 app:layout_constraintTop_toTopOf="parent"
                                 app:layout_constraintVertical_chainStyle="packed"
-                                tools:text="1007.0 mb" />
+                                tools:text="1007.0 mb 22222222222222" />
 
                             <TextView
                                 android:id="@+id/textView2"
-                                android:layout_width="wrap_content"
+                                android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_marginBottom="16dp"
                                 android:fontFamily="@font/nunito"
                                 android:text="Pressure"
+                                android:textAlignment="center"
                                 android:textColor="@android:color/white"
                                 app:layout_constraintBottom_toBottomOf="parent"
                                 app:layout_constraintEnd_toEndOf="parent"
@@ -242,14 +242,14 @@
 
                             <TextView
                                 android:id="@+id/text_humidity"
-                                android:layout_width="wrap_content"
+                                android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="16dp"
                                 android:layout_marginBottom="8dp"
                                 android:ellipsize="end"
                                 android:fontFamily="@font/nunito_sans"
                                 android:maxLines="1"
-                                android:textAlignment="textStart"
+                                android:textAlignment="center"
                                 android:textColor="@android:color/white"
                                 android:textSize="16sp"
                                 app:layout_constraintBottom_toTopOf="@+id/textView3"
@@ -262,11 +262,12 @@
 
                             <TextView
                                 android:id="@+id/textView3"
-                                android:layout_width="wrap_content"
+                                android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_marginBottom="16dp"
                                 android:fontFamily="@font/nunito"
                                 android:text="Humidity"
+                                android:textAlignment="center"
                                 android:textColor="@android:color/white"
                                 app:layout_constraintBottom_toBottomOf="parent"
                                 app:layout_constraintEnd_toEndOf="parent"
@@ -324,14 +325,14 @@
 
                             <TextView
                                 android:id="@+id/text_rain"
-                                android:layout_width="wrap_content"
+                                android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="16dp"
                                 android:layout_marginBottom="8dp"
                                 android:ellipsize="end"
                                 android:fontFamily="@font/nunito_sans"
                                 android:maxLines="1"
-                                android:textAlignment="textStart"
+                                android:textAlignment="center"
                                 android:textColor="@android:color/white"
                                 android:textSize="16sp"
                                 app:layout_constraintBottom_toTopOf="@+id/textView5"
@@ -343,11 +344,12 @@
 
                             <TextView
                                 android:id="@+id/textView5"
-                                android:layout_width="wrap_content"
+                                android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_marginBottom="16dp"
                                 android:fontFamily="@font/nunito"
                                 android:text="Rainfall"
+                                android:textAlignment="center"
                                 android:textColor="@android:color/white"
                                 app:layout_constraintBottom_toBottomOf="parent"
                                 app:layout_constraintEnd_toEndOf="parent"
@@ -376,11 +378,12 @@
 
                             <TextView
                                 android:id="@+id/textView6"
-                                android:layout_width="wrap_content"
+                                android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_marginBottom="16dp"
                                 android:fontFamily="@font/nunito"
                                 android:text="Visibility"
+                                android:textAlignment="center"
                                 android:textColor="@android:color/white"
                                 app:layout_constraintBottom_toBottomOf="parent"
                                 app:layout_constraintEnd_toEndOf="parent"
@@ -402,13 +405,14 @@
 
                             <TextView
                                 android:id="@+id/text_visibility"
-                                android:layout_width="wrap_content"
+                                android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="16dp"
                                 android:layout_marginBottom="8dp"
                                 android:ellipsize="end"
                                 android:fontFamily="@font/nunito_sans"
                                 android:maxLines="1"
+                                android:textAlignment="center"
                                 android:textColor="@android:color/white"
                                 android:textSize="16sp"
                                 app:layout_constraintBottom_toTopOf="@+id/textView6"
@@ -427,7 +431,6 @@
 
             <androidx.cardview.widget.CardView
                 android:id="@+id/card_view2"
-                tools:visibility="visible"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
@@ -441,7 +444,7 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/card_view1"
-                >
+                tools:visibility="visible">
 
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="match_parent"
@@ -493,15 +496,13 @@
 
                     <TextView
                         android:id="@+id/text_wind_dir"
-                        android:layout_width="wrap_content"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="8dp"
                         android:layout_marginTop="16dp"
-                        android:layout_marginEnd="8dp"
                         android:layout_marginBottom="8dp"
                         android:fontFamily="@font/noto_sans"
                         android:maxLines="1"
-                        android:textAlignment="textStart"
+                        android:textAlignment="center"
                         android:textColor="@android:color/white"
                         android:textSize="16sp"
                         app:layout_constraintBottom_toTopOf="@+id/text_wind_speed"
@@ -518,15 +519,16 @@
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="16dp"
                         android:fontFamily="@font/noto_sans"
-                        android:maxLines="1"
-                        android:text="Speed: 2"
+                        android:maxLines="2"
+                        android:textAlignment="center"
                         android:textColor="@android:color/white"
                         android:textSize="16sp"
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintEnd_toEndOf="@+id/text_wind_dir"
                         app:layout_constraintHorizontal_bias="0.5"
                         app:layout_constraintStart_toStartOf="@+id/text_wind_dir"
-                        app:layout_constraintTop_toBottomOf="@+id/text_wind_dir" />
+                        app:layout_constraintTop_toBottomOf="@+id/text_wind_dir"
+                        tools:text="Speed: 2330300303030300303sdsaddsdsdddasd" />
 
                 </androidx.constraintlayout.widget.ConstraintLayout>
 

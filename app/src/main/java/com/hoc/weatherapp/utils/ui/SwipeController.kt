@@ -150,7 +150,7 @@ class SwipeController(private val buttonsActions: SwipeControllerActions) :
     isCurrentlyActive: Boolean
   ) {
     recyclerView.setOnTouchListener { v, event ->
-      if (event.action == MotionEvent.ACTION_DOWN) {
+      if (event.action == MotionEvent.ACTION_DOWN && event.action != MotionEvent.ACTION_MOVE) {
         setTouchUpListener(
           c,
           recyclerView,

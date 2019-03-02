@@ -3,6 +3,7 @@ package com.hoc.weatherapp.ui.main
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
 import android.media.MediaPlayer
+import android.os.AsyncTask
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
@@ -10,6 +11,7 @@ import android.view.View
 import android.view.WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS
 import android.view.WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS
 import android.widget.ImageView
+import androidx.annotation.ColorInt
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
@@ -44,8 +46,10 @@ import org.koin.android.ext.android.get
 import java.lang.ref.WeakReference
 
 class MainActivity : MviActivity<MainContract.View, MainPresenter>(), MainContract.View {
-  private val vibrantColorSubject = PublishSubject.create<Int>()
+  private val vibrantColorSubject = PublishSubject.create<@ColorInt Int>()
   private var mediaPlayer: MediaPlayer? = null
+  private var asyncTask: AsyncTask<*, *, *>? = null
+  private var target: CustomViewTarget<*, *>? = null
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
@@ -65,7 +69,7 @@ class MainActivity : MviActivity<MainContract.View, MainPresenter>(), MainContra
     setupViewPager()
 
     if (savedInstanceState === null) {
-      vibrantColorSubject.onNext(R.color.colorPrimaryDark)
+      vibrantColorSubject.onNext(ContextCompat.getColor(this, R.color.colorPrimaryDark))
     }
   }
 
@@ -78,6 +82,7 @@ class MainActivity : MviActivity<MainContract.View, MainPresenter>(), MainContra
   override fun onDestroy() {
     super.onDestroy()
 
+    asyncTask?.cancel(true)
     vibrantColorSubject.onComplete()
 
     stopSound()
@@ -138,17 +143,19 @@ class MainActivity : MviActivity<MainContract.View, MainPresenter>(), MainContra
     }
   }
 
+
   private fun updateBackground(
     weather: CurrentWeather,
     city: City
   ) {
     Glide
       .with(this)
+      .apply { clear(target); asyncTask?.cancel(true) }
       .asBitmap()
       .load(getBackgroundDrawableFromWeather(weather, city))
       .apply(
         RequestOptions
-          .bitmapTransform(GlideBlurTransformation(this, 25f))
+          .bitmapTransform(GlideBlurTransformation(this, 20f))
           .fitCenter()
           .centerCrop()
       )
@@ -160,9 +167,11 @@ class MainActivity : MviActivity<MainContract.View, MainPresenter>(), MainContra
 
         override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
           view.setImageBitmap(resource)
-          getVibrantColor(resource, WeakReference(this@MainActivity))
+          asyncTask?.cancel(true)
+          asyncTask = getVibrantColor(resource, WeakReference(this@MainActivity))
         }
       })
+      .also { target = it }
   }
 
 
@@ -224,13 +233,17 @@ class MainActivity : MviActivity<MainContract.View, MainPresenter>(), MainContra
   override fun createPresenter() = get<MainPresenter>()
 
   companion object {
-    private fun getVibrantColor(resource: Bitmap, mainActivity: WeakReference<MainActivity>) {
-      Palette
+    @JvmStatic
+    private fun getVibrantColor(
+      resource: Bitmap,
+      mainActivity: WeakReference<MainActivity>
+    ): AsyncTask<*, *, *> {
+      return Palette
         .from(resource)
         .generate { palette ->
           palette ?: return@generate
 
-          val vibrantColor = listOf(
+          @ColorInt val vibrantColor = listOf(
             palette.getSwatchForTarget(Target.DARK_VIBRANT)?.rgb,
             palette.getSwatchForTarget(Target.VIBRANT)?.rgb,
             palette.getSwatchForTarget(Target.LIGHT_VIBRANT)?.rgb
