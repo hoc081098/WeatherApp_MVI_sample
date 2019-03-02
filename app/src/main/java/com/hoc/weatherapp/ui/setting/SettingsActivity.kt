@@ -2,6 +2,7 @@ package com.hoc.weatherapp.ui.setting
 
 import android.os.Bundle
 import android.view.MenuItem
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
@@ -56,8 +57,12 @@ class SettingsActivity : AppCompatActivity() {
     private val tempUnitS = PublishSubject.create<TemperatureUnit>()
     private val compositeDisposable = CompositeDisposable()
 
-    override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
+    override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) =
       setPreferencesFromResource(R.xml.preferences, rootKey)
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+      super.onViewCreated(view, savedInstanceState)
+
       /**
        * Set listener
        */

@@ -3,9 +3,7 @@ package com.hoc.weatherapp.ui.main.fivedayforecast
 import android.content.Intent
 import android.graphics.PorterDuff
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import androidx.annotation.ColorInt
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -42,17 +40,22 @@ class DailyDetailActivity : AppCompatActivity() {
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
+    window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
+    window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS)
     setContentView(R.layout.activity_detail_daily_weather)
 
-    setSupportActionBar(toolbar.apply {
-      setNavigationOnClickListener { finish() }
-    })
+    setSupportActionBar(toolbar)
     supportActionBar?.run {
       setDisplayHomeAsUpEnabled(true)
       setHomeAsUpIndicator(R.drawable.ic_navigate_before_black_24dp)
     }
 
-    val item = intent.getParcelableExtra<DailyWeatherListItem.Weather>(ITEM_KEY)!!
+    bind(intent.getParcelableExtra(ITEM_KEY)!!)
+  }
+
+  private fun bind(item: DailyWeatherListItem.Weather) {
+    window.statusBarColor = item.iconBackgroundColor
+    divider.setBackgroundColor(item.iconBackgroundColor)
 
     image_icon.setImageResource(getIconDrawableFromDailyWeather(item.weatherIcon))
     image_icon.setBackgroundColor(item.iconBackgroundColor)
@@ -100,6 +103,11 @@ class DailyDetailActivity : AppCompatActivity() {
       )
     }
   }
+
+  override fun onOptionsItemSelected(item: MenuItem?) =
+    if (item?.itemId == android.R.id.home) {
+      true.also { finish() }
+    } else super.onOptionsItemSelected(item)
 
   class VH(itemView: View) : RecyclerView.ViewHolder(itemView) {
     private val image = itemView.imageView5

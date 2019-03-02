@@ -15,12 +15,13 @@ class MainPresenter(
   private val currentWeatherRepository: CurrentWeatherRepository,
   private val colorHolderSource: ColorHolderSource
 ) : MviBasePresenter<MainContract.View, MainContract.ViewState>() {
-  private val tag = "main"
+  private val tag = "__main__"
   private val compositeDisposable = CompositeDisposable()
 
   override fun bindIntents() {
     intent(MainContract.View::changeVibrantColorIntent)
       .observeOn(AndroidSchedulers.mainThread())
+      .doOnNext { debug("changeColor $it", tag) }
       .subscribe(colorHolderSource::change)
       .addTo(compositeDisposable)
 

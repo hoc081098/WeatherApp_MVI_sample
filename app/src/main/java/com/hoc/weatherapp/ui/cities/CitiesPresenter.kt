@@ -72,7 +72,7 @@ class CitiesPresenter(
             /**
              * If refresh current selected city
              */
-            if (cityRepository.selectedCity === city) {
+            if (cityRepository.selectedCity == city) {
 
               if (settingPreferences.autoUpdatePreference.value) {
                 WorkerUtil.enqueueUpdateCurrentWeatherWorkRequest()

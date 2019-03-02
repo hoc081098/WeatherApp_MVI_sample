@@ -2,7 +2,6 @@ package com.hoc.weatherapp.ui.main.fivedayforecast
 
 import android.app.Application
 import com.hannesdorfmann.mosby3.mvi.MviBasePresenter
-import com.hoc.weatherapp.R
 import com.hoc.weatherapp.data.CityRepository
 import com.hoc.weatherapp.data.FiveDayForecastRepository
 import com.hoc.weatherapp.data.NoSelectedCityException
@@ -118,6 +117,7 @@ class DailyWeatherPresenter(
             }
           }
           .toObservable()
+          .observeOn(AndroidSchedulers.mainThread())
           .map {
             mapListDailyWeathersToListItem(
               Tuple5(
@@ -125,11 +125,10 @@ class DailyWeatherPresenter(
                 settingPreferences.temperatureUnitPreference.value,
                 settingPreferences.speedUnitPreference.value,
                 settingPreferences.pressureUnitPreference.value,
-                colorHolderSource.vibrantColor.also { debug("refresh vibrantColor=$it, primaryDark=${R.color.colorPrimaryDark}", tag) }
+                colorHolderSource.vibrantColor.also { debug("refresh vibrantColor=$it", tag) }
               )
             )
           }
-          .observeOn(AndroidSchedulers.mainThread())
           .switchMap(::showList)
           .onErrorResumeNext(::showError)
       }
@@ -143,7 +142,12 @@ class DailyWeatherPresenter(
       source2 = settingPreferences.temperatureUnitPreference.observable,
       source3 = settingPreferences.speedUnitPreference.observable,
       source4 = settingPreferences.pressureUnitPreference.observable,
-      source5 = colorHolderSource.vibrantColorObservable.doOnNext { debug("combine vibrantColor=$it, primaryDark=${R.color.colorPrimaryDark}", tag) },
+      source5 = colorHolderSource.vibrantColorObservable.doOnNext {
+        debug(
+          "combine vibrantColor=$it",
+          tag
+        )
+      },
       combineFunction = { list, temperatureUnit, speedUnit, pressureUnit, color ->
         Tuple5(list, temperatureUnit, speedUnit, pressureUnit, color)
       }

@@ -27,7 +27,7 @@ val presenterModule = module {
   single { getColorHolderSource() }
 }
 
-fun getColorHolderSource() = ColorHolderSource()
+private fun ModuleDefinition.getColorHolderSource() = ColorHolderSource(androidApplication())
 
 private fun ModuleDefinition.getChartPresenter(): ChartPresenter {
   return ChartPresenter(get(), get())
