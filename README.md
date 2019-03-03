@@ -23,7 +23,11 @@
 - Local data with [Room Persistence](https://developer.android.com/topic/libraries/architecture/room)
 - Auto update weather per 15 minutes with [Jetpack WorkManager](https://developer.android.com/topic/libraries/architecture/workmanager)
 
-## To Do
+## Trying:
+
+  [Debug apk](https://github.com/hoc081098/WeatherApp_MVI_sample/blob/try_mvi/app/build/outputs/apk/debug/app-debug.apk)
+
+## Todo
 - Add testing
 - Use [Kotlin coroutine](https://github.com/Kotlin/kotlinx.coroutines) and suspend function instead of Rx Single, Rx Completable
 - Fix some problems
