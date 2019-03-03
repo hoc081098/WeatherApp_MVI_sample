@@ -12,10 +12,7 @@ interface CurrentWeatherContract {
 
     data class Weather(val weather: CurrentWeather) : PartialStateChange()
 
-    data class RefreshWeatherSuccess(
-      val weather: CurrentWeather,
-      val showMessage: Boolean
-    ) : PartialStateChange()
+    data class RefreshWeatherSuccess(val showMessage: Boolean) : PartialStateChange()
   }
 
   data class ViewState(

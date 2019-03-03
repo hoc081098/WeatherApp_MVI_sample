@@ -51,8 +51,6 @@ class AddCityPresenter(
   private val locationSettingsRequest by locationSettingsRequestLazy
   private val settingsClient by settingsClientLazy
 
-  private val tag = "_add_city_"
-
   private val addCityTransformer =
     ObservableTransformer<Pair<Double, Double>, ViewState> { latLng ->
       latLng
@@ -63,8 +61,8 @@ class AddCityPresenter(
               currentWeatherRepository
                 .refreshWeatherOf(it)
                 .subscribeBy(
-                  onSuccess = { debug("refreshWeatherOf success.. $it", tag) },
-                  onError = { debug("refreshWeatherOf failure... $it", tag, it) }
+                  onSuccess = { debug("refreshWeatherOf success.. $it", TAG) },
+                  onError = { debug("refreshWeatherOf failure... $it", TAG, it) }
                 )
             }
             .toObservable()
@@ -125,7 +123,7 @@ class AddCityPresenter(
     subscribeViewState(
       Observable.mergeArray(addCityByLatLng, addCurrentLocation)
         .distinctUntilChanged()
-        .doOnNext { debug("viewState = $it", tag) }
+        .doOnNext { debug("viewState = $it", TAG) }
         .observeOn(AndroidSchedulers.mainThread()),
       View::render
     )
@@ -137,5 +135,9 @@ class AddCityPresenter(
     locationSettingsRequestLazy.cleanUp()
     fusedLocationProviderClientLazy.cleanUp()
     settingsClientLazy.cleanUp()
+  }
+
+  private companion object {
+    private const val TAG = "__add_city__"
   }
 }

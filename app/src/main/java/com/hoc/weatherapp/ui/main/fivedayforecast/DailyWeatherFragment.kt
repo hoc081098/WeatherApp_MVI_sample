@@ -54,8 +54,12 @@ class DailyDetailActivity : AppCompatActivity() {
   }
 
   private fun bind(item: DailyWeatherListItem.Weather) {
-    window.statusBarColor = item.iconBackgroundColor
-    divider.setBackgroundColor(item.iconBackgroundColor)
+    item.iconBackgroundColor.let {
+      window.statusBarColor = it
+      divider.setBackgroundColor(it)
+      text_data_time.setTextColor(it)
+    }
+
 
     image_icon.setImageResource(getIconDrawableFromDailyWeather(item.weatherIcon))
     image_icon.setBackgroundColor(item.iconBackgroundColor)

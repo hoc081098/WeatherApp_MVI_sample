@@ -24,7 +24,7 @@ val presenterModule = module {
 
   factory { getChartPresenter() }
 
-  single { getColorHolderSource() }
+  single(createOnStart = true) { getColorHolderSource() }
 }
 
 private fun ModuleDefinition.getColorHolderSource() = ColorHolderSource(androidApplication())
@@ -34,7 +34,7 @@ private fun ModuleDefinition.getChartPresenter(): ChartPresenter {
 }
 
 private fun ModuleDefinition.getMainPresenter(): MainPresenter {
-  return MainPresenter(get(), get())
+  return MainPresenter(get(), get(), androidApplication())
 }
 
 private fun ModuleDefinition.getDailyWeatherPresenter(): DailyWeatherPresenter {

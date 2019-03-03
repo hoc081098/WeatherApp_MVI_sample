@@ -18,9 +18,11 @@ import com.hoc.weatherapp.ui.main.fivedayforecast.DailyWeatherContract.PartialSt
 import com.hoc.weatherapp.utils.*
 import com.hoc.weatherapp.worker.WorkerUtil
 import io.reactivex.Observable
+import io.reactivex.ObservableTransformer
 import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.functions.BiFunction
+import io.reactivex.functions.Function
 import io.reactivex.rxkotlin.Observables
-import io.reactivex.rxkotlin.cast
 import io.reactivex.rxkotlin.ofType
 import java.util.concurrent.TimeUnit
 
@@ -28,184 +30,155 @@ class DailyWeatherPresenter(
   private val fiveDayForecastRepository: FiveDayForecastRepository,
   private val cityRepository: CityRepository,
   private val settingPreferences: SettingPreferences,
-  private val colorHolderSource: ColorHolderSource,
+  colorHolderSource: ColorHolderSource,
   private val androidApplication: Application
-) :
-  MviBasePresenter<View, ViewState>() {
-  private val tag = "_five_day_forecast_"
+) : MviBasePresenter<View, ViewState>() {
 
-  private data class Tuple5(
-    val weathers: Pair<City, List<DailyWeather>>,
-    val temperatureUnit: TemperatureUnit,
-    val speedUnit: SpeedUnit,
-    val pressureUnit: PressureUnit,
-    val iconBackgroundColor: Int
-  )
+  private val refreshWeatherProcessor =
+    ObservableTransformer<RefreshIntent, PartialStateChange> {
+      it
+        .publish { shared ->
+          Observable.mergeArray(
+            shared.ofType<RefreshIntent.InitialRefreshIntent>()
+              .take(1)
+              .delay { cityRepository.getSelectedCity().filter { it is Some } },
+            shared.notOfType<RefreshIntent.InitialRefreshIntent>()
+          )
+        }
+        .exhaustMap {
+          fiveDayForecastRepository
+            .refreshFiveDayForecastOfSelectedCity()
+            .doOnSuccess {
+              if (settingPreferences.autoUpdatePreference.value) {
+                WorkerUtil.enqueueUpdateDailyWeatherWorkWorkRequest()
+              }
+            }
+            .doOnError {
+              if (it is NoSelectedCityException) {
+                androidApplication.cancelNotificationById(WEATHER_NOTIFICATION_ID)
+                WorkerUtil.cancelUpdateCurrentWeatherWorkRequest()
+                WorkerUtil.cancelUpdateDailyWeatherWorkWorkRequest()
+              }
+            }
+            .toObservable()
+            .observeOn(AndroidSchedulers.mainThread())
+            .switchMap {
+              Observable
+                .timer(2_000, TimeUnit.MILLISECONDS)
+                .map<PartialStateChange> { PartialStateChange.RefreshWeatherSuccess(showMessage = false) }
+                .startWith(PartialStateChange.RefreshWeatherSuccess(showMessage = true))
+            }
+            .onErrorResumeNext(showError)
+        }
+    }
 
-  private fun mapListDailyWeathersToListItem(tuple5: Tuple5): List<DailyWeatherListItem> {
-    val (cityAndWeathers, temperatureUnit, windSpeedUnit, pressureUnit, iconBackgroundColor) = tuple5
-
-    return cityAndWeathers
-      .second
-      .groupBy { it.timeOfDataForecasted.trim() }
-      .toSortedMap()
-      .flatMap { (date, weathers) ->
-        val zoneId = cityAndWeathers.first.zoneId
-
-        listOf(DailyWeatherListItem.Header(date.toZonedDateTime(zoneId))) +
-          weathers.map {
-            DailyWeatherListItem.Weather(
-              weatherIcon = it.icon,
-              main = it.main,
-              weatherDescription = it.description.capitalize(),
-              temperatureMin = temperatureUnit.format(it.temperatureMin),
-              temperatureMax = temperatureUnit.format(it.temperatureMax),
-              temperature = temperatureUnit.format(it.temperature),
-              dataTime = it.timeOfDataForecasted.toZonedDateTime(zoneId),
-              cloudiness = "${it.cloudiness}%",
-              humidity = "${it.humidity}%",
-              rainVolumeForTheLast3Hours = "${it.rainVolumeForTheLast3Hours}mm",
-              snowVolumeForTheLast3Hours = "${it.snowVolumeForTheLast3Hours}mm",
-              windDirection = WindDirection.fromDegrees(it.winDegrees),
-              groundLevel = pressureUnit.format(it.groundLevel),
-              pressure = pressureUnit.format(it.pressure),
-              seaLevel = pressureUnit.format(it.seaLevel),
-              winSpeed = windSpeedUnit.format(it.windSpeed),
-              iconBackgroundColor = iconBackgroundColor
-            )
-          }
-      }
-  }
+  private val weatherChangePartialState = Observables.combineLatest(
+    source1 = fiveDayForecastRepository.getFiveDayForecastOfSelectedCity()
+      .ofType<Some<Pair<City, List<DailyWeather>>>>()
+      .map { it.value },
+    source2 = settingPreferences.temperatureUnitPreference.observable,
+    source3 = settingPreferences.speedUnitPreference.observable,
+    source4 = settingPreferences.pressureUnitPreference.observable,
+    source5 = colorHolderSource.colorObservable,
+    combineFunction = { list, temperatureUnit, speedUnit, pressureUnit, color ->
+      Tuple5(list, temperatureUnit, speedUnit, pressureUnit, color)
+    }
+  ).map(tupleToWeatherPartialChange).onErrorResumeNext(showError)
 
   override fun bindIntents() {
     subscribeViewState(
-      Observable.mergeArray(weatherChangePartialState(), refreshWeatherPartialChange())
-        .scan(ViewState(), ::reduce)
+      Observable.mergeArray(
+        weatherChangePartialState,
+        intent(View::refreshDailyWeatherIntent).compose(refreshWeatherProcessor)
+      ).scan(ViewState(), reducer)
         .distinctUntilChanged()
-        .doOnNext { debug("ViewState=$it", tag) }
+        .doOnNext { debug("ViewState=$it", TAG) }
         .observeOn(AndroidSchedulers.mainThread()),
       View::render
     )
   }
 
-  private fun refreshWeatherPartialChange(): Observable<PartialStateChange> {
-    return intent { it.refreshDailyWeatherIntent() }
-      .publish { shared ->
-        Observable.mergeArray(
-          shared.ofType<RefreshIntent.InitialRefreshIntent>()
-            .take(1)
-            .delay { cityRepository.getSelectedCity().filter { it is Some } },
-          shared.notOfType<RefreshIntent.InitialRefreshIntent>()
-        )
-      }
-      .doOnNext { debug("refreshDailyWeatherIntent $it", "_daily_weather_") }
-      .exhaustMap {
-        fiveDayForecastRepository
-          .refreshFiveDayForecastOfSelectedCity()
-          .doOnSuccess {
+  private companion object {
+    private const val TAG = "__five_day_forecast__"
 
-            if (settingPreferences.autoUpdatePreference.value) {
-              WorkerUtil.enqueueUpdateDailyWeatherWorkWorkRequest()
-            }
+    private data class Tuple5(
+      val weathers: Pair<City, List<DailyWeather>>,
+      val temperatureUnit: TemperatureUnit,
+      val speedUnit: SpeedUnit,
+      val pressureUnit: PressureUnit,
+      val iconBackgroundColor: Int
+    )
 
-          }
-          .doOnError {
-            if (it is NoSelectedCityException) {
-              androidApplication.cancelNotificationById(WEATHER_NOTIFICATION_ID)
-              WorkerUtil.cancelUpdateCurrentWeatherWorkRequest()
-              WorkerUtil.cancelUpdateDailyWeatherWorkWorkRequest()
-            }
-          }
-          .toObservable()
-          .observeOn(AndroidSchedulers.mainThread())
-          .map {
-            mapListDailyWeathersToListItem(
-              Tuple5(
-                it,
-                settingPreferences.temperatureUnitPreference.value,
-                settingPreferences.speedUnitPreference.value,
-                settingPreferences.pressureUnitPreference.value,
-                colorHolderSource.vibrantColor.also { debug("refresh vibrantColor=$it", tag) }
+    @JvmStatic
+    private val tupleToWeatherPartialChange = Function<Tuple5, PartialStateChange> {
+      val (cityAndWeathers, temperatureUnit, windSpeedUnit, pressureUnit, iconBackgroundColor) = it
+      cityAndWeathers
+        .second
+        .groupBy { it.timeOfDataForecasted.trim() }
+        .toSortedMap()
+        .flatMap { (date, weathers) ->
+          val zoneId = cityAndWeathers.first.zoneId
+
+          listOf(DailyWeatherListItem.Header(date.toZonedDateTime(zoneId))) +
+            weathers.map {
+              DailyWeatherListItem.Weather(
+                weatherIcon = it.icon,
+                main = it.main,
+                weatherDescription = it.description.capitalize(),
+                temperatureMin = temperatureUnit.format(it.temperatureMin),
+                temperatureMax = temperatureUnit.format(it.temperatureMax),
+                temperature = temperatureUnit.format(it.temperature),
+                dataTime = it.timeOfDataForecasted.toZonedDateTime(zoneId),
+                cloudiness = "${it.cloudiness}%",
+                humidity = "${it.humidity}%",
+                rainVolumeForTheLast3Hours = "${it.rainVolumeForTheLast3Hours}mm",
+                snowVolumeForTheLast3Hours = "${it.snowVolumeForTheLast3Hours}mm",
+                windDirection = WindDirection.fromDegrees(it.winDegrees),
+                groundLevel = pressureUnit.format(it.groundLevel),
+                pressure = pressureUnit.format(it.pressure),
+                seaLevel = pressureUnit.format(it.seaLevel),
+                winSpeed = windSpeedUnit.format(it.windSpeed),
+                iconBackgroundColor = iconBackgroundColor
               )
-            )
-          }
-          .switchMap(::showList)
-          .onErrorResumeNext(::showError)
-      }
-  }
+            }
+        }
+        .let(::Weather)
+    }
 
-  private fun weatherChangePartialState(): Observable<PartialStateChange> {
-    return Observables.combineLatest(
-      source1 = fiveDayForecastRepository.getFiveDayForecastOfSelectedCity()
-        .ofType<Some<Pair<City, List<DailyWeather>>>>()
-        .map { it.value },
-      source2 = settingPreferences.temperatureUnitPreference.observable,
-      source3 = settingPreferences.speedUnitPreference.observable,
-      source4 = settingPreferences.pressureUnitPreference.observable,
-      source5 = colorHolderSource.vibrantColorObservable.doOnNext {
-        debug(
-          "combine vibrantColor=$it",
-          tag
-        )
-      },
-      combineFunction = { list, temperatureUnit, speedUnit, pressureUnit, color ->
-        Tuple5(list, temperatureUnit, speedUnit, pressureUnit, color)
+    @JvmStatic
+    private val reducer =
+      BiFunction<ViewState, PartialStateChange, ViewState> { viewState, partialStateChange ->
+        when (partialStateChange) {
+          is DailyWeatherContract.PartialStateChange.Error -> viewState.copy(
+            showError = partialStateChange.showMessage,
+            error = partialStateChange.throwable
+          )
+          is DailyWeatherContract.PartialStateChange.Weather -> viewState.copy(
+            dailyWeatherListItem = partialStateChange.dailyWeatherListItem,
+            error = null
+          )
+          is DailyWeatherContract.PartialStateChange.RefreshWeatherSuccess -> viewState.copy(
+            showRefreshSuccessfully = partialStateChange.showMessage,
+            error = null
+          )
+        }
       }
-    ).map(::mapListDailyWeathersToListItem)
-      .map(::Weather)
-      .cast<PartialStateChange>()
-      .onErrorResumeNext(::showError)
-  }
 
-  private fun showList(list: List<DailyWeatherListItem>): Observable<PartialStateChange> {
-    return Observable.timer(2_000, TimeUnit.MILLISECONDS)
-      .map {
-        PartialStateChange.RefreshWeatherSuccess(
-          showMessage = false,
-          dailyWeatherListItem = list
+    @JvmStatic
+    private val showError = Function<Throwable, Observable<PartialStateChange>> { throwable ->
+      Observable.timer(2_000, TimeUnit.MILLISECONDS)
+        .map<PartialStateChange> {
+          PartialStateChange.Error(
+            showMessage = false,
+            throwable = throwable
+          )
+        }
+        .startWith(
+          PartialStateChange.Error(
+            showMessage = true,
+            throwable = throwable
+          )
         )
-      }
-      .startWith(
-        PartialStateChange.RefreshWeatherSuccess(
-          showMessage = true,
-          dailyWeatherListItem = list
-        )
-      )
-      .cast()
-  }
-
-  private fun showError(throwable: Throwable): Observable<PartialStateChange> {
-    return Observable.timer(2_000, TimeUnit.MILLISECONDS)
-      .map {
-        PartialStateChange.Error(
-          showMessage = false,
-          throwable = throwable
-        )
-      }
-      .startWith(
-        PartialStateChange.Error(
-          showMessage = true,
-          throwable = throwable
-        )
-      )
-      .cast()
-  }
-
-  private fun reduce(viewState: ViewState, partialStateChange: PartialStateChange): ViewState {
-    return when (partialStateChange) {
-      is DailyWeatherContract.PartialStateChange.Error -> viewState.copy(
-        showError = partialStateChange.showMessage,
-        error = partialStateChange.throwable
-      )
-      is DailyWeatherContract.PartialStateChange.Weather -> viewState.copy(
-        dailyWeatherListItem = partialStateChange.dailyWeatherListItem,
-        error = null
-      )
-      is DailyWeatherContract.PartialStateChange.RefreshWeatherSuccess -> viewState.copy(
-        dailyWeatherListItem = partialStateChange.dailyWeatherListItem,
-        showRefreshSuccessfully = partialStateChange.showMessage,
-        error = null
-      )
     }
   }
 }

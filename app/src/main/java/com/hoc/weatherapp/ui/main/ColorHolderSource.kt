@@ -12,20 +12,20 @@ import io.reactivex.rxkotlin.subscribeBy
 import io.reactivex.subjects.BehaviorSubject
 
 @SuppressLint("CheckResult")
-class ColorHolderSource(private val androidApplication: Application) {
-  private val subject = BehaviorSubject.create<@ColorInt Int>()
-
-  val vibrantColorObservable = subject.asObservable()
-
-  val vibrantColor: Int
-    @ColorInt get() = subject.value ?: ContextCompat.getColor(
+class ColorHolderSource(androidApplication: Application) {
+  private val subject = BehaviorSubject.createDefault<@ColorInt Int>(
+    ContextCompat.getColor(
       androidApplication,
       R.color.colorPrimaryDark
     )
+  )
+
+  val colorObservable = subject.asObservable()
 
   init {
     debug("ColorHolderSource::init", "ColorHolderSource")
-    vibrantColorObservable.subscribeBy {
+
+    colorObservable.subscribeBy {
       debug(
         "ColorHolderSource onNext=$it",
         "ColorHolderSource"

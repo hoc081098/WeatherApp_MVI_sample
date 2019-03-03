@@ -28,7 +28,7 @@ class ChartFragment : MviFragment<ChartContract.View, ChartPresenter>(), ChartCo
     if (weathers.isEmpty()) return
 
     text_temperature.text =
-        getString(R.string.temperature_chart_title, temperatureUnit.symbol())
+      getString(R.string.temperature_chart_title, temperatureUnit.symbol())
     drawChart(
       chart_temperature,
       weathers,
