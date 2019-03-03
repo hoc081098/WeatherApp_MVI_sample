@@ -23,6 +23,7 @@ import com.bumptech.glide.load.resource.bitmap.BitmapTransitionOptions
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.bumptech.glide.request.RequestOptions
 import com.bumptech.glide.request.target.CustomViewTarget
+import com.bumptech.glide.request.target.ViewTarget
 import com.bumptech.glide.request.transition.Transition
 import com.hannesdorfmann.mosby3.mvi.MviActivity
 import com.hoc.weatherapp.R
@@ -34,6 +35,7 @@ import com.hoc.weatherapp.ui.main.currentweather.CurrentWeatherFragment
 import com.hoc.weatherapp.ui.main.fivedayforecast.DailyWeatherFragment
 import com.hoc.weatherapp.ui.map.MapActivity
 import com.hoc.weatherapp.ui.setting.SettingsActivity
+import com.hoc.weatherapp.utils.asObservable
 import com.hoc.weatherapp.utils.blur.GlideBlurTransformation
 import com.hoc.weatherapp.utils.debug
 import com.hoc.weatherapp.utils.startActivity
@@ -46,10 +48,12 @@ import org.koin.android.ext.android.get
 import java.lang.ref.WeakReference
 
 class MainActivity : MviActivity<MainContract.View, MainPresenter>(), MainContract.View {
-  private val vibrantColorSubject = PublishSubject.create<@ColorInt Int>()
+  private val colorSubject = PublishSubject.create<@ColorInt Int>()
   private var mediaPlayer: MediaPlayer? = null
   private var asyncTask: AsyncTask<*, *, *>? = null
-  private var target: CustomViewTarget<*, *>? = null
+  private var target1: CustomViewTarget<*, *>? = null
+  @Suppress("DEPRECATION")
+  private var target2: ViewTarget<ImageView, Drawable>? = null
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
@@ -67,10 +71,6 @@ class MainActivity : MviActivity<MainContract.View, MainPresenter>(), MainContra
     }
 
     setupViewPager()
-
-    if (savedInstanceState === null) {
-      vibrantColorSubject.onNext(ContextCompat.getColor(this, R.color.colorPrimaryDark))
-    }
   }
 
   override fun onStop() {
@@ -83,7 +83,7 @@ class MainActivity : MviActivity<MainContract.View, MainPresenter>(), MainContra
     super.onDestroy()
 
     asyncTask?.cancel(true)
-    vibrantColorSubject.onComplete()
+    colorSubject.onComplete()
 
     stopSound()
 
@@ -150,7 +150,7 @@ class MainActivity : MviActivity<MainContract.View, MainPresenter>(), MainContra
   ) {
     Glide
       .with(this)
-      .apply { clear(target); asyncTask?.cancel(true) }
+      .apply { clear(target1); clear(target2); asyncTask?.cancel(true) }
       .asBitmap()
       .load(getBackgroundDrawableFromWeather(weather, city))
       .apply(
@@ -171,7 +171,7 @@ class MainActivity : MviActivity<MainContract.View, MainPresenter>(), MainContra
           asyncTask = getVibrantColor(resource, WeakReference(this@MainActivity))
         }
       })
-      .also { target = it }
+      .also { target1 = it }
   }
 
 
@@ -194,16 +194,18 @@ class MainActivity : MviActivity<MainContract.View, MainPresenter>(), MainContra
   }
 
   override fun render(state: MainContract.ViewState) {
+    window.statusBarColor = state.vibrantColor
     when (state) {
-      MainContract.ViewState.NoSelectedCity -> renderNoSelectedCity()
+      is MainContract.ViewState.NoSelectedCity -> renderNoSelectedCity()
       is MainContract.ViewState.CityAndWeather -> renderCityAndWeather(state)
     }
   }
 
-  override fun changeVibrantColorIntent() = vibrantColorSubject
+  override fun changeColorIntent() = colorSubject.asObservable()
 
   private fun renderCityAndWeather(state: MainContract.ViewState.CityAndWeather) {
     updateBackground(state.weather, state.city)
+
     toolbar_title.text = getString(
       R.string.city_name_and_country,
       state.city.name,
@@ -213,18 +215,17 @@ class MainActivity : MviActivity<MainContract.View, MainPresenter>(), MainContra
     enableIndicatorAndViewPager(true)
   }
 
+
   private fun renderNoSelectedCity() {
     Glide.with(this)
+      .apply { clear(target1); clear(target2); asyncTask?.cancel(true) }
       .load(R.drawable.default_bg)
       .transition(DrawableTransitionOptions.withCrossFade())
       .apply(RequestOptions.fitCenterTransform().centerCrop())
       .apply(RequestOptions.bitmapTransform(GlideBlurTransformation(this, 25f)))
       .into(image_background)
+      .also { target2 = it }
 
-    window.statusBarColor = ContextCompat.getColor(
-      this@MainActivity,
-      R.color.colorPrimaryDark
-    )
     toolbar_title.text = getString(R.string.no_selected_city)
     stopSound()
     enableIndicatorAndViewPager(false)
@@ -243,21 +244,18 @@ class MainActivity : MviActivity<MainContract.View, MainPresenter>(), MainContra
         .generate { palette ->
           palette ?: return@generate
 
-          @ColorInt val vibrantColor = listOf(
+          @ColorInt val color = listOf(
             palette.getSwatchForTarget(Target.DARK_VIBRANT)?.rgb,
             palette.getSwatchForTarget(Target.VIBRANT)?.rgb,
-            palette.getSwatchForTarget(Target.LIGHT_VIBRANT)?.rgb
-          ).find { it != null }
-            ?: mainActivity.get()?.let {
-              ContextCompat.getColor(
-                it,
-                R.color.colorPrimaryDark
-              )
-            }
+            palette.getSwatchForTarget(Target.LIGHT_VIBRANT)?.rgb,
+            palette.getSwatchForTarget(Target.DARK_MUTED)?.rgb,
+            palette.getSwatchForTarget(Target.MUTED)?.rgb,
+            palette.getSwatchForTarget(Target.DARK_MUTED)?.rgb
+          ).find { it !== null }
+            ?: mainActivity.get()?.let { ContextCompat.getColor(it, R.color.colorPrimaryDark) }
             ?: return@generate
 
-          mainActivity.get()?.vibrantColorSubject?.onNext(vibrantColor)
-          mainActivity.get()?.window?.statusBarColor = vibrantColor
+          mainActivity.get()?.colorSubject?.onNext(color)
         }
     }
   }

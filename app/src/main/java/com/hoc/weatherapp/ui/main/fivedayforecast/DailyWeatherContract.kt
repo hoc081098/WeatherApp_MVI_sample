@@ -12,10 +12,7 @@ interface DailyWeatherContract {
 
     data class Weather(val dailyWeatherListItem: List<DailyWeatherListItem>) : PartialStateChange()
 
-    data class RefreshWeatherSuccess(
-      val dailyWeatherListItem: List<DailyWeatherListItem>,
-      val showMessage: Boolean
-    ) : PartialStateChange()
+    data class RefreshWeatherSuccess(val showMessage: Boolean) : PartialStateChange()
   }
 
   data class ViewState(

@@ -5,8 +5,6 @@
 
     <item>
         <bitmap
-            android:layout_width="96px"
-            android:layout_height="96px"
             android:gravity="center"
             android:src="@drawable/splash_icon" />
     </item>

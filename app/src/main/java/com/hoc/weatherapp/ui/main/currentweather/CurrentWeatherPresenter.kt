@@ -15,49 +15,27 @@ import com.hoc.weatherapp.ui.main.currentweather.CurrentWeatherContract.*
 import com.hoc.weatherapp.utils.*
 import com.hoc.weatherapp.worker.WorkerUtil
 import io.reactivex.Observable
+import io.reactivex.ObservableTransformer
 import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.functions.BiFunction
 import io.reactivex.rxkotlin.Observables
-import io.reactivex.rxkotlin.cast
 import io.reactivex.rxkotlin.ofType
 import org.threeten.bp.format.DateTimeFormatter
 import java.util.concurrent.TimeUnit
-
-private const val TAG = "currrentweather"
 
 class CurrentWeatherPresenter(
   private val currentWeatherRepository: CurrentWeatherRepository,
   private val cityRepository: CityRepository,
   private val androidApplication: Application,
   private val settingPreferences: SettingPreferences
-) :
-  MviBasePresenter<View, ViewState>() {
-  override fun bindIntents() {
-    subscribeViewState(
-      Observable.mergeArray(refreshWeatherPartialChange(), cityAndWeatherPartialChange())
-        .scan(ViewState(), ::reduce)
-        .distinctUntilChanged()
-        .doOnNext { debug("CurrentWeatherPresenter ViewState = $it", TAG) }
-        .observeOn(AndroidSchedulers.mainThread()),
-      View::render
-    )
-  }
+) : MviBasePresenter<View, ViewState>() {
 
-  private data class Tuple4(
-    val speedUnit: SpeedUnit,
-    val pressureUnit: PressureUnit,
-    val temperatureUnit: TemperatureUnit,
-    val optional: Optional<CityAndCurrentWeather>
-  )
-
-  private fun cityAndWeatherPartialChange(): Observable<PartialStateChange> {
-    return Observables.combineLatest(
-      settingPreferences.speedUnitPreference.observable.doOnNext { debug("speed=$it", TAG) },
-      settingPreferences.pressureUnitPreference.observable.doOnNext { debug("pressure=$it", TAG) },
-      settingPreferences.temperatureUnitPreference.observable.doOnNext { debug("temp=$it", TAG) },
-      currentWeatherRepository.getSelectedCityAndCurrentWeatherOfSelectedCity().doOnNext {
-        debug("current weather and city=$it", TAG)
-      }
-    ) { speedUnit, pressureUnit, temperatureUnit, optional ->
+  private val cityAndWeatherPartialChange = Observables.combineLatest(
+    source1 = settingPreferences.speedUnitPreference.observable,
+    source2 = settingPreferences.pressureUnitPreference.observable,
+    source3 = settingPreferences.temperatureUnitPreference.observable,
+    source4 = currentWeatherRepository.getSelectedCityAndCurrentWeatherOfSelectedCity(),
+    combineFunction = { speedUnit, pressureUnit, temperatureUnit, optional ->
       Tuple4(
         speedUnit,
         pressureUnit,
@@ -65,145 +43,146 @@ class CurrentWeatherPresenter(
         optional
       )
     }
-      .doOnNext { debug("tuple4 = $it", TAG) }
-      .switchMap { (speedUnit, pressureUnit, temperatureUnit, optional) ->
-        when (optional) {
-          None -> showError(NoSelectedCityException)
-          is Some -> Observable.just(
-            toCurrentWeather(
-              optional.value,
-              speedUnit,
-              pressureUnit,
-              temperatureUnit
-            )
-          ).map { PartialStateChange.Weather(it) }.cast()
-        }.onErrorResumeNext { throwable: Throwable -> showError(throwable) }
-      }.doOnNext { debug("current weather = $it", TAG) }
+  ).switchMap { (speedUnit, pressureUnit, temperatureUnit, optional) ->
+    when (optional) {
+      None -> showError(NoSelectedCityException)
+      is Some -> Observable.just(
+        toCurrentWeather(
+          optional.value,
+          speedUnit,
+          pressureUnit,
+          temperatureUnit
+        )
+      ).map<PartialStateChange> { PartialStateChange.Weather(it) }
+    }.onErrorResumeNext(::showError)
   }
 
-  private fun toCurrentWeather(
-    cityAndCurrentWeather: CityAndCurrentWeather,
-    speedUnit: SpeedUnit,
-    pressureUnit: PressureUnit,
-    temperatureUnit: TemperatureUnit
-  ): CurrentWeather {
-    val weather = cityAndCurrentWeather.currentWeather
-    val dataTimeString = weather
-      .dataTime
-      .toZonedDateTime(cityAndCurrentWeather.city.zoneId)
-      .format(LAST_UPDATED_FORMATTER)
-    return CurrentWeather(
-      temperatureString = temperatureUnit.format(weather.temperature),
-      pressureString = pressureUnit.format(weather.pressure),
-      rainVolumeForThe3HoursMm = weather.rainVolumeForThe3Hours,
-      visibilityKm = weather.visibility / 1_000,
-      humidity = weather.humidity,
-      description = weather.description.capitalize(),
-      dataTimeString = dataTimeString,
-      weatherConditionId = weather.weatherConditionId,
-      weatherIcon = weather.icon,
-      winSpeed = weather.winSpeed,
-      winSpeedString = speedUnit.format(weather.winSpeed),
-      winDirection = WindDirection.fromDegrees(weather.winDegrees).toString(),
-      zoneId = cityAndCurrentWeather.city.zoneId
+  private val refreshWeatherProcessor =
+    ObservableTransformer<RefreshIntent, PartialStateChange> {
+      it
+        .publish { shared ->
+          Observable.mergeArray(
+            shared.ofType<RefreshIntent.InitialRefreshIntent>()
+              .take(1)
+              .delay { cityRepository.getSelectedCity().filter { it is Some } },
+            shared.notOfType<RefreshIntent.InitialRefreshIntent>()
+          )
+        }
+        .exhaustMap {
+          currentWeatherRepository
+            .refreshCurrentWeatherOfSelectedCity()
+            .doOnSuccess {
+              if (settingPreferences.autoUpdatePreference.value) {
+                WorkerUtil.enqueueUpdateCurrentWeatherWorkRequest()
+              }
+              androidApplication.showNotificationIfEnabled(it, settingPreferences)
+            }
+            .doOnError {
+              if (it is NoSelectedCityException) {
+                androidApplication.cancelNotificationById(WEATHER_NOTIFICATION_ID)
+                WorkerUtil.cancelUpdateCurrentWeatherWorkRequest()
+                WorkerUtil.cancelUpdateDailyWeatherWorkWorkRequest()
+              }
+            }
+            .toObservable()
+            .observeOn(AndroidSchedulers.mainThread())
+            .switchMap {
+              Observable
+                .timer(2_000, TimeUnit.MILLISECONDS)
+                .map<PartialStateChange> { PartialStateChange.RefreshWeatherSuccess(showMessage = false) }
+                .startWith(PartialStateChange.RefreshWeatherSuccess(showMessage = true))
+            }
+            .onErrorResumeNext(::showError)
+        }
+    }
+
+  override fun bindIntents() {
+    subscribeViewState(
+      Observable.mergeArray(
+        intent(View::refreshCurrentWeatherIntent).compose(refreshWeatherProcessor),
+        cityAndWeatherPartialChange
+      ).scan(ViewState(), reducer)
+        .distinctUntilChanged()
+        .doOnNext { debug("ViewState=$it", TAG) }
+        .observeOn(AndroidSchedulers.mainThread()),
+      View::render
     )
   }
 
-  private fun refreshWeatherPartialChange(): Observable<PartialStateChange> {
-    return intent(View::refreshCurrentWeatherIntent)
-      .publish { shared ->
-        Observable.mergeArray(
-          shared.ofType<RefreshIntent.InitialRefreshIntent>()
-            .take(1)
-            .delay { cityRepository.getSelectedCity().filter { it is Some } },
-          shared.notOfType<RefreshIntent.InitialRefreshIntent>()
-        )
-      }
-      .doOnNext { debug("refresh intent $it") }
-      .exhaustMap {
-        currentWeatherRepository
-          .refreshCurrentWeatherOfSelectedCity()
-          .doOnSuccess {
-            if (settingPreferences.autoUpdatePreference.value) {
-              WorkerUtil.enqueueUpdateCurrentWeatherWorkRequest()
-            }
-            androidApplication.showNotificationIfEnabled(it, settingPreferences)
-          }
-          .doOnError {
-            if (it is NoSelectedCityException) {
-              androidApplication.cancelNotificationById(WEATHER_NOTIFICATION_ID)
-              WorkerUtil.cancelUpdateCurrentWeatherWorkRequest()
-              WorkerUtil.cancelUpdateDailyWeatherWorkWorkRequest()
-            }
-          }
-          .map {
-            toCurrentWeather(
-              it,
-              settingPreferences.speedUnitPreference.value,
-              settingPreferences.pressureUnitPreference.value,
-              settingPreferences.temperatureUnitPreference.value
-            )
-          }
-          .toObservable()
-          .observeOn(AndroidSchedulers.mainThread())
-          .switchMap(::showWeather)
-          .onErrorResumeNext(::showError)
-      }
-      .doOnNext { debug("refreshWeather $it", TAG) }
-  }
+  private companion object {
+    private const val TAG = "__current_weather__"
 
-  private fun reduce(viewState: ViewState, partialStateChange: PartialStateChange): ViewState {
-    return when (partialStateChange) {
-      is PartialStateChange.Error -> viewState.copy(
-        showError = partialStateChange.showMessage,
-        error = partialStateChange.throwable,
-        weather = if (partialStateChange.throwable is NoSelectedCityException) {
-          null
-        } else {
-          viewState.weather
+    private val LAST_UPDATED_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yy HH:mm")
+
+    private data class Tuple4(
+      val speedUnit: SpeedUnit,
+      val pressureUnit: PressureUnit,
+      val temperatureUnit: TemperatureUnit,
+      val optional: Optional<CityAndCurrentWeather>
+    )
+
+    @JvmStatic
+    private val reducer =
+      BiFunction<ViewState, PartialStateChange, ViewState> { viewState, partialStateChange ->
+        when (partialStateChange) {
+          is PartialStateChange.Error -> viewState.copy(
+            showError = partialStateChange.showMessage,
+            error = partialStateChange.throwable,
+            weather = if (partialStateChange.throwable is NoSelectedCityException) {
+              null
+            } else {
+              viewState.weather
+            }
+          )
+          is PartialStateChange.Weather -> viewState.copy(
+            weather = partialStateChange.weather,
+            error = null
+          )
+          is PartialStateChange.RefreshWeatherSuccess -> viewState.copy(
+            showRefreshSuccessfully = partialStateChange.showMessage,
+            error = null
+          )
         }
-      )
-      is PartialStateChange.Weather -> viewState.copy(
-        weather = partialStateChange.weather,
-        error = null
-      )
-      is PartialStateChange.RefreshWeatherSuccess -> viewState.copy(
-        weather = partialStateChange.weather,
-        showRefreshSuccessfully = partialStateChange.showMessage,
-        error = null
+      }
+
+    @JvmStatic
+    private fun toCurrentWeather(
+      cityAndCurrentWeather: CityAndCurrentWeather,
+      speedUnit: SpeedUnit,
+      pressureUnit: PressureUnit,
+      temperatureUnit: TemperatureUnit
+    ): CurrentWeather {
+      val weather = cityAndCurrentWeather.currentWeather
+      val dataTimeString = weather
+        .dataTime
+        .toZonedDateTime(cityAndCurrentWeather.city.zoneId)
+        .format(LAST_UPDATED_FORMATTER)
+      return CurrentWeather(
+        temperatureString = temperatureUnit.format(weather.temperature),
+        pressureString = pressureUnit.format(weather.pressure),
+        rainVolumeForThe3HoursMm = weather.rainVolumeForThe3Hours,
+        visibilityKm = weather.visibility / 1_000,
+        humidity = weather.humidity,
+        description = weather.description.capitalize(),
+        dataTimeString = dataTimeString,
+        weatherConditionId = weather.weatherConditionId,
+        weatherIcon = weather.icon,
+        winSpeed = weather.winSpeed,
+        winSpeedString = speedUnit.format(weather.winSpeed),
+        winDirection = WindDirection.fromDegrees(weather.winDegrees).toString(),
+        zoneId = cityAndCurrentWeather.city.zoneId
       )
     }
-  }
 
-  private fun showError(throwable: Throwable): Observable<PartialStateChange> {
-    return Observable.timer(2_000, TimeUnit.MILLISECONDS)
-      .map {
-        PartialStateChange.Error(throwable = throwable, showMessage = false)
-      }
-      .startWith(
-        PartialStateChange.Error(throwable = throwable, showMessage = true)
-      )
-      .cast()
-  }
-
-  private fun showWeather(currentWeather: CurrentWeather): Observable<PartialStateChange> {
-    return Observable.timer(2_000, TimeUnit.MILLISECONDS)
-      .map {
-        PartialStateChange.RefreshWeatherSuccess(
-          showMessage = false,
-          weather = currentWeather
+    @JvmStatic
+    private fun showError(throwable: Throwable): Observable<PartialStateChange> {
+      return Observable.timer(2_000, TimeUnit.MILLISECONDS)
+        .map<PartialStateChange> {
+          PartialStateChange.Error(throwable = throwable, showMessage = false)
+        }
+        .startWith(
+          PartialStateChange.Error(throwable = throwable, showMessage = true)
         )
-      }
-      .startWith(
-        PartialStateChange.RefreshWeatherSuccess(
-          showMessage = true,
-          weather = currentWeather
-        )
-      )
-      .cast()
-  }
-
-  companion object {
-    private val LAST_UPDATED_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yy HH:mm")
+    }
   }
 }
