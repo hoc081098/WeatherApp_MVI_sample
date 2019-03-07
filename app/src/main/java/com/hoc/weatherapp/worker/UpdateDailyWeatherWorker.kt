@@ -1,30 +1,38 @@
 package com.hoc.weatherapp.worker
 
 import android.content.Context
-import androidx.work.Worker
+import androidx.work.RxWorker
 import androidx.work.WorkerParameters
+import androidx.work.workDataOf
 import com.hoc.weatherapp.data.FiveDayForecastRepository
 import com.hoc.weatherapp.data.NoSelectedCityException
 import com.hoc.weatherapp.utils.WEATHER_NOTIFICATION_ID
 import com.hoc.weatherapp.utils.cancelNotificationById
+import com.hoc.weatherapp.utils.debug
+import io.reactivex.Single
 import org.koin.standalone.KoinComponent
 import org.koin.standalone.inject
 
 class UpdateDailyWeatherWorker(context: Context, workerParams: WorkerParameters) :
-  Worker(context, workerParams), KoinComponent {
+  RxWorker(context, workerParams), KoinComponent {
+  private val tag = "__daily_worker__"
   private val fiveDayForecastRepository by inject<FiveDayForecastRepository>()
 
-  override fun doWork(): Result {
-    return runCatching {
-      fiveDayForecastRepository
-        .refreshFiveDayForecastOfSelectedCity()
-        .blockingGet()
-    }.onFailure {
-      if (it is NoSelectedCityException) {
-        applicationContext.cancelNotificationById(WEATHER_NOTIFICATION_ID)
-        WorkerUtil.cancelUpdateDailyWeatherWorkWorkRequest()
+  override fun createWork(): Single<Result> {
+    return fiveDayForecastRepository
+      .refreshFiveDayForecastOfSelectedCity()
+      .doOnSuccess {
+        debug("[SUCCESS] doWork $it", tag)
       }
-    }.fold({ Result.success() }, { Result.failure() })
+      .doOnError {
+        if (it is NoSelectedCityException) {
+          applicationContext.cancelNotificationById(WEATHER_NOTIFICATION_ID)
+          WorkerUtil.cancelUpdateDailyWeatherWorkWorkRequest()
+        }
+        debug("[FAILURE] doWork $it", tag)
+      }
+      .map { Result.success(workDataOf("RESULT" to "Update daily success")) }
+      .onErrorReturn { Result.failure(workDataOf("RESULT" to "Update daily failure: ${it.message}")) }
   }
 
   companion object {
