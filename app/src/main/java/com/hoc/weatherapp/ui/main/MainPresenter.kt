@@ -54,7 +54,7 @@ class MainPresenter(
 
   override fun unbindIntents() {
     super.unbindIntents()
-    disposable?.takeUnless { !it.isDisposed }?.dispose()
+    disposable?.takeUnless { it.isDisposed }?.dispose()
   }
 
   private companion object {
