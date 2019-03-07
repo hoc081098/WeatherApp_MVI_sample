@@ -16,7 +16,7 @@ import com.hoc.weatherapp.utils.*
 import com.hoc.weatherapp.worker.WorkerUtil.cancelUpdateCurrentWeatherWorkRequest
 import com.hoc.weatherapp.worker.WorkerUtil.cancelUpdateDailyWeatherWorkWorkRequest
 import com.hoc.weatherapp.worker.WorkerUtil.enqueueUpdateCurrentWeatherWorkRequest
-import com.hoc.weatherapp.worker.WorkerUtil.enqueueUpdateDailyWeatherWorkWorkRequest
+import com.hoc.weatherapp.worker.WorkerUtil.enqueueUpdateDailyWeatherWorkRequest
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
@@ -161,7 +161,7 @@ class SettingsActivity : AppCompatActivity() {
         key == getString(R.string.key_auto_update) && newValue is Boolean -> {
           settingPreferences.autoUpdatePreference.save(newValue)
           if (newValue) {
-            enqueueUpdateDailyWeatherWorkWorkRequest()
+            enqueueUpdateDailyWeatherWorkRequest()
             enqueueUpdateCurrentWeatherWorkRequest()
           } else {
             cancelUpdateCurrentWeatherWorkRequest()

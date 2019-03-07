@@ -81,7 +81,7 @@ class CitiesPresenter(
         .doOnSuccess { (cityAndCurrentWeather) ->
           if (settingPreferences.autoUpdatePreference.value) {
             WorkerUtil.enqueueUpdateCurrentWeatherWorkRequest()
-            WorkerUtil.enqueueUpdateDailyWeatherWorkWorkRequest()
+            WorkerUtil.enqueueUpdateDailyWeatherWorkRequest()
           }
           androidApplication.showNotificationIfEnabled(cityAndCurrentWeather, settingPreferences)
         }
@@ -135,7 +135,7 @@ class CitiesPresenter(
 
               if (settingPreferences.autoUpdatePreference.value) {
                 WorkerUtil.enqueueUpdateCurrentWeatherWorkRequest()
-                WorkerUtil.enqueueUpdateDailyWeatherWorkWorkRequest()
+                WorkerUtil.enqueueUpdateDailyWeatherWorkRequest()
               }
 
               androidApplication.showNotificationIfEnabled(

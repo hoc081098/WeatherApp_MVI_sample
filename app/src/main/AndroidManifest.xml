@@ -44,10 +44,10 @@
             android:name="preloaded_fonts"
             android:resource="@array/preloaded_fonts" />
         <!--
-             The API key for Google Maps-based APIs is defined as enqueueUpdateCurrentWeatherWorkRequestImmediately string resource.
+             The API key for Google Maps-based APIs is defined as enqueuePeriodic string resource.
              (See the file "res/values/google_maps_api.xml").
              Note that the API key is linked to the encryption key used to sign the APK.
-             You need enqueueUpdateCurrentWeatherWorkRequestImmediately different API key for each encryption key, including the release key that is used to
+             You need enqueuePeriodic different API key for each encryption key, including the release key that is used to
              sign the APK for publishing.
              You can define the keys for the debug and release targets in src/debug/ and src/release/. 
         -->

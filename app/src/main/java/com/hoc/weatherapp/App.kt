@@ -11,6 +11,7 @@ import com.hoc.weatherapp.koin.presenterModule
 import com.hoc.weatherapp.koin.retrofitModule
 import com.hoc.weatherapp.koin.sharePrefUtilModule
 import com.hoc.weatherapp.utils.debug
+import com.hoc.weatherapp.utils.toast
 import com.hoc.weatherapp.worker.UpdateCurrentWeatherWorker
 import com.hoc.weatherapp.worker.UpdateDailyWeatherWorker
 import com.jakewharton.threetenabp.AndroidThreeTen
@@ -39,16 +40,21 @@ class App : Application() {
     createNotificationChannel()
 
     WorkManager.getInstance().run {
-      getWorkInfosByTagLiveData(UpdateDailyWeatherWorker.TAG)
+      getWorkInfosForUniqueWorkLiveData(UpdateDailyWeatherWorker.UNIQUE_WORK_NAME)
         .observeForever {
-          debug("UpdateDailyWeatherWorker", "UpdateDailyWeatherWorker")
-          it.forEach { debug("info=$it", "UpdateDailyWeatherWorker") }
+          it.forEach {
+            debug("info=$it", "UpdateDailyWeatherWorker")
+            it.takeIf { it.state.isFinished }?.outputData?.getString("RESULT")?.let { toast(it) }
+          }
         }
 
-      getWorkInfosByTagLiveData(UpdateCurrentWeatherWorker.TAG)
+
+      getWorkInfosForUniqueWorkLiveData(UpdateCurrentWeatherWorker.UNIQUE_WORK_NAME)
         .observeForever {
-          debug("UpdateCurrentWeatherWorker", "UpdateCurrentWeatherWorker")
-          it.forEach { debug("info=$it", "UpdateCurrentWeatherWorker") }
+          it.forEach {
+            debug("info=$it", "UpdateCurrentWeatherWorker")
+            it.takeIf { it.state.isFinished }?.outputData?.getString("RESULT")?.let { toast(it) }
+          }
         }
     }
   }

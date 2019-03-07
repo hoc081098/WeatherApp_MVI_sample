@@ -50,7 +50,7 @@ class DailyWeatherPresenter(
             .refreshFiveDayForecastOfSelectedCity()
             .doOnSuccess {
               if (settingPreferences.autoUpdatePreference.value) {
-                WorkerUtil.enqueueUpdateDailyWeatherWorkWorkRequest()
+                WorkerUtil.enqueueUpdateDailyWeatherWorkRequest()
               }
             }
             .doOnError {
