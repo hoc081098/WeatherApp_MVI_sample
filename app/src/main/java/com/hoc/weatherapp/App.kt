@@ -3,7 +3,6 @@ package com.hoc.weatherapp
 import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
-import android.content.Context
 import android.os.Build
 import androidx.work.WorkManager
 import com.hoc.weatherapp.koin.dataSourceModule
@@ -11,7 +10,6 @@ import com.hoc.weatherapp.koin.presenterModule
 import com.hoc.weatherapp.koin.retrofitModule
 import com.hoc.weatherapp.koin.sharePrefUtilModule
 import com.hoc.weatherapp.utils.debug
-import com.hoc.weatherapp.utils.toast
 import com.hoc.weatherapp.worker.UpdateCurrentWeatherWorker
 import com.hoc.weatherapp.worker.UpdateDailyWeatherWorker
 import com.jakewharton.threetenabp.AndroidThreeTen
@@ -44,7 +42,10 @@ class App : Application() {
         .observeForever {
           it.forEach {
             debug("info=$it", "UpdateDailyWeatherWorker")
-            it.takeIf { it.state.isFinished }?.outputData?.getString("RESULT")?.let { toast(it) }
+            it.takeIf { it.state.isFinished }
+              ?.outputData
+              ?.keyValueMap
+              ?.let { debug("data=$it", "UpdateDailyWeatherWorker") }
           }
         }
 
@@ -53,7 +54,10 @@ class App : Application() {
         .observeForever {
           it.forEach {
             debug("info=$it", "UpdateCurrentWeatherWorker")
-            it.takeIf { it.state.isFinished }?.outputData?.getString("RESULT")?.let { toast(it) }
+            it.takeIf { it.state.isFinished }
+              ?.outputData
+              ?.keyValueMap
+              ?.let { debug("data=$it", "UpdateCurrentWeatherWorker") }
           }
         }
     }
@@ -67,8 +71,7 @@ class App : Application() {
         NotificationManager.IMPORTANCE_HIGH
       ).apply { description = "Notification channel of weather app" }
 
-      (getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager)
-        .createNotificationChannel(channel)
+      getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
     }
   }
 

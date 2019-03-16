@@ -1,5 +1,7 @@
 package com.hoc.weatherapp.ui.setting
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.MenuItem
 import android.view.View
@@ -12,7 +14,13 @@ import com.hoc.weatherapp.data.local.SettingPreferences
 import com.hoc.weatherapp.data.models.PressureUnit
 import com.hoc.weatherapp.data.models.SpeedUnit
 import com.hoc.weatherapp.data.models.TemperatureUnit
-import com.hoc.weatherapp.utils.*
+import com.hoc.weatherapp.utils.None
+import com.hoc.weatherapp.utils.Some
+import com.hoc.weatherapp.utils.WEATHER_NOTIFICATION_ID
+import com.hoc.weatherapp.utils.cancelNotificationById
+import com.hoc.weatherapp.utils.debug
+import com.hoc.weatherapp.utils.map
+import com.hoc.weatherapp.utils.showOrUpdateNotification
 import com.hoc.weatherapp.worker.WorkerUtil.cancelUpdateCurrentWeatherWorkRequest
 import com.hoc.weatherapp.worker.WorkerUtil.cancelUpdateDailyWeatherWorkWorkRequest
 import com.hoc.weatherapp.worker.WorkerUtil.enqueueUpdateCurrentWeatherWorkRequest
@@ -80,6 +88,11 @@ class SettingsActivity : AppCompatActivity() {
           .observeOn(AndroidSchedulers.mainThread())
           .subscribeBy(onNext = { isVisible = it })
           .addTo(compositeDisposable)
+      }
+      findPreference("About").setOnPreferenceClickListener {
+        Intent(Intent.ACTION_VIEW)
+          .apply { data = Uri.parse("https://github.com/hoc081098/WeatherApp.git") }
+          .let { startActivity(it); true }
       }
 
       /**
