@@ -61,7 +61,7 @@ dependencies {
     implementation "androidx.room:room-rxjava2:$roomVersion"
 
     // work manager
-    def workVersion = '1.0.0'
+    def workVersion = '1.0.0-beta02'
     implementation "android.arch.work:work-runtime-ktx:$workVersion"
     implementation "android.arch.work:work-rxjava2:$workVersion"
 
