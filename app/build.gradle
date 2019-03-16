@@ -37,7 +37,7 @@ dependencies {
     // kotlin
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
 
-    // androix
+    // androidx
     implementation 'androidx.appcompat:appcompat:1.0.2'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation 'androidx.gridlayout:gridlayout:1.0.0'
@@ -53,14 +53,14 @@ dependencies {
     implementation 'com.google.android.gms:play-services-location:15.0.1'
     implementation 'com.google.android.gms:play-services-places:15.0.1'
 
-    // roomdb
+    // room persistence
     def roomVersion='2.1.0-alpha05'
     implementation "androidx.room:room-runtime:$roomVersion"
     kapt "androidx.room:room-compiler:$roomVersion"
     implementation "androidx.room:room-rxjava2:$roomVersion"
 
     // work manager
-    def workVersion = '1.0.0-beta02'
+    def workVersion = '1.0.0'
     implementation "android.arch.work:work-runtime-ktx:$workVersion"
     implementation "android.arch.work:work-rxjava2:$workVersion"
 
@@ -79,11 +79,11 @@ dependencies {
     implementation 'com.squareup.okhttp3:logging-interceptor:3.13.1'
     implementation 'com.squareup.moshi:moshi-kotlin:1.8.0'
 
-    // rxkotlin and rxandroid
+    // rxkotlin & rxandroid
     implementation 'io.reactivex.rxjava2:rxkotlin:2.3.0'
     implementation 'io.reactivex.rxjava2:rxandroid:2.1.1'
 
-    // rxbinding
+    // rxbinding & threetenabp
     implementation 'com.jakewharton.rxbinding3:rxbinding:3.0.0-alpha2'
     implementation 'com.jakewharton.rxbinding3:rxbinding-swiperefreshlayout:3.0.0-alpha2'
     implementation 'com.jakewharton.threetenabp:threetenabp:1.1.2'
@@ -98,6 +98,7 @@ dependencies {
     implementation 'com.github.bumptech.glide:glide:4.9.0'
     kapt 'com.github.bumptech.glide:compiler:4.9.0'
 
+    // chart & material search view
     implementation 'com.diogobernardino:williamchart:2.5.0'
     implementation 'com.miguelcatalan:materialsearchview:1.4.0'
 
