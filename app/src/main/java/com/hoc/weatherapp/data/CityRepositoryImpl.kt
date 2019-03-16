@@ -32,6 +32,7 @@ class CityRepositoryImpl(
    * Synchronous access  selected city
    */
   override val selectedCity get() = selectedCityPreference.value.getOrNull()
+
   /**
    * Get stream of selected city
    * @return [Observable] emit [None] when having no selected city, otherwise emit [Some] of [City]

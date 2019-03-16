@@ -2,7 +2,12 @@ package com.hoc.weatherapp.koin
 
 import com.hoc.weatherapp.BuildConfig
 import com.hoc.weatherapp.data.models.TemperatureUnit
-import com.hoc.weatherapp.data.remote.*
+import com.hoc.weatherapp.data.remote.BASE_URL_TIMEZONE_DB
+import com.hoc.weatherapp.data.remote.OPEN_WEATHER_MAP_APP_ID
+import com.hoc.weatherapp.data.remote.OPEN_WEATHER_MAP_BASE_URL
+import com.hoc.weatherapp.data.remote.OpenWeatherMapApiService
+import com.hoc.weatherapp.data.remote.TIMEZONE_DB_API_KEY
+import com.hoc.weatherapp.data.remote.TimezoneDbApiService
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import okhttp3.OkHttpClient

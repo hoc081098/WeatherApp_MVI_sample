@@ -1,6 +1,5 @@
 package com.hoc.weatherapp.data
 
-import androidx.annotation.AnyThread
 import com.hoc.weatherapp.data.models.entity.City
 import com.hoc.weatherapp.utils.Optional
 import io.reactivex.Completable
