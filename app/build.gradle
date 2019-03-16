@@ -52,10 +52,9 @@ dependencies {
     // play services
     implementation 'com.google.android.gms:play-services-location:15.0.1'
     implementation 'com.google.android.gms:play-services-places:15.0.1'
-    implementation 'com.google.android.gms:play-services-maps:15.0.1'
 
     // roomdb
-    def roomVersion='2.1.0-alpha04'
+    def roomVersion='2.1.0-alpha05'
     implementation "androidx.room:room-runtime:$roomVersion"
     kapt "androidx.room:room-compiler:$roomVersion"
     implementation "androidx.room:room-rxjava2:$roomVersion"

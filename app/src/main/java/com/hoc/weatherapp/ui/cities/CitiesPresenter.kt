@@ -10,18 +10,34 @@ import com.hoc.weatherapp.data.FiveDayForecastRepository
 import com.hoc.weatherapp.data.local.SettingPreferences
 import com.hoc.weatherapp.data.models.entity.City
 import com.hoc.weatherapp.data.models.entity.CityAndCurrentWeather
-import com.hoc.weatherapp.ui.cities.CitiesContract.*
-import com.hoc.weatherapp.ui.cities.CitiesContract.PartialStateChange.*
+import com.hoc.weatherapp.ui.cities.CitiesContract.PartialStateChange
+import com.hoc.weatherapp.ui.cities.CitiesContract.PartialStateChange.CityListItems
+import com.hoc.weatherapp.ui.cities.CitiesContract.PartialStateChange.DeleteCity
+import com.hoc.weatherapp.ui.cities.CitiesContract.PartialStateChange.Error
+import com.hoc.weatherapp.ui.cities.CitiesContract.PartialStateChange.RefreshWeather
+import com.hoc.weatherapp.ui.cities.CitiesContract.SearchStringIntent
 import com.hoc.weatherapp.ui.cities.CitiesContract.SearchStringIntent.InitialSearchStringIntent
-import com.hoc.weatherapp.utils.*
+import com.hoc.weatherapp.ui.cities.CitiesContract.View
+import com.hoc.weatherapp.ui.cities.CitiesContract.ViewState
+import com.hoc.weatherapp.utils.WEATHER_NOTIFICATION_ID
+import com.hoc.weatherapp.utils.cancelNotificationById
+import com.hoc.weatherapp.utils.debug
+import com.hoc.weatherapp.utils.getOrNull
+import com.hoc.weatherapp.utils.notOfType
+import com.hoc.weatherapp.utils.showNotificationIfEnabled
+import com.hoc.weatherapp.utils.toZonedDateTime
 import com.hoc.weatherapp.worker.WorkerUtil
 import io.reactivex.Observable
 import io.reactivex.ObservableTransformer
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.functions.BiFunction
 import io.reactivex.functions.Function
-import io.reactivex.rxkotlin.*
 import io.reactivex.rxkotlin.Observables.combineLatest
+import io.reactivex.rxkotlin.cast
+import io.reactivex.rxkotlin.ofType
+import io.reactivex.rxkotlin.subscribeBy
+import io.reactivex.rxkotlin.withLatestFrom
+import io.reactivex.rxkotlin.zipWith
 import java.util.concurrent.TimeUnit
 
 class CitiesPresenter(
@@ -74,7 +90,7 @@ class CitiesPresenter(
     }
 
   private val changeSelectedCityProcessor: ObservableTransformer<City, Any> =
-    ObservableTransformer {
+    ObservableTransformer { intent ->
       val getWeatherSingle = currentWeatherRepository
         .refreshCurrentWeatherOfSelectedCity()
         .zipWith(fiveDayForecastRepository.refreshFiveDayForecastOfSelectedCity())
@@ -85,7 +101,7 @@ class CitiesPresenter(
           }
           androidApplication.showNotificationIfEnabled(cityAndCurrentWeather, settingPreferences)
         }
-      it.switchMap { city ->
+      intent.switchMap { city ->
         cityRepository
           .changeSelectedCity(city)
           .andThen(getWeatherSingle)
@@ -177,7 +193,7 @@ class CitiesPresenter(
             if (cityRepository.selectedCity === null) {
               androidApplication.cancelNotificationById(WEATHER_NOTIFICATION_ID)
               WorkerUtil.cancelUpdateCurrentWeatherWorkRequest()
-              WorkerUtil.cancelUpdateDailyWeatherWorkWorkRequest()
+              WorkerUtil.cancelUpdateDailyWeatherWorkRequest()
             }
           }
           .toObservable()

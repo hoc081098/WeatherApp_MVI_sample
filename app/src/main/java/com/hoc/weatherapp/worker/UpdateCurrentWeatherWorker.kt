@@ -11,13 +11,13 @@ import com.hoc.weatherapp.utils.WEATHER_NOTIFICATION_ID
 import com.hoc.weatherapp.utils.cancelNotificationById
 import com.hoc.weatherapp.utils.debug
 import com.hoc.weatherapp.utils.showNotificationIfEnabled
+import com.hoc.weatherapp.worker.WorkerUtil.cancelUpdateCurrentWeatherWorkRequest
 import io.reactivex.Single
 import org.koin.standalone.KoinComponent
 import org.koin.standalone.inject
 
 class UpdateCurrentWeatherWorker(context: Context, workerParams: WorkerParameters) :
   RxWorker(context, workerParams), KoinComponent {
-  private val tag = "__current_worker__"
   private val currentWeatherRepository by inject<CurrentWeatherRepository>()
   private val settingPreferences by inject<SettingPreferences>()
 
@@ -25,16 +25,15 @@ class UpdateCurrentWeatherWorker(context: Context, workerParams: WorkerParameter
     return currentWeatherRepository
       .refreshCurrentWeatherOfSelectedCity()
       .doOnSuccess {
-        debug("[SUCCESS] doWork $it", tag)
-
+        debug("[SUCCESS] doWork $it", TAG)
         applicationContext.showNotificationIfEnabled(it, settingPreferences)
       }
       .doOnError {
-        debug("[FAILURE] doWork $it", tag)
-
+        debug("[FAILURE] doWork $it", TAG)
         if (it is NoSelectedCityException) {
+          debug("[FAILURE] cancel work request and notification", TAG)
           applicationContext.cancelNotificationById(WEATHER_NOTIFICATION_ID)
-          WorkerUtil.cancelUpdateCurrentWeatherWorkRequest()
+          cancelUpdateCurrentWeatherWorkRequest()
         }
       }
       .map { Result.success(workDataOf("RESULT" to "Update current success")) }
@@ -42,7 +41,7 @@ class UpdateCurrentWeatherWorker(context: Context, workerParams: WorkerParameter
   }
 
   companion object {
-    const val UNIQUE_WORK_NAME = "UpdateCurrentWeatherWorker"
-    const val TAG = "UpdateCurrentWeatherWorker"
+    const val UNIQUE_WORK_NAME = "com.hoc.weatherapp.worker.UpdateCurrentWeatherWorker"
+    const val TAG = "com.hoc.weatherapp.worker.UpdateCurrentWeatherWorker"
   }
 }

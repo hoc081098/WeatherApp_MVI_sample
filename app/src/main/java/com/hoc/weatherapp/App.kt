@@ -22,9 +22,7 @@ class App : Application() {
 
     AndroidThreeTen.init(this)
 
-    RxJavaPlugins.setErrorHandler {
-      debug("RxJava error: $it", "RXJAVA_ERROR", it)
-    }
+    RxJavaPlugins.setErrorHandler { debug("RxJava error: $it", "RXJAVA_ERROR", it) }
 
     startKoin(
       this,
@@ -35,29 +33,27 @@ class App : Application() {
         presenterModule
       )
     )
+
     createNotificationChannel()
 
+    observeWorkInfo()
+  }
+
+  private fun observeWorkInfo() {
     WorkManager.getInstance().run {
       getWorkInfosForUniqueWorkLiveData(UpdateDailyWeatherWorker.UNIQUE_WORK_NAME)
         .observeForever {
-          it.forEach {
-            debug("info=$it", "UpdateDailyWeatherWorker")
-            it.takeIf { it.state.isFinished }
-              ?.outputData
-              ?.keyValueMap
-              ?.let { debug("data=$it", "UpdateDailyWeatherWorker") }
+          it.forEach { workInfo ->
+            debug("info=$workInfo", "UpdateDailyWeatherWorker")
+            debug("data=${workInfo.outputData.keyValueMap}", "UpdateDailyWeatherWorker")
           }
         }
 
-
       getWorkInfosForUniqueWorkLiveData(UpdateCurrentWeatherWorker.UNIQUE_WORK_NAME)
         .observeForever {
-          it.forEach {
-            debug("info=$it", "UpdateCurrentWeatherWorker")
-            it.takeIf { it.state.isFinished }
-              ?.outputData
-              ?.keyValueMap
-              ?.let { debug("data=$it", "UpdateCurrentWeatherWorker") }
+          it.forEach { workInfo ->
+            debug("info=$workInfo", "UpdateCurrentWeatherWorker")
+            debug("data=${workInfo.outputData.keyValueMap}", "UpdateCurrentWeatherWorker")
           }
         }
     }
