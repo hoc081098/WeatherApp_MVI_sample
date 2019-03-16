@@ -33,7 +33,7 @@ object WorkerUtil {
     val request = PeriodicWorkRequestBuilder<T>(
       repeatInterval = 15,
       repeatIntervalTimeUnit = TimeUnit.MINUTES,
-      flexTimeInterval = 15,
+      flexTimeInterval = 5,
       flexTimeIntervalUnit = TimeUnit.MINUTES
     ).addTag(tag).build()
 
