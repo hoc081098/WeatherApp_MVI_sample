@@ -9,34 +9,33 @@ import com.hoc.weatherapp.data.NoSelectedCityException
 import com.hoc.weatherapp.utils.WEATHER_NOTIFICATION_ID
 import com.hoc.weatherapp.utils.cancelNotificationById
 import com.hoc.weatherapp.utils.debug
+import com.hoc.weatherapp.worker.WorkerUtil.cancelUpdateDailyWeatherWorkRequest
 import io.reactivex.Single
 import org.koin.standalone.KoinComponent
 import org.koin.standalone.inject
 
 class UpdateDailyWeatherWorker(context: Context, workerParams: WorkerParameters) :
   RxWorker(context, workerParams), KoinComponent {
-  private val tag = "__daily_worker__"
   private val fiveDayForecastRepository by inject<FiveDayForecastRepository>()
 
   override fun createWork(): Single<Result> {
     return fiveDayForecastRepository
       .refreshFiveDayForecastOfSelectedCity()
-      .doOnSuccess {
-        debug("[SUCCESS] doWork $it", tag)
-      }
+      .doOnSuccess { debug("[SUCCESS] doWork $it", TAG) }
       .doOnError {
+        debug("[FAILURE] doWork $it", TAG)
         if (it is NoSelectedCityException) {
+          debug("[FAILURE] cancel work request and notification", TAG)
           applicationContext.cancelNotificationById(WEATHER_NOTIFICATION_ID)
-          WorkerUtil.cancelUpdateDailyWeatherWorkWorkRequest()
+          cancelUpdateDailyWeatherWorkRequest()
         }
-        debug("[FAILURE] doWork $it", tag)
       }
       .map { Result.success(workDataOf("RESULT" to "Update daily success")) }
       .onErrorReturn { Result.failure(workDataOf("RESULT" to "Update daily failure: ${it.message}")) }
   }
 
   companion object {
-    const val UNIQUE_WORK_NAME = "UpdateDailyWeatherWorker"
-    const val TAG = "UpdateDailyWeatherWorker"
+    const val UNIQUE_WORK_NAME = "com.hoc.weatherapp.worker.UpdateDailyWeatherWorker"
+    const val TAG = "com.hoc.weatherapp.worker.UpdateDailyWeatherWorker"
   }
 }

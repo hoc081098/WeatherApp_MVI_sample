@@ -12,7 +12,12 @@ import android.widget.Toast
 import androidx.annotation.IntDef
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import com.google.android.gms.location.*
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationResult
+import com.google.android.gms.location.LocationSettingsRequest
+import com.google.android.gms.location.SettingsClient
 import com.google.android.material.snackbar.Snackbar
 import com.hoc.weatherapp.BuildConfig
 import io.reactivex.BackpressureStrategy
@@ -138,6 +143,6 @@ inline fun <T, R> Observable<T>.exhaustMap(crossinline transform: (T) -> Observa
 }
 
 @Suppress("nothing_to_inline")
-inline fun <T: Any> Subject<T>.asObservable(): Observable<T> = this
+inline fun <T : Any> Subject<T>.asObservable(): Observable<T> = this
 
 

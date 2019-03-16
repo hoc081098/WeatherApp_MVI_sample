@@ -22,7 +22,7 @@ import com.hoc.weatherapp.utils.debug
 import com.hoc.weatherapp.utils.map
 import com.hoc.weatherapp.utils.showOrUpdateNotification
 import com.hoc.weatherapp.worker.WorkerUtil.cancelUpdateCurrentWeatherWorkRequest
-import com.hoc.weatherapp.worker.WorkerUtil.cancelUpdateDailyWeatherWorkWorkRequest
+import com.hoc.weatherapp.worker.WorkerUtil.cancelUpdateDailyWeatherWorkRequest
 import com.hoc.weatherapp.worker.WorkerUtil.enqueueUpdateCurrentWeatherWorkRequest
 import com.hoc.weatherapp.worker.WorkerUtil.enqueueUpdateDailyWeatherWorkRequest
 import io.reactivex.Observable
@@ -178,7 +178,7 @@ class SettingsActivity : AppCompatActivity() {
             enqueueUpdateCurrentWeatherWorkRequest()
           } else {
             cancelUpdateCurrentWeatherWorkRequest()
-            cancelUpdateDailyWeatherWorkWorkRequest()
+            cancelUpdateDailyWeatherWorkRequest()
           }
         }
         key == getString(R.string.key_sound_notification) && newValue is Boolean -> {
