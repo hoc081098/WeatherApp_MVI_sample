@@ -21,14 +21,14 @@ object WorkerUtil {
   /**
    * Actual
    */
-  private inline fun <reified T : ListenableWorker> enqueuePeriodic(
+  @JvmStatic private inline fun <reified T : ListenableWorker> enqueuePeriodic(
     tag: String,
     uniqueName: String
   ): Operation {
     val request = PeriodicWorkRequestBuilder<T>(
       repeatInterval = 15,
       repeatIntervalTimeUnit = TimeUnit.MINUTES
-    ).addTag(tag).keepResultsForAtLeast(30, TimeUnit.MINUTES).build()
+    ).addTag(tag).keepResultsForAtLeast(60, TimeUnit.MINUTES).build()
 
     return WorkManager
       .getInstance()
@@ -42,11 +42,11 @@ object WorkerUtil {
   /**
    * Enqueue initial delay one time work request, will trigger periodic work request
    */
-  private fun enqueue(tag: String): Operation {
+  @JvmStatic private fun enqueue(tag: String): Operation {
     val workRequest = OneTimeWorkRequestBuilder<InitialDelayEnqueueWorker>()
       .setInitialDelay(15, TimeUnit.MINUTES)
       .setInputData(workDataOf("TAG" to tag))
-      .keepResultsForAtLeast(30, TimeUnit.MINUTES)
+      .keepResultsForAtLeast(60, TimeUnit.MINUTES)
       .addTag(tag)
       .build()
 
@@ -55,7 +55,7 @@ object WorkerUtil {
       .enqueue(workRequest)
   }
 
-  private fun cancelAllWorkByTag(tag: String): Operation {
+  @JvmStatic private fun cancelAllWorkByTag(tag: String): Operation {
     return WorkManager
       .getInstance()
       .cancelAllWorkByTag(tag)
@@ -66,26 +66,21 @@ object WorkerUtil {
     override fun doWork(): Result {
       return when (inputData.getString("TAG")) {
         UpdateDailyWeatherWorker.TAG -> {
-          Result
-            .success()
-            .also {
-              WorkerUtil.enqueuePeriodic<UpdateCurrentWeatherWorker>(
-                UpdateCurrentWeatherWorker.TAG,
-                UpdateCurrentWeatherWorker.UNIQUE_WORK_NAME
-              ).result.get()
-              debug("[SUCCESS] enqueuePeriodic current", tag)
-            }
+          enqueuePeriodic<UpdateCurrentWeatherWorker>(
+            UpdateCurrentWeatherWorker.TAG,
+            UpdateCurrentWeatherWorker.UNIQUE_WORK_NAME
+          ).result.get()
+          debug("[SUCCESS] enqueuePeriodic current", tag)
+
+          Result.success()
         }
         UpdateCurrentWeatherWorker.TAG -> {
-          Result
-            .success()
-            .also {
-              WorkerUtil.enqueuePeriodic<UpdateDailyWeatherWorker>(
-                UpdateDailyWeatherWorker.TAG,
-                UpdateDailyWeatherWorker.UNIQUE_WORK_NAME
-              ).result.get()
-              debug("[SUCCESS] enqueuePeriodic daily", tag)
-            }
+          enqueuePeriodic<UpdateDailyWeatherWorker>(
+            UpdateDailyWeatherWorker.TAG,
+            UpdateDailyWeatherWorker.UNIQUE_WORK_NAME
+          ).result.get()
+          debug("[SUCCESS] enqueuePeriodic daily", tag)
+          Result.success()
         }
         else -> Result.failure()
       }
@@ -96,35 +91,41 @@ object WorkerUtil {
    *
    */
 
-  @JvmStatic
-  fun enqueueUpdateCurrentWeatherWorkRequest() {
+  @JvmStatic fun enqueueUpdateCurrentWeatherWorkRequest() {
     cancelUpdateCurrentWeatherWorkRequest()
       .result
-      .addListener(Runnable {
-        enqueue(UpdateCurrentWeatherWorker.TAG)
-          .result
-          .addListener(Runnable {
-            debug("[SUCCESS] enqueue current", tag)
-          }, backgroundExecutor)
-      }, backgroundExecutor)
+      .addListener(
+        Runnable {
+          enqueue(UpdateCurrentWeatherWorker.TAG)
+            .result
+            .addListener(
+              Runnable { debug("[SUCCESS] enqueue current", tag) },
+              backgroundExecutor
+            )
+        },
+        backgroundExecutor
+      )
   }
 
-  @JvmStatic
-  fun enqueueUpdateDailyWeatherWorkRequest() {
+  @JvmStatic fun enqueueUpdateDailyWeatherWorkRequest() {
     cancelUpdateDailyWeatherWorkWorkRequest()
       .result
-      .addListener(Runnable {
-        enqueue(UpdateDailyWeatherWorker.TAG)
-          .result
-          .addListener(Runnable {
-            debug("[SUCCESS] enqueue daily", tag)
-          }, backgroundExecutor)
-      }, backgroundExecutor)
+      .addListener(
+        Runnable {
+          enqueue(UpdateDailyWeatherWorker.TAG)
+            .result
+            .addListener(
+              Runnable { debug("[SUCCESS] enqueue daily", tag) },
+              backgroundExecutor
+            )
+        },
+        backgroundExecutor
+      )
   }
 
-  @JvmStatic
-  fun cancelUpdateCurrentWeatherWorkRequest() = cancelAllWorkByTag(UpdateCurrentWeatherWorker.TAG)
+  @JvmStatic fun cancelUpdateCurrentWeatherWorkRequest() =
+    cancelAllWorkByTag(UpdateCurrentWeatherWorker.TAG)
 
-  @JvmStatic
-  fun cancelUpdateDailyWeatherWorkWorkRequest() = cancelAllWorkByTag(UpdateDailyWeatherWorker.TAG)
+  @JvmStatic fun cancelUpdateDailyWeatherWorkWorkRequest() =
+    cancelAllWorkByTag(UpdateDailyWeatherWorker.TAG)
 }

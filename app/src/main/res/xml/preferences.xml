@@ -57,7 +57,7 @@
         <androidx.preference.Preference
             android:enabled="true"
             android:key="About"
-            android:selectable="false"
+            android:selectable="true"
             android:summary="Github: https://github.com/hoc081098/WeatherApp.git"
             android:title="Petrus Nguyễn Thái Học" />
     </androidx.preference.PreferenceCategory>
