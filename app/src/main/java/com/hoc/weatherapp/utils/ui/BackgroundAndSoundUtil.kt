@@ -34,8 +34,8 @@ private fun isDay(
 fun getBackgroundDrawableFromWeather(weather: CurrentWeather, city: City): Int {
   return when {
     weather.weatherConditionId == 800L
-        && isDay(weather, city)
-        && weather.temperature > 35 + 273.15 /* 35℃ */ -> {
+      && isDay(weather, city)
+      && weather.temperature > 35 + 273.15 /* 35℃ */ -> {
       R.drawable.hot_bg
     }
 

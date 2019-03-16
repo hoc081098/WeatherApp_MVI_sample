@@ -1,7 +1,18 @@
 package com.hoc.weatherapp.koin
 
-import com.hoc.weatherapp.data.*
-import com.hoc.weatherapp.data.local.*
+import com.hoc.weatherapp.data.CityRepository
+import com.hoc.weatherapp.data.CityRepositoryImpl
+import com.hoc.weatherapp.data.CurrentWeatherRepository
+import com.hoc.weatherapp.data.CurrentWeatherRepositoryImpl
+import com.hoc.weatherapp.data.FiveDayForecastRepository
+import com.hoc.weatherapp.data.FiveDayForecastRepositoryImpl
+import com.hoc.weatherapp.data.local.AppDatabase
+import com.hoc.weatherapp.data.local.CityDao
+import com.hoc.weatherapp.data.local.CityLocalDataSource
+import com.hoc.weatherapp.data.local.CurrentWeatherDao
+import com.hoc.weatherapp.data.local.CurrentWeatherLocalDataSource
+import com.hoc.weatherapp.data.local.FiveDayForecastDao
+import com.hoc.weatherapp.data.local.FiveDayForecastLocalDataSource
 import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.context.ModuleDefinition
 import org.koin.dsl.module.module

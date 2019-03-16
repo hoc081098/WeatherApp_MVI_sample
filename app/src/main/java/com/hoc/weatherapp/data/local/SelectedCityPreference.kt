@@ -4,7 +4,12 @@ import android.annotation.SuppressLint
 import android.content.SharedPreferences
 import androidx.annotation.WorkerThread
 import com.hoc.weatherapp.data.models.entity.City
-import com.hoc.weatherapp.utils.*
+import com.hoc.weatherapp.utils.None
+import com.hoc.weatherapp.utils.Optional
+import com.hoc.weatherapp.utils.asObservable
+import com.hoc.weatherapp.utils.delegate
+import com.hoc.weatherapp.utils.getOrNull
+import com.hoc.weatherapp.utils.toOptional
 import com.squareup.moshi.Moshi
 import io.reactivex.Single
 import io.reactivex.rxkotlin.subscribeBy

@@ -6,7 +6,7 @@ import com.hoc.weatherapp.data.models.entity.City
 import com.hoc.weatherapp.data.models.entity.CurrentWeather
 import com.hoc.weatherapp.data.models.entity.DailyWeather
 import com.hoc.weatherapp.utils.debug
-import java.util.*
+import java.util.Date
 
 /**
  * Map response from api to local database entity

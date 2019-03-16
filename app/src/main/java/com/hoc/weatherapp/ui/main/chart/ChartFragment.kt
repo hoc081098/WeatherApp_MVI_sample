@@ -18,7 +18,8 @@ import com.hoc.weatherapp.utils.UnitConverter
 import com.hoc.weatherapp.utils.debug
 import kotlinx.android.synthetic.main.fragment_chart.*
 import org.koin.android.ext.android.get
-import java.util.*
+import java.util.Calendar
+import java.util.Locale
 import kotlin.math.ceil
 import kotlin.math.floor
 
