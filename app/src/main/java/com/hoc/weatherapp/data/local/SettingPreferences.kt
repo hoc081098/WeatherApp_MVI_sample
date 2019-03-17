@@ -22,8 +22,7 @@ interface PreferenceInterface<T : Any> {
    * Save [value] to shared preference
    * @param value
    */
-  @Throws(Throwable::class)
-  fun save(value: T)
+  @Throws(Throwable::class) fun save(value: T)
 }
 
 /**
@@ -34,7 +33,7 @@ class BaseSettingPreference<T : Any>(delegateProperty: ReadWriteProperty<Any, T>
   private var _value by delegateProperty
   private val subject = BehaviorSubject.createDefault(_value)
 
-  override val value get() = subject.value ?: _value
+  override val value get() = _value
   override val observable = subject.asObservable()
 
   /**

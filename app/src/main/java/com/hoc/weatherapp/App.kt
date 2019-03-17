@@ -44,16 +44,20 @@ class App : Application() {
       getWorkInfosForUniqueWorkLiveData(UpdateDailyWeatherWorker.UNIQUE_WORK_NAME)
         .observeForever {
           it.forEach { workInfo ->
-            debug("info=$workInfo", UpdateDailyWeatherWorker.TAG)
-            debug("data=${workInfo.outputData.keyValueMap}", UpdateDailyWeatherWorker.TAG)
+            debug(
+              "data=${workInfo.outputData.keyValueMap}, info=$workInfo",
+              UpdateDailyWeatherWorker.TAG
+            )
           }
         }
 
       getWorkInfosForUniqueWorkLiveData(UpdateCurrentWeatherWorker.UNIQUE_WORK_NAME)
         .observeForever {
           it.forEach { workInfo ->
-            debug("info=$workInfo", UpdateCurrentWeatherWorker.TAG)
-            debug("data=${workInfo.outputData.keyValueMap}", UpdateCurrentWeatherWorker.TAG)
+            debug(
+              "data=${workInfo.outputData.keyValueMap}, info=$workInfo",
+              UpdateCurrentWeatherWorker.TAG
+            )
           }
         }
     }

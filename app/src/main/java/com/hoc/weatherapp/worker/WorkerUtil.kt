@@ -31,7 +31,7 @@ object WorkerUtil {
     uniqueName: String
   ): ListenableFuture<Operation.State.SUCCESS> {
     val request = PeriodicWorkRequestBuilder<T>(
-      repeatInterval = 15,
+      repeatInterval = 20,
       repeatIntervalTimeUnit = TimeUnit.MINUTES,
       flexTimeInterval = 5,
       flexTimeIntervalUnit = TimeUnit.MINUTES
