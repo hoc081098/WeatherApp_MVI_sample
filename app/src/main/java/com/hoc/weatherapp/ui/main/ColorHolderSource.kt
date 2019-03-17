@@ -33,6 +33,5 @@ class ColorHolderSource(androidApplication: Application) {
     }
   }
 
-  @MainThread
-  fun change(@ColorInt color: Int) = subject.onNext(color)
+  @MainThread fun change(@ColorInt color: Int) = subject.onNext(color)
 }
