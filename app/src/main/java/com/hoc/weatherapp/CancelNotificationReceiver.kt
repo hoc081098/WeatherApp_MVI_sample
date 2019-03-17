@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.hoc.weatherapp.data.local.SettingPreferences
 import com.hoc.weatherapp.utils.ACTION_CANCEL_NOTIFICATION
 import com.hoc.weatherapp.utils.WEATHER_NOTIFICATION_ID
@@ -31,7 +32,12 @@ class CancelNotificationReceiver : BroadcastReceiver(), KoinComponent {
         .observeOn(AndroidSchedulers.mainThread())
         .doOnComplete { settingPreferences.showNotificationPreference.save(false) }
         .doOnTerminate { pendingResult.finish() }
-        .subscribeBy(onComplete = { debug("[SUCCESS] showNotificationPreference", TAG) })
+        .subscribeBy(onComplete = {
+          LocalBroadcastManager
+            .getInstance(context)
+            .sendBroadcast(Intent(ACTION_CANCEL_NOTIFICATION))
+          debug("[SUCCESS] showNotificationPreference", TAG)
+        })
     }
   }
 

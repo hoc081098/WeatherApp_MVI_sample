@@ -15,6 +15,7 @@ import com.hoc.weatherapp.worker.WorkerUtil.cancelUpdateCurrentWeatherWorkReques
 import io.reactivex.Single
 import org.koin.standalone.KoinComponent
 import org.koin.standalone.inject
+import org.threeten.bp.LocalDateTime
 
 class UpdateCurrentWeatherWorker(context: Context, workerParams: WorkerParameters) :
   RxWorker(context, workerParams), KoinComponent {
@@ -24,6 +25,7 @@ class UpdateCurrentWeatherWorker(context: Context, workerParams: WorkerParameter
   override fun createWork(): Single<Result> {
     return currentWeatherRepository
       .refreshCurrentWeatherOfSelectedCity()
+      .doOnSubscribe { debug("[RUNNING] doWork ${LocalDateTime.now()}", TAG) }
       .doOnSuccess {
         debug("[SUCCESS] doWork $it", TAG)
         applicationContext.showNotificationIfEnabled(it, settingPreferences)

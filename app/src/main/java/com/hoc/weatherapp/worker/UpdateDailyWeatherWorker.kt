@@ -13,6 +13,7 @@ import com.hoc.weatherapp.worker.WorkerUtil.cancelUpdateDailyWeatherWorkRequest
 import io.reactivex.Single
 import org.koin.standalone.KoinComponent
 import org.koin.standalone.inject
+import org.threeten.bp.LocalDateTime
 
 class UpdateDailyWeatherWorker(context: Context, workerParams: WorkerParameters) :
   RxWorker(context, workerParams), KoinComponent {
@@ -21,6 +22,7 @@ class UpdateDailyWeatherWorker(context: Context, workerParams: WorkerParameters)
   override fun createWork(): Single<Result> {
     return fiveDayForecastRepository
       .refreshFiveDayForecastOfSelectedCity()
+      .doOnSubscribe { debug("[RUNNING] doWork ${LocalDateTime.now()}", TAG) }
       .doOnSuccess { debug("[SUCCESS] doWork $it", TAG) }
       .doOnError {
         debug("[FAILURE] doWork $it", TAG)

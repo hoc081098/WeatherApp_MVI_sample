@@ -1,19 +1,25 @@
 package com.hoc.weatherapp.ui.setting
 
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.net.Uri
 import android.os.Bundle
 import android.view.MenuItem
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
+import androidx.preference.SwitchPreferenceCompat
 import com.hoc.weatherapp.R
 import com.hoc.weatherapp.data.CurrentWeatherRepository
 import com.hoc.weatherapp.data.local.SettingPreferences
 import com.hoc.weatherapp.data.models.PressureUnit
 import com.hoc.weatherapp.data.models.SpeedUnit
 import com.hoc.weatherapp.data.models.TemperatureUnit
+import com.hoc.weatherapp.utils.ACTION_CANCEL_NOTIFICATION
 import com.hoc.weatherapp.utils.None
 import com.hoc.weatherapp.utils.Some
 import com.hoc.weatherapp.utils.WEATHER_NOTIFICATION_ID
@@ -33,6 +39,7 @@ import io.reactivex.rxkotlin.subscribeBy
 import io.reactivex.rxkotlin.withLatestFrom
 import io.reactivex.subjects.PublishSubject
 import org.koin.android.ext.android.inject
+import kotlin.LazyThreadSafetyMode.NONE
 
 class SettingsActivity : AppCompatActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
@@ -65,6 +72,13 @@ class SettingsActivity : AppCompatActivity() {
     private val tempUnitS = PublishSubject.create<TemperatureUnit>()
     private val compositeDisposable = CompositeDisposable()
 
+    private val showNotificationPreference by lazy(NONE) { findPreference(getString(R.string.key_show_notification)) as SwitchPreferenceCompat }
+    private val broadcastReceiver = object : BroadcastReceiver() {
+      override fun onReceive(context: Context?, intent: Intent?) {
+        showNotificationPreference.isChecked = false
+      }
+    }
+
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) =
       setPreferencesFromResource(R.xml.preferences, rootKey)
 
@@ -74,7 +88,8 @@ class SettingsActivity : AppCompatActivity() {
       /**
        * Set listener
        */
-      findPreference(getString(R.string.key_show_notification)).onPreferenceChangeListener = this
+
+      showNotificationPreference.onPreferenceChangeListener = this
       findPreference(getString(R.string.key_temperature_unit)).onPreferenceChangeListener = this
       findPreference(getString(R.string.key_pressure_unit)).onPreferenceChangeListener = this
       findPreference(getString(R.string.key_speed_unit)).onPreferenceChangeListener = this
@@ -146,6 +161,24 @@ class SettingsActivity : AppCompatActivity() {
           }
         }
       }).addTo(compositeDisposable)
+    }
+
+    override fun onResume() {
+      super.onResume()
+      /**
+       * Sync state between [com.hoc.weatherapp.CancelNotificationReceiver] and this preference
+       */
+      LocalBroadcastManager
+        .getInstance(requireContext())
+        .registerReceiver(broadcastReceiver, IntentFilter(ACTION_CANCEL_NOTIFICATION))
+    }
+
+    override fun onPause() {
+      super.onPause()
+
+      LocalBroadcastManager
+        .getInstance(requireContext())
+        .unregisterReceiver(broadcastReceiver)
     }
 
     override fun onDestroyView() {
