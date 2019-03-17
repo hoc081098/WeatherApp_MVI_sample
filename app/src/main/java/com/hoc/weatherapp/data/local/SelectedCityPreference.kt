@@ -23,28 +23,26 @@ class SelectedCityPreference(sharedPreferences: SharedPreferences, private val m
   private val citySubject = BehaviorSubject.createDefault<Optional<City>>(None)
 
   init {
-    Single.fromCallable(::getSelectedCityFromSharedPref)
+    Single
+      .fromCallable(::getSelectedCityFromSharedPref)
       .subscribeOn(Schedulers.single())
-      .map { it.toOptional() }
       .onErrorReturnItem(None)
       .subscribeBy(onSuccess = citySubject::onNext)
   }
 
-  @WorkerThread
-  private fun getSelectedCityFromSharedPref(): City? {
+  @WorkerThread private fun getSelectedCityFromSharedPref(): Optional<City> {
     return runCatching {
       moshi
         .adapter(City::class.java)
         .fromJson(selectedCityJsonString)
-    }.getOrNull()
+    }.getOrNull().toOptional()
   }
 
   /**
    * Save [value] to shared preference
    * @param value
    */
-  @WorkerThread
-  override fun save(value: Optional<City>) {
+  @WorkerThread override fun save(value: Optional<City>) {
     selectedCityJsonString = moshi
       .adapter(City::class.java)
       .toJson(value.getOrNull())
@@ -53,6 +51,6 @@ class SelectedCityPreference(sharedPreferences: SharedPreferences, private val m
 
   override val observable = citySubject.asObservable()
 
-  override val value get() = citySubject.value ?: None
+  override val value @WorkerThread get() = getSelectedCityFromSharedPref()
 }
 

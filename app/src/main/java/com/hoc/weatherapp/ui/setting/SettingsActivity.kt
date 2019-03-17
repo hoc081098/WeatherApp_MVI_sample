@@ -168,6 +168,7 @@ class SettingsActivity : AppCompatActivity() {
       /**
        * Sync state between [com.hoc.weatherapp.CancelNotificationReceiver] and this preference
        */
+      showNotificationPreference.isChecked = settingPreferences.showNotificationPreference.value
       LocalBroadcastManager
         .getInstance(requireContext())
         .registerReceiver(broadcastReceiver, IntentFilter(ACTION_CANCEL_NOTIFICATION))
