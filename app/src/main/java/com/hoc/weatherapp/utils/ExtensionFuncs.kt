@@ -71,7 +71,11 @@ fun Context.checkLocationSettingAndGetCurrentLocation(
   return Observable.create<Location> { emitter ->
     settingsClient
       .checkLocationSettings(locationSettingsRequest)
-      .addOnFailureListener(emitter::onError)
+      .addOnFailureListener {
+        if (!emitter.isDisposed) {
+          emitter.onError(it)
+        }
+      }
       .addOnSuccessListener {
 
         if (isAccessLocationPermissionDenied(emitter)) return@addOnSuccessListener
