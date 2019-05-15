@@ -46,7 +46,7 @@ dependencies {
     implementation 'androidx.palette:palette:1.0.0'
 
     // google material
-    implementation 'com.google.android.material:material:1.0.0'
+    implementation 'com.google.android.material:material:1.1.0-alpha04'
 
     // play services
     implementation 'com.google.android.gms:play-services-location:15.0.1'
