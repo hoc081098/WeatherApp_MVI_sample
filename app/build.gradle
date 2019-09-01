@@ -27,7 +27,7 @@ android {
         debug {
             shrinkResources true
             minifyEnabled true
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            //proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
     compileOptions {
@@ -59,13 +59,13 @@ dependencies {
     implementation 'com.google.android.gms:play-services-places:16.0.0'
 
     // room persistence
-    def roomVersion = '2.1.0-alpha05'
+    def roomVersion = '2.1.0-beta01'
     implementation "androidx.room:room-runtime:$roomVersion"
     kapt "androidx.room:room-compiler:$roomVersion"
     implementation "androidx.room:room-rxjava2:$roomVersion"
 
     // work manager
-    def workVersion = '1.0.0'
+    def workVersion = '1.0.1'
     implementation "android.arch.work:work-runtime-ktx:$workVersion"
     implementation "android.arch.work:work-rxjava2:$workVersion"
 
