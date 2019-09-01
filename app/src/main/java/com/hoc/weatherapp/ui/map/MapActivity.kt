@@ -17,7 +17,7 @@ class MapActivity : AppCompatActivity() {
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
-    window.addFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS)
+    window.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN)
     setContentView(R.layout.activity_map)
 
     loadMap(cityRepository.selectedCity)

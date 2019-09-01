@@ -69,7 +69,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
-            app:dotsColor="@color/colorAccent"
+            app:dotsColor="?attr/colorAccent"
             app:dotsCornerRadius="8dp"
             app:dotsSize="12dp"
             app:dotsSpacing="4dp"

@@ -14,8 +14,8 @@
         android:fontFamily="@font/nunito_sans"
         android:padding="12sp"
         android:text="My location"
+        app:backgroundTint="?attr/colorAccent"
         android:textAllCaps="false"
-        android:textColor="@color/colorTextIcons"
         android:textSize="16sp"
         app:cornerRadius="8dp"
         app:icon="@drawable/ic_location_on_white_24dp"
@@ -24,8 +24,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:rippleColor="@color/colorRipple" />
+        app:layout_constraintTop_toTopOf="parent"/>
 
     <com.google.android.material.chip.ChipGroup
         android:layout_width="match_parent"
