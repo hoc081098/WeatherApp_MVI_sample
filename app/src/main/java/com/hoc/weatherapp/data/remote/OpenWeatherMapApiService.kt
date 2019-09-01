@@ -6,8 +6,8 @@ import io.reactivex.Single
 import retrofit2.http.GET
 import retrofit2.http.Query
 
-const val OPEN_WEATHER_MAP_BASE_URL = "http://api.openweathermap.org/data/2.5/"
-const val OPEN_WEATHER_MAP_APP_ID = "8011ab8a054c3313249763404ac18589"
+const val OPEN_WEATHER_MAP_BASE_URL = "https://api.openweathermap.org/data/2.5/"
+const val OPEN_WEATHER_MAP_APP_ID = "6592d24a33ae13c2ac1401db99732c61"
 
 interface OpenWeatherMapApiService {
   @GET("weather")
