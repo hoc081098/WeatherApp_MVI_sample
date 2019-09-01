@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!--Light theme-->
     <color name="colorPrimary">#009688</color>
     <color name="colorPrimaryDark">#00796b</color>
     <color name="colorAccent">#ff5252</color>
@@ -26,4 +27,5 @@
     <color name="darkTheme_colorPrimaryDark">#111111</color>
     <color name="darkTheme_colorAccent">#8f6dbb</color>
     <color name="darkTheme_colorSecondaryText">#EEEEEE</color>
+    <color name="darkTheme_colorPrimaryText">#ffffff</color>
 </resources>

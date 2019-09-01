@@ -7,8 +7,10 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
 import android.util.Log
+import android.util.TypedValue
 import android.view.View
 import android.widget.Toast
+import androidx.annotation.AttrRes
 import androidx.annotation.IntDef
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -149,4 +151,9 @@ inline fun <T, R> Observable<T>.exhaustMap(crossinline transform: (T) -> Observa
 @Suppress("nothing_to_inline")
 inline fun <T : Any> Subject<T>.asObservable(): Observable<T> = this
 
+fun Context.themeColor(@AttrRes attrRes: Int): Int {
+  val typedValue = TypedValue()
+  theme.resolveAttribute(attrRes, typedValue, true)
+  return typedValue.data
+}
 

@@ -50,6 +50,7 @@
         android:layout_margin="16dp"
         android:clickable="true"
         android:focusable="true"
+        app:backgroundTint="?attr/colorAccent"
         android:src="@drawable/ic_add_white_24dp"
         app:elevation="2dp"
         app:fabSize="normal" />
