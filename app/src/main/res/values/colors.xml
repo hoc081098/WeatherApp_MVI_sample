@@ -20,4 +20,10 @@
     <color name="colorMaterialBlue500">#2196f3</color>
     <color name="colorDeepPurpleAccent700">#6200ea</color>
     <color name="colorMaterialCyan400">#26C6DA</color>
+
+    <!--Dark theme color-->
+    <color name="darkTheme_colorPrimary">#212121</color>
+    <color name="darkTheme_colorPrimaryDark">#111111</color>
+    <color name="darkTheme_colorAccent">#8f6dbb</color>
+    <color name="darkTheme_colorSecondaryText">#EEEEEE</color>
 </resources>
