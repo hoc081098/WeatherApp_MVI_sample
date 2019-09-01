@@ -10,10 +10,7 @@ import com.hoc.weatherapp.data.models.entity.City
 import com.hoc.weatherapp.data.remote.OpenWeatherMapApiService
 import com.hoc.weatherapp.data.remote.TimezoneDbApiService
 import com.hoc.weatherapp.data.remote.getZoneId
-import com.hoc.weatherapp.utils.None
-import com.hoc.weatherapp.utils.Optional
-import com.hoc.weatherapp.utils.Some
-import com.hoc.weatherapp.utils.getOrNull
+import com.hoc.weatherapp.utils.*
 import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
@@ -73,6 +70,7 @@ class CityRepositoryImpl(
       getZoneId(timezoneDbApiService, latitude, longitude)
     )
       .flatMap {
+        debug("@@@@@@@$it", "@@@@")
         saveCityAndCurrentWeather(
           cityLocalDataSource,
           currentWeatherLocalDataSource,
