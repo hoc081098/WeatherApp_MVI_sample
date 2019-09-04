@@ -58,7 +58,7 @@ class DailyWeatherAdapter : ListAdapter<DailyWeatherListItem, RecyclerView.ViewH
       (runCatching { getItem(headerPosition - 1) }.getOrNull() as? DailyWeatherListItem.Weather
         ?: runCatching { getItem(headerPosition + 1) }.getOrNull() as? DailyWeatherListItem.Weather)
 
-    bindHeader(textViewDate, headerItem, header, weather?.iconBackgroundColor)
+    bindHeader(textViewDate, headerItem, header, weather?.colors?.first)
     textViewDate.setTextColor(ContextCompat.getColor(header.context, R.color.colorHeaderText))
   }
 
@@ -132,13 +132,13 @@ class DailyWeatherAdapter : ListAdapter<DailyWeatherListItem, RecyclerView.ViewH
       textTempMax.text = weather.temperatureMax
       textWeather.text = weather.weatherDescription
       textViewDataTime.text = ITEM_DATE_FORMATTER.format(weather.dataTime)
-      imageIconCityItem.setBackgroundColor(weather.iconBackgroundColor)
+      imageIconCityItem.setBackgroundColor(weather.colors.first)
 
       Glide.with(itemView.context)
         .load(itemView.context.getIconDrawableFromDailyWeather(weather.weatherIcon))
         .apply(RequestOptions.fitCenterTransform().centerCrop())
         .transition(DrawableTransitionOptions.withCrossFade())
-        .apply(ColorDrawable(weather.iconBackgroundColor).let(RequestOptions::placeholderOf))
+        .apply(ColorDrawable(weather.colors.first).let(RequestOptions::placeholderOf))
         .into(imageIconCityItem)
     }
   }

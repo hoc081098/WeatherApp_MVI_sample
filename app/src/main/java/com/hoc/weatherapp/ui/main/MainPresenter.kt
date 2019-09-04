@@ -10,9 +10,11 @@ import com.hoc.weatherapp.ui.main.MainContract.ViewState.NoSelectedCity
 import com.hoc.weatherapp.utils.None
 import com.hoc.weatherapp.utils.Some
 import com.hoc.weatherapp.utils.debug
+import com.hoc.weatherapp.utils.themeColor
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.rxkotlin.Observables
+import java.util.concurrent.TimeUnit
 
 class MainPresenter(
   currentWeatherRepository: CurrentWeatherRepository,
@@ -26,16 +28,11 @@ class MainPresenter(
     source2 = colorHolderSource.colorObservable
   ).map {
     when (val optional = it.first) {
-      None -> NoSelectedCity(
-        ContextCompat.getColor(
-          androidApplication,
-          R.color.colorPrimaryDark
-        )
-      )
+      None -> NoSelectedCity(androidApplication.themeColor(R.attr.colorPrimaryDark))
       is Some -> CityAndWeather(
         city = optional.value.city,
         weather = optional.value.currentWeather,
-        vibrantColor = it.second
+        vibrantColor = it.second.first
       )
     }
   }

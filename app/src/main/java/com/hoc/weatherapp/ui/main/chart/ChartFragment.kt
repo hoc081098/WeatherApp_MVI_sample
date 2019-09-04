@@ -16,6 +16,7 @@ import com.hoc.weatherapp.R
 import com.hoc.weatherapp.data.models.entity.DailyWeather
 import com.hoc.weatherapp.utils.UnitConverter
 import com.hoc.weatherapp.utils.debug
+import com.hoc.weatherapp.utils.themeColor
 import kotlinx.android.synthetic.main.fragment_chart.*
 import org.koin.android.ext.android.get
 import java.util.Calendar
@@ -28,6 +29,8 @@ class ChartFragment : MviFragment<ChartContract.View, ChartPresenter>(), ChartCo
     val (weathers, temperatureUnit, pressureUnit, speedUnit) = viewState
     if (weathers.isEmpty()) return
 
+    val gridColor = requireContext().themeColor(R.attr.colorAccent)
+
     text_temperature.text =
       getString(R.string.temperature_chart_title, temperatureUnit.symbol())
     drawChart(
@@ -38,10 +41,7 @@ class ChartFragment : MviFragment<ChartContract.View, ChartPresenter>(), ChartCo
         requireContext(),
         R.color.colorPrimary
       ),
-      ContextCompat.getColor(
-        requireContext(),
-        R.color.colorAccent
-      )
+      gridColor
     )
 
     text_rain.text = getString(R.string.rain_chart_title)
@@ -53,10 +53,7 @@ class ChartFragment : MviFragment<ChartContract.View, ChartPresenter>(), ChartCo
         requireContext(),
         R.color.colorMaterialBlue500
       ),
-      ContextCompat.getColor(
-        requireContext(),
-        R.color.colorAccent
-      )
+      gridColor
     )
 
     text_pressure.text = getString(R.string.pressure_chart_title, pressureUnit.symbol())
@@ -68,10 +65,7 @@ class ChartFragment : MviFragment<ChartContract.View, ChartPresenter>(), ChartCo
         requireContext(),
         R.color.colorMaterialCyan400
       ),
-      ContextCompat.getColor(
-        requireContext(),
-        R.color.colorAccent
-      )
+      gridColor
     )
 
 
@@ -84,10 +78,7 @@ class ChartFragment : MviFragment<ChartContract.View, ChartPresenter>(), ChartCo
         requireContext(),
         R.color.colorDeepPurpleAccent700
       ),
-      ContextCompat.getColor(
-        requireContext(),
-        R.color.colorAccent
-      )
+      gridColor
     )
   }
 
@@ -142,6 +133,8 @@ class ChartFragment : MviFragment<ChartContract.View, ChartPresenter>(), ChartCo
         .setStep(2)
         .setXAxis(false)
         .setYAxis(false)
+        .setAxisColor(requireContext().themeColor(R.attr.colorOnSurface))
+        .setLabelsColor(requireContext().themeColor(R.attr.colorOnSurface))
         .show()
     }
   }
