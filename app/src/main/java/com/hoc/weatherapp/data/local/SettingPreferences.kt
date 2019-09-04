@@ -22,7 +22,8 @@ interface PreferenceInterface<T : Any> {
    * Save [value] to shared preference
    * @param value
    */
-  @Throws(Throwable::class) fun save(value: T)
+  @Throws(Throwable::class)
+  fun save(value: T)
 }
 
 /**
@@ -42,13 +43,17 @@ class BaseSettingPreference<T : Any>(delegateProperty: ReadWriteProperty<Any, T>
    * Because value will be persisted by [androidx.preference.Preference], only set [value] to [subject]
    * @param value
    */
-  @MainThread override fun save(value: T) = subject.onNext(value)
+  @MainThread
+  override fun save(value: T) = subject.onNext(value)
 
   /**
    * Save actual [value] to shared preference, call on worker thread
    * @param value
    */
-  @WorkerThread fun saveActual(value: T) { _value = value }
+  @WorkerThread
+  fun saveActual(value: T) {
+    _value = value
+  }
 }
 
 class SettingPreferences(sharedPreferences: SharedPreferences, androidApplication: Application) {
@@ -106,9 +111,16 @@ class SettingPreferences(sharedPreferences: SharedPreferences, androidApplicatio
     )
   )
 
+  val darkThemePreference = BaseSettingPreference(
+    delegateProperty = sharedPreferences.delegate(
+      default = false,
+      key = androidApplication.getString(R.string.key_dark_theme)
+    )
+  )
+
   override fun toString() =
     "SettingPreferences($temperatureUnitPreference," +
-      " $speedUnitPreference, $pressureUnitPreference," +
-      " $showNotificationPreference, $autoUpdatePreference," +
-      " $soundNotificationPreference)"
+        " $speedUnitPreference, $pressureUnitPreference," +
+        " $showNotificationPreference, $autoUpdatePreference," +
+        " $soundNotificationPreference, $darkThemePreference)"
 }

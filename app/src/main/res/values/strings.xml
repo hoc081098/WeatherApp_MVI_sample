@@ -61,6 +61,7 @@
     <string name="key_show_notification" translatable="false">show_notification</string>
     <string name="key_auto_update" translatable="false">key_auto_update</string>
     <string name="key_sound_notification" translatable="false">key_sound_notification</string>
+    <string name="key_dark_theme" translatable="false">key_dark_theme</string>
 
     <string name="pref_title_select_temperature_unit">Select temperature unit</string>
     <string name="pref_title_select_speed_unit">Select wind speed unit</string>

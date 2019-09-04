@@ -53,7 +53,7 @@ class CitiesActivity : MviActivity<View, CitiesPresenter>(), View {
   override fun changeSelectedCity(): Observable<City> {
     return cityAdapter
       .itemClickObservable
-      .throttleFirst(600, TimeUnit.MILLISECONDS)
+      .throttleFirst(500, TimeUnit.MILLISECONDS)
   }
 
   override fun searchStringIntent(): Observable<SearchStringIntent> {

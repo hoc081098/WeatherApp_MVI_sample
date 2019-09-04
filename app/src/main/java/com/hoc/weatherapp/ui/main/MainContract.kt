@@ -20,7 +20,7 @@ interface MainContract {
   }
 
   interface View : MvpView {
-    fun changeColorIntent(): Observable<Int>
+    fun changeColorIntent(): Observable<Pair<Int, Int>>
 
     fun render(state: ViewState)
   }

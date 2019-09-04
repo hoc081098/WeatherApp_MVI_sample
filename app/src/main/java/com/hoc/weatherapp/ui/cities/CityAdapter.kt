@@ -5,7 +5,6 @@ import android.graphics.drawable.ColorDrawable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -30,6 +29,13 @@ class CitiesAdapter : ListAdapter<CityListItem, CitiesAdapter.ViewHolder>(object
   override fun areContentsTheSame(oldItem: CityListItem, newItem: CityListItem): Boolean {
     return oldItem == newItem
   }
+
+  override fun getChangePayload(oldItem: CityListItem, newItem: CityListItem): Any? {
+    return when {
+      newItem.sameExceptIsSelected(oldItem) -> newItem.isSelected
+      else -> null
+    }
+  }
 }) {
   private val _itemClickSubject = PublishSubject.create<City>()
   val itemClickObservable get() = _itemClickSubject.hide()!!
@@ -39,8 +45,13 @@ class CitiesAdapter : ListAdapter<CityListItem, CitiesAdapter.ViewHolder>(object
       .inflate(R.layout.city_item_layout, parent, false)
       .let(::ViewHolder)
 
-  override fun onBindViewHolder(holder: CitiesAdapter.ViewHolder, position: Int) =
+  override fun onBindViewHolder(holder: ViewHolder, position: Int) =
     holder.bind(getItem(position))
+
+  override fun onBindViewHolder(holder: ViewHolder, position: Int, payloads: MutableList<Any>) {
+    val isSelected = payloads.firstOrNull() as? Boolean ?: return onBindViewHolder(holder, position)
+    holder.updateRadio(isSelected)
+  }
 
   inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView),
     View.OnClickListener {
@@ -70,7 +81,7 @@ class CitiesAdapter : ListAdapter<CityListItem, CitiesAdapter.ViewHolder>(object
         city.country
       )
       textMain.text = weatherDescription.capitalize()
-      radioButtonSelectedCity.isChecked = isSelected
+      updateRadio(isSelected)
       textLastUpdated.text = "${lastUpdated.format(TIME_FORMATTER)} (${lastUpdated.zone.id}): "
       textTemps.text = "$temperatureMin ~ $temperatureMax"
 
@@ -91,6 +102,10 @@ class CitiesAdapter : ListAdapter<CityListItem, CitiesAdapter.ViewHolder>(object
         )
         .into(imageIconCityItem)
       Unit
+    }
+
+    fun updateRadio(isSelected: Boolean) {
+      radioButtonSelectedCity.isChecked = isSelected
     }
   }
 

@@ -58,7 +58,7 @@ class DailyDetailActivity : AppCompatActivity() {
   }
 
   private fun bind(item: DailyWeatherListItem.Weather) {
-    item.iconBackgroundColor.let {
+    item.colors.second.let {
       window.statusBarColor = it
       divider.setBackgroundColor(it)
       text_data_time.setTextColor(it)
@@ -66,7 +66,7 @@ class DailyDetailActivity : AppCompatActivity() {
 
 
     image_icon.setImageResource(getIconDrawableFromDailyWeather(item.weatherIcon))
-    image_icon.setBackgroundColor(item.iconBackgroundColor)
+    image_icon.setBackgroundColor(item.colors.second)
     text_data_time.text = item.dataTime.format(DateTimeFormatter.ofPattern("dd/MM/yyyy, HH:mm"))
     text_main.text = item.main
     text_description.text = item.weatherDescription
@@ -98,7 +98,7 @@ class DailyDetailActivity : AppCompatActivity() {
         override fun getItemCount() = list.size
 
         override fun onBindViewHolder(holder: VH, position: Int) =
-          holder.bind(list[position], item.iconBackgroundColor).also {
+          holder.bind(list[position], item.colors.second).also {
             debug("Bind $position ${list[position]}", "######")
           }
       }

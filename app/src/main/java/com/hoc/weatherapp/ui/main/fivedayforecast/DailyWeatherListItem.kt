@@ -9,7 +9,7 @@ import org.threeten.bp.ZonedDateTime
 interface DailyWeatherListItem {
   @Parcelize
   data class Weather(
-    @ColorInt val iconBackgroundColor: Int,
+    val colors: Pair<Int, Int>,
     val weatherIcon: String,
     val dataTime: ZonedDateTime,
     val weatherDescription: String,

@@ -27,6 +27,7 @@ import com.bumptech.glide.request.target.ViewTarget
 import com.bumptech.glide.request.transition.Transition
 import com.hannesdorfmann.mosby3.mvi.MviActivity
 import com.hoc.weatherapp.R
+import com.hoc.weatherapp.data.local.SettingPreferences
 import com.hoc.weatherapp.data.models.entity.City
 import com.hoc.weatherapp.data.models.entity.CurrentWeather
 import com.hoc.weatherapp.ui.cities.CitiesActivity
@@ -39,6 +40,7 @@ import com.hoc.weatherapp.utils.asObservable
 import com.hoc.weatherapp.utils.blur.GlideBlurTransformation
 import com.hoc.weatherapp.utils.debug
 import com.hoc.weatherapp.utils.startActivity
+import com.hoc.weatherapp.utils.themeColor
 import com.hoc.weatherapp.utils.ui.ZoomOutPageTransformer
 import com.hoc.weatherapp.utils.ui.getBackgroundDrawableFromWeather
 import com.hoc.weatherapp.utils.ui.getSoundUriFromCurrentWeather
@@ -48,7 +50,8 @@ import org.koin.android.ext.android.get
 import java.lang.ref.WeakReference
 
 class MainActivity : MviActivity<MainContract.View, MainPresenter>(), MainContract.View {
-  private val colorSubject = PublishSubject.create<@ColorInt Int>()
+  private val colorSubject = PublishSubject.create<Pair<@ColorInt Int, @ColorInt Int>>()
+
   private var mediaPlayer: MediaPlayer? = null
   private var asyncTask: AsyncTask<*, *, *>? = null
   private var target1: CustomViewTarget<*, *>? = null
@@ -58,6 +61,15 @@ class MainActivity : MviActivity<MainContract.View, MainPresenter>(), MainContra
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
 
+    get<SettingPreferences>().darkThemePreference.value.let {
+      setTheme(
+        if (it) {
+          R.style.AppTheme_DarkTheme_NoActionBar
+        } else {
+          R.style.AppTheme_LightTheme_NoActionBar
+        }
+      )
+    }
     window.addFlags(FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
     window.clearFlags(FLAG_TRANSLUCENT_STATUS)
 
@@ -244,7 +256,7 @@ class MainActivity : MviActivity<MainContract.View, MainPresenter>(), MainContra
         .generate { palette ->
           palette ?: return@generate
 
-          @ColorInt val color = listOf(
+          @ColorInt val darkColor = listOf(
             palette.getSwatchForTarget(Target.DARK_VIBRANT)?.rgb,
             palette.getSwatchForTarget(Target.VIBRANT)?.rgb,
             palette.getSwatchForTarget(Target.LIGHT_VIBRANT)?.rgb,
@@ -252,10 +264,17 @@ class MainActivity : MviActivity<MainContract.View, MainPresenter>(), MainContra
             palette.getSwatchForTarget(Target.MUTED)?.rgb,
             palette.getSwatchForTarget(Target.DARK_MUTED)?.rgb
           ).find { it !== null }
-            ?: mainActivity.get()?.let { ContextCompat.getColor(it, R.color.colorPrimaryDark) }
+            ?: mainActivity.get()?.themeColor(R.attr.colorPrimaryDark)
             ?: return@generate
 
-          mainActivity.get()?.colorSubject?.onNext(color)
+          @ColorInt val lightColor = listOf(
+            palette.getSwatchForTarget(Target.LIGHT_VIBRANT)?.rgb,
+            palette.getSwatchForTarget(Target.LIGHT_MUTED)?.rgb
+          ).find { it !== null }
+            ?: mainActivity.get()?.themeColor(R.attr.colorAccent)
+            ?: return@generate
+
+          mainActivity.get()?.colorSubject?.onNext(darkColor to lightColor)
         }
     }
   }

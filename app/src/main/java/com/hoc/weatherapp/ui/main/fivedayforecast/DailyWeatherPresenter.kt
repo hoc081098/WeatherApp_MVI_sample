@@ -116,12 +116,12 @@ class DailyWeatherPresenter(
       val temperatureUnit: TemperatureUnit,
       val speedUnit: SpeedUnit,
       val pressureUnit: PressureUnit,
-      val iconBackgroundColor: Int
+      val colors: Pair<Int, Int>
     )
 
     @JvmStatic
     private val tupleToWeatherPartialChange = Function<Tuple5, PartialStateChange> {
-      val (cityAndWeathers, temperatureUnit, windSpeedUnit, pressureUnit, iconBackgroundColor) = it
+      val (cityAndWeathers, temperatureUnit, windSpeedUnit, pressureUnit, colors) = it
       cityAndWeathers
         .second
         .groupBy { it.timeOfDataForecasted.trim() }
@@ -148,7 +148,7 @@ class DailyWeatherPresenter(
                 pressure = pressureUnit.format(it.pressure),
                 seaLevel = pressureUnit.format(it.seaLevel),
                 winSpeed = windSpeedUnit.format(it.windSpeed),
-                iconBackgroundColor = iconBackgroundColor
+                colors = colors
               )
             }
         }

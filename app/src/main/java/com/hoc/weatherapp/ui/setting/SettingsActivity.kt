@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.net.Uri
 import android.os.Bundle
+import android.os.Handler
 import android.view.MenuItem
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
@@ -218,6 +219,9 @@ class SettingsActivity : AppCompatActivity() {
         key == getString(R.string.key_sound_notification) && newValue is Boolean -> {
           debug("Sound: $newValue", "SETTINGS")
           settingPreferences.soundNotificationPreference.save(newValue)
+        }
+        key == getString(R.string.key_dark_theme) && newValue is Boolean -> {
+          settingPreferences.darkThemePreference.save(newValue)
         }
       }
       return true
