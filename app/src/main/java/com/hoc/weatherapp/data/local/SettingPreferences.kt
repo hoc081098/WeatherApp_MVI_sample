@@ -18,6 +18,7 @@ import kotlin.properties.ReadWriteProperty
 interface PreferenceInterface<T : Any> {
   val value: T
   val observable: Observable<T>
+
   /**
    * Save [value] to shared preference
    * @param value
@@ -30,7 +31,7 @@ interface PreferenceInterface<T : Any> {
  * Base class implement [PreferenceInterface], used to get and save value setting
  */
 class BaseSettingPreference<T : Any>(delegateProperty: ReadWriteProperty<Any, T>) :
-  PreferenceInterface<T> {
+    PreferenceInterface<T> {
   private var _value by delegateProperty
   private val subject = BehaviorSubject.createDefault(_value)
 
@@ -58,69 +59,69 @@ class BaseSettingPreference<T : Any>(delegateProperty: ReadWriteProperty<Any, T>
 
 class SettingPreferences(sharedPreferences: SharedPreferences, androidApplication: Application) {
   val temperatureUnitPreference = BaseSettingPreference(
-    delegateProperty = sharedPreferences.delegateVar(
-      getter = { key, defaultValue ->
-        getString(key, defaultValue.toString())!!.let { TemperatureUnit.fromString(it) }
-      },
-      setter = { key, value -> putString(key, value.toString()) },
-      defaultValue = TemperatureUnit.KELVIN,
-      key = androidApplication.getString(R.string.key_temperature_unit)
-    )
+      delegateProperty = sharedPreferences.delegateVar(
+          getter = { key, defaultValue ->
+            getString(key, defaultValue.toString())!!.let { TemperatureUnit.fromString(it) }
+          },
+          setter = { key, value -> putString(key, value.toString()) },
+          defaultValue = TemperatureUnit.KELVIN,
+          key = androidApplication.getString(R.string.key_temperature_unit)
+      )
   )
 
   val speedUnitPreference = BaseSettingPreference(
-    delegateProperty = sharedPreferences.delegateVar(
-      getter = { key, defaultValue ->
-        getString(key, defaultValue.toString())!!.let { SpeedUnit.valueOf(it) }
-      },
-      setter = { key, value -> putString(key, value.toString()) },
-      defaultValue = SpeedUnit.METERS_PER_SECOND,
-      key = androidApplication.getString(R.string.key_speed_unit)
-    )
+      delegateProperty = sharedPreferences.delegateVar(
+          getter = { key, defaultValue ->
+            getString(key, defaultValue.toString())!!.let { SpeedUnit.valueOf(it) }
+          },
+          setter = { key, value -> putString(key, value.toString()) },
+          defaultValue = SpeedUnit.METERS_PER_SECOND,
+          key = androidApplication.getString(R.string.key_speed_unit)
+      )
   )
 
   val pressureUnitPreference = BaseSettingPreference(
-    delegateProperty = sharedPreferences.delegateVar(
-      getter = { key, defaultValue ->
-        getString(key, defaultValue.toString())!!.let { PressureUnit.valueOf(it) }
-      },
-      setter = { key, value -> putString(key, value.toString()) },
-      defaultValue = PressureUnit.HPA,
-      key = androidApplication.getString(R.string.key_pressure_unit)
-    )
+      delegateProperty = sharedPreferences.delegateVar(
+          getter = { key, defaultValue ->
+            getString(key, defaultValue.toString())!!.let { PressureUnit.valueOf(it) }
+          },
+          setter = { key, value -> putString(key, value.toString()) },
+          defaultValue = PressureUnit.HPA,
+          key = androidApplication.getString(R.string.key_pressure_unit)
+      )
   )
 
   val showNotificationPreference = BaseSettingPreference(
-    delegateProperty = sharedPreferences.delegate(
-      default = true,
-      key = androidApplication.getString(R.string.key_show_notification)
-    )
+      delegateProperty = sharedPreferences.delegate(
+          default = true,
+          key = androidApplication.getString(R.string.key_show_notification)
+      )
   )
 
   val autoUpdatePreference = BaseSettingPreference(
-    delegateProperty = sharedPreferences.delegate(
-      default = true,
-      key = androidApplication.getString(R.string.key_auto_update)
-    )
+      delegateProperty = sharedPreferences.delegate(
+          default = true,
+          key = androidApplication.getString(R.string.key_auto_update)
+      )
   )
 
   val soundNotificationPreference = BaseSettingPreference(
-    delegateProperty = sharedPreferences.delegate(
-      default = false,
-      key = androidApplication.getString(R.string.key_sound_notification)
-    )
+      delegateProperty = sharedPreferences.delegate(
+          default = false,
+          key = androidApplication.getString(R.string.key_sound_notification)
+      )
   )
 
   val darkThemePreference = BaseSettingPreference(
-    delegateProperty = sharedPreferences.delegate(
-      default = false,
-      key = androidApplication.getString(R.string.key_dark_theme)
-    )
+      delegateProperty = sharedPreferences.delegate(
+          default = false,
+          key = androidApplication.getString(R.string.key_dark_theme)
+      )
   )
 
   override fun toString() =
-    "SettingPreferences($temperatureUnitPreference," +
-        " $speedUnitPreference, $pressureUnitPreference," +
-        " $showNotificationPreference, $autoUpdatePreference," +
-        " $soundNotificationPreference, $darkThemePreference)"
+      "SettingPreferences($temperatureUnitPreference," +
+          " $speedUnitPreference, $pressureUnitPreference," +
+          " $showNotificationPreference, $autoUpdatePreference," +
+          " $soundNotificationPreference, $darkThemePreference)"
 }

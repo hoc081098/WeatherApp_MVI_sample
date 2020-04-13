@@ -29,18 +29,20 @@ import java.text.DecimalFormat
 
 private const val TAG = "currentweather"
 
-class CurrentWeatherFragment : MviFragment<CurrentWeatherContract.View, CurrentWeatherPresenter>(),
-  CurrentWeatherContract.View {
+@ExperimentalStdlibApi
+class CurrentWeatherFragment : MviFragment<CurrentWeatherContract.View,
+    CurrentWeatherPresenter>(),
+    CurrentWeatherContract.View {
   private var errorSnackBar: Snackbar? = null
   private var refreshSnackBar: Snackbar? = null
   private val refreshInitial = PublishSubject.create<RefreshIntent.InitialRefreshIntent>()
 
   override fun refreshCurrentWeatherIntent(): Observable<RefreshIntent> {
     return swipe_refresh_layout.refreshes()
-      .map { RefreshIntent.UserRefreshIntent }
-      .cast<RefreshIntent>()
-      .mergeWith(refreshInitial.doOnNext { debug("refreshes initial", TAG) })
-      .doOnNext { debug("refreshes", TAG) }
+        .map { RefreshIntent.UserRefreshIntent }
+        .cast<RefreshIntent>()
+        .mergeWith(refreshInitial.doOnNext { debug("refreshes initial", TAG) })
+        .doOnNext { debug("refreshes", TAG) }
   }
 
   override fun render(state: ViewState) {
@@ -58,8 +60,8 @@ class CurrentWeatherFragment : MviFragment<CurrentWeatherContract.View, CurrentW
     if (error != null && state.showError) {
       errorSnackBar?.dismiss()
       errorSnackBar = view?.snackBar(
-        error.message ?: "An error occurred!",
-        Snackbar.LENGTH_INDEFINITE
+          error.message ?: "An error occurred!",
+          Snackbar.LENGTH_INDEFINITE
       )
     }
     if (!state.showError) {
@@ -69,8 +71,8 @@ class CurrentWeatherFragment : MviFragment<CurrentWeatherContract.View, CurrentW
     if (state.showRefreshSuccessfully) {
       refreshSnackBar?.dismiss()
       refreshSnackBar = view?.snackBar(
-        "Weather has been updated!",
-        Snackbar.LENGTH_INDEFINITE
+          "Weather has been updated!",
+          Snackbar.LENGTH_INDEFINITE
       )
     } else {
       refreshSnackBar?.dismiss()
@@ -83,8 +85,8 @@ class CurrentWeatherFragment : MviFragment<CurrentWeatherContract.View, CurrentW
     text_temperature.text = "__"
     text_main_weather.text = getString(R.string.no_main_weather)
     text_last_update.text = getString(
-      R.string.last_updated_none,
-      "__/__/__ __:__"
+        R.string.last_updated_none,
+        "__/__/__ __:__"
     )
     button_live.visibility = View.GONE
     card_view1.visibility = View.GONE
@@ -93,8 +95,8 @@ class CurrentWeatherFragment : MviFragment<CurrentWeatherContract.View, CurrentW
 
   private fun updateUi(weather: CurrentWeather) {
     updateWeatherIcon(
-      weatherConditionId = weather.weatherConditionId,
-      weatherIcon = weather.weatherIcon
+        weatherConditionId = weather.weatherConditionId,
+        weatherIcon = weather.weatherIcon
     )
     text_temperature.text = weather.temperatureString
     text_main_weather.text = weather.description
@@ -112,12 +114,12 @@ class CurrentWeatherFragment : MviFragment<CurrentWeatherContract.View, CurrentW
     text_pressure.text = weather.pressureString
     text_humidity.text = getString(R.string.humidity, weather.humidity)
     text_rain.text = getString(
-      R.string.rain_mm,
-      NUMBER_FORMAT.format(weather.rainVolumeForThe3HoursMm)
+        R.string.rain_mm,
+        NUMBER_FORMAT.format(weather.rainVolumeForThe3HoursMm)
     )
     text_visibility.text = getString(
-      R.string.visibility_km,
-      NUMBER_FORMAT.format(weather.visibilityKm)
+        R.string.visibility_km,
+        NUMBER_FORMAT.format(weather.visibilityKm)
     )
 
     /**
@@ -133,9 +135,9 @@ class CurrentWeatherFragment : MviFragment<CurrentWeatherContract.View, CurrentW
   override fun createPresenter() = get<CurrentWeatherPresenter>()
 
   override fun onCreateView(
-    inflater: LayoutInflater,
-    container: ViewGroup?,
-    savedInstanceState: Bundle?
+      inflater: LayoutInflater,
+      container: ViewGroup?,
+      savedInstanceState: Bundle?
   ): View = inflater.inflate(R.layout.fragment_current_weather, container, false)
 
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -146,20 +148,20 @@ class CurrentWeatherFragment : MviFragment<CurrentWeatherContract.View, CurrentW
 
   override fun onResume() {
     super.onResume()
-    refreshInitial.onNext(CurrentWeatherContract.RefreshIntent.InitialRefreshIntent)
+    refreshInitial.onNext(RefreshIntent.InitialRefreshIntent)
   }
 
   private fun updateWeatherIcon(weatherIcon: String, weatherConditionId: Long) {
     Glide.with(this)
-      .load(
-        requireContext().getIconDrawableFromCurrentWeather(
-          weatherIcon = weatherIcon,
-          weatherConditionId = weatherConditionId
+        .load(
+            requireContext().getIconDrawableFromCurrentWeather(
+                weatherIcon = weatherIcon,
+                weatherConditionId = weatherConditionId
+            )
         )
-      )
-      .apply(RequestOptions.fitCenterTransform().centerCrop())
-      .transition(DrawableTransitionOptions.withCrossFade())
-      .into(image_icon)
+        .apply(RequestOptions.fitCenterTransform().centerCrop())
+        .transition(DrawableTransitionOptions.withCrossFade())
+        .into(image_icon)
   }
 
   companion object {

@@ -20,26 +20,26 @@ object LocalDataSourceUtil {
    */
   @JvmStatic
   fun saveCityAndCurrentWeather(
-    cityLocalDataSource: CityLocalDataSource,
-    currentWeatherLocalDataSource: CurrentWeatherLocalDataSource,
-    response: CurrentWeatherResponse,
-    zoneId: String
+      cityLocalDataSource: CityLocalDataSource,
+      currentWeatherLocalDataSource: CurrentWeatherLocalDataSource,
+      response: CurrentWeatherResponse,
+      zoneId: String
   ): Single<CityAndCurrentWeather> {
     val city = Mapper.responseToCity(response, zoneId)
     val weather = Mapper.responseToCurrentWeatherEntity(response)
     return cityLocalDataSource
-      .insertOrUpdateCity(city)
-      .andThen(
-        currentWeatherLocalDataSource
-          .insertOrUpdateCurrentWeather(weather)
-      )
-      .toSingleDefault(
-        CityAndCurrentWeather().apply {
-          this.city = city
-          this.currentWeather = weather
-        }
-      )
-      .subscribeOn(Schedulers.io())
+        .insertOrUpdateCity(city)
+        .andThen(
+            currentWeatherLocalDataSource
+                .insertOrUpdateCurrentWeather(weather)
+        )
+        .toSingleDefault(
+            CityAndCurrentWeather().apply {
+              this.city = city
+              this.currentWeather = weather
+            }
+        )
+        .subscribeOn(Schedulers.io())
   }
 
   /**
@@ -50,14 +50,14 @@ object LocalDataSourceUtil {
    */
   @JvmStatic
   fun saveFiveDayForecastWeather(
-    fiveDayForecastLocalDataSource: FiveDayForecastLocalDataSource,
-    response: FiveDayForecastResponse
+      fiveDayForecastLocalDataSource: FiveDayForecastLocalDataSource,
+      response: FiveDayForecastResponse
   ): Single<List<DailyWeather>> {
     val city = Mapper.responseToCity(response)
     val weathers = Mapper.responseToListDailyWeatherEntity(response)
     return fiveDayForecastLocalDataSource
-      .deleteDailyWeathersByCityIdAndInsert(weathers = weathers, cityId = city.id)
-      .toSingleDefault(weathers)
-      .subscribeOn(Schedulers.io())
+        .deleteDailyWeathersByCityIdAndInsert(weathers = weathers, cityId = city.id)
+        .toSingleDefault(weathers)
+        .subscribeOn(Schedulers.io())
   }
 }

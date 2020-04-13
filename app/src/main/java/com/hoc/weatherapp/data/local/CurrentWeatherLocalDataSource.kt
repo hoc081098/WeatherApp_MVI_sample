@@ -12,14 +12,14 @@ import io.reactivex.Observable
 class CurrentWeatherLocalDataSource(private val currentWeatherDao: CurrentWeatherDao) {
   fun getCityAndCurrentWeatherByCityId(cityId: Long): Observable<CityAndCurrentWeather> {
     return currentWeatherDao
-      .getCityAndCurrentWeatherByCityId(cityId)
-      .distinctUntilChanged()
+        .getCityAndCurrentWeatherByCityId(cityId)
+        .distinctUntilChanged()
   }
 
   fun getAllCityAndCurrentWeathers(querySearch: String): Observable<List<CityAndCurrentWeather>> {
     return currentWeatherDao
-      .getAllCityAndCurrentWeathers(querySearch)
-      .distinctUntilChanged()
+        .getAllCityAndCurrentWeathers(querySearch)
+        .distinctUntilChanged()
   }
 
   fun insertOrUpdateCurrentWeather(weather: CurrentWeather): Completable {

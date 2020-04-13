@@ -14,40 +14,40 @@ import kotlinx.android.parcel.Parcelize
 @Entity(tableName = "cities")
 @Parcelize
 data class City(
-  /**
-   * Id of city
-   */
-  @PrimaryKey(autoGenerate = false)
-  @ColumnInfo(name = "id")
-  val id: Long,
+    /**
+     * Id of city
+     */
+    @PrimaryKey(autoGenerate = false)
+    @ColumnInfo(name = "id")
+    val id: Long,
 
-  /**
-   * Name of city
-   */
-  @ColumnInfo(name = "name")
-  val name: String = "",
+    /**
+     * Name of city
+     */
+    @ColumnInfo(name = "name")
+    val name: String = "",
 
-  /**
-   * Country of city
-   */
-  @ColumnInfo(name = "country")
-  val country: String = "",
+    /**
+     * Country of city
+     */
+    @ColumnInfo(name = "country")
+    val country: String = "",
 
-  /**
-   * Latitude of city
-   */
-  @ColumnInfo(name = "lat")
-  val lat: Double = Double.NEGATIVE_INFINITY,
+    /**
+     * Latitude of city
+     */
+    @ColumnInfo(name = "lat")
+    val lat: Double = Double.NEGATIVE_INFINITY,
 
-  /**
-   * Longitude of city
-   */
-  @ColumnInfo(name = "lng")
-  val lng: Double = Double.NEGATIVE_INFINITY,
+    /**
+     * Longitude of city
+     */
+    @ColumnInfo(name = "lng")
+    val lng: Double = Double.NEGATIVE_INFINITY,
 
-  /**
-   * The time zone name.
-   */
-  @ColumnInfo(name = "zone_id")
-  val zoneId: String
+    /**
+     * The time zone name.
+     */
+    @ColumnInfo(name = "zone_id")
+    val zoneId: String
 ) : Parcelable

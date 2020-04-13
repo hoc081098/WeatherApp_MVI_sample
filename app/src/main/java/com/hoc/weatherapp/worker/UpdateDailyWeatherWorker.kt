@@ -11,29 +11,32 @@ import com.hoc.weatherapp.utils.cancelNotificationById
 import com.hoc.weatherapp.utils.debug
 import com.hoc.weatherapp.worker.WorkerUtil.cancelUpdateDailyWeatherWorkRequest
 import io.reactivex.Single
-import org.koin.standalone.KoinComponent
-import org.koin.standalone.inject
+import org.koin.core.KoinComponent
+import org.koin.core.inject
 import org.threeten.bp.LocalDateTime
 
-class UpdateDailyWeatherWorker(context: Context, workerParams: WorkerParameters) :
-  RxWorker(context, workerParams), KoinComponent {
+class UpdateDailyWeatherWorker(
+    context: Context,
+    workerParams: WorkerParameters
+) :
+    RxWorker(context, workerParams), KoinComponent {
   private val fiveDayForecastRepository by inject<FiveDayForecastRepository>()
 
   override fun createWork(): Single<Result> {
     return fiveDayForecastRepository
-      .refreshFiveDayForecastOfSelectedCity()
-      .doOnSubscribe { debug("[RUNNING] doWork ${LocalDateTime.now()}", TAG) }
-      .doOnSuccess { debug("[SUCCESS] doWork $it", TAG) }
-      .doOnError {
-        debug("[FAILURE] doWork $it", TAG)
-        if (it is NoSelectedCityException) {
-          debug("[FAILURE] cancel work request and notification", TAG)
-          applicationContext.cancelNotificationById(WEATHER_NOTIFICATION_ID)
-          cancelUpdateDailyWeatherWorkRequest()
+        .refreshFiveDayForecastOfSelectedCity()
+        .doOnSubscribe { debug("[RUNNING] doWork ${LocalDateTime.now()}", TAG) }
+        .doOnSuccess { debug("[SUCCESS] doWork $it", TAG) }
+        .doOnError {
+          debug("[FAILURE] doWork $it", TAG)
+          if (it is NoSelectedCityException) {
+            debug("[FAILURE] cancel work request and notification", TAG)
+            applicationContext.cancelNotificationById(WEATHER_NOTIFICATION_ID)
+            cancelUpdateDailyWeatherWorkRequest()
+          }
         }
-      }
-      .map { Result.success(workDataOf("RESULT" to "Update daily success")) }
-      .onErrorReturn { Result.failure(workDataOf("RESULT" to "Update daily failure: ${it.message}")) }
+        .map { Result.success(workDataOf("RESULT" to "Update daily success")) }
+        .onErrorReturn { Result.failure(workDataOf("RESULT" to "Update daily failure: ${it.message}")) }
   }
 
   companion object {

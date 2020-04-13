@@ -2,20 +2,20 @@ package com.hoc.weatherapp.utils
 
 import java.io.Serializable
 
-internal object UNINITIALIZED_VALUE
+private object UninitializedValue
 
-internal class InitializedLazyImpl<out T>(override val value: T) : Lazy<T>, Serializable {
+private class InitializedLazyImpl<out T>(override val value: T) : Lazy<T>, Serializable {
   override fun isInitialized(): Boolean = true
   override fun toString(): String = value.toString()
 }
 
 internal class MyUnsafeLazyImpl<out T>(initializer: () -> T) : Lazy<T>, Serializable {
   private var initializer: (() -> T)? = initializer
-  private var _value: Any? = UNINITIALIZED_VALUE
+  private var _value: Any? = UninitializedValue
 
   override val value: T
     get() {
-      if (_value === UNINITIALIZED_VALUE) {
+      if (_value === UninitializedValue) {
         _value = initializer!!()
         initializer = null
       }
@@ -23,10 +23,10 @@ internal class MyUnsafeLazyImpl<out T>(initializer: () -> T) : Lazy<T>, Serializ
       return _value as T
     }
 
-  override fun isInitialized(): Boolean = _value !== UNINITIALIZED_VALUE
+  override fun isInitialized(): Boolean = _value !== UninitializedValue
 
   override fun toString(): String =
-    if (isInitialized()) value.toString() else "Lazy value not initialized yet."
+      if (isInitialized()) value.toString() else "Lazy value not initialized yet."
 
   private fun writeReplace(): Any = InitializedLazyImpl(value)
 

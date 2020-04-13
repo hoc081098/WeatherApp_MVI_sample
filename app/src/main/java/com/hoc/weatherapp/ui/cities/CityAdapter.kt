@@ -19,9 +19,11 @@ import com.hoc.weatherapp.utils.ui.getIconDrawableFromCurrentWeather
 import io.reactivex.subjects.PublishSubject
 import kotlinx.android.synthetic.main.city_item_layout.view.*
 import org.threeten.bp.format.DateTimeFormatter
+import java.util.*
 
+@ExperimentalStdlibApi
 class CitiesAdapter : ListAdapter<CityListItem, CitiesAdapter.ViewHolder>(object :
-  DiffUtil.ItemCallback<CityListItem>() {
+    DiffUtil.ItemCallback<CityListItem>() {
   override fun areItemsTheSame(oldItem: CityListItem, newItem: CityListItem): Boolean {
     return oldItem.city.id == newItem.city.id
   }
@@ -41,12 +43,12 @@ class CitiesAdapter : ListAdapter<CityListItem, CitiesAdapter.ViewHolder>(object
   val itemClickObservable get() = _itemClickSubject.hide()!!
 
   override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) =
-    LayoutInflater.from(parent.context)
-      .inflate(R.layout.city_item_layout, parent, false)
-      .let(::ViewHolder)
+      LayoutInflater.from(parent.context)
+          .inflate(R.layout.city_item_layout, parent, false)
+          .let(::ViewHolder)
 
   override fun onBindViewHolder(holder: ViewHolder, position: Int) =
-    holder.bind(getItem(position))
+      holder.bind(getItem(position))
 
   override fun onBindViewHolder(holder: ViewHolder, position: Int, payloads: MutableList<Any>) {
     val isSelected = payloads.firstOrNull() as? Boolean ?: return onBindViewHolder(holder, position)
@@ -54,7 +56,7 @@ class CitiesAdapter : ListAdapter<CityListItem, CitiesAdapter.ViewHolder>(object
   }
 
   inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView),
-    View.OnClickListener {
+      View.OnClickListener {
     private val textName = itemView.text_name!!
     private val textMain = itemView.text_main!!
     private val textLastUpdated = itemView.text_last_updated!!
@@ -76,31 +78,31 @@ class CitiesAdapter : ListAdapter<CityListItem, CitiesAdapter.ViewHolder>(object
     @SuppressLint("SetTextI18n")
     fun bind(item: CityListItem) = item.run {
       textName.text = itemView.context.getString(
-        R.string.city_name_and_country,
-        city.name,
-        city.country
+          R.string.city_name_and_country,
+          city.name,
+          city.country
       )
-      textMain.text = weatherDescription.capitalize()
+      textMain.text = weatherDescription.capitalize(Locale.ROOT)
       updateRadio(isSelected)
       textLastUpdated.text = "${lastUpdated.format(TIME_FORMATTER)} (${lastUpdated.zone.id}): "
       textTemps.text = "$temperatureMin ~ $temperatureMax"
 
       Glide.with(itemView.context)
-        .load(
-          itemView.context.getIconDrawableFromCurrentWeather(
-            weatherConditionId = weatherConditionId,
-            weatherIcon = weatherIcon
+          .load(
+              itemView.context.getIconDrawableFromCurrentWeather(
+                  weatherConditionId = weatherConditionId,
+                  weatherIcon = weatherIcon
+              )
           )
-        )
-        .apply(RequestOptions.fitCenterTransform().centerCrop())
-        .transition(DrawableTransitionOptions.withCrossFade())
-        .apply(
-          itemView.context
-            .themeColor(R.attr.colorAccent)
-            .let(::ColorDrawable)
-            .let(RequestOptions::placeholderOf)
-        )
-        .into(imageIconCityItem)
+          .apply(RequestOptions.fitCenterTransform().centerCrop())
+          .transition(DrawableTransitionOptions.withCrossFade())
+          .apply(
+              itemView.context
+                  .themeColor(R.attr.colorAccent)
+                  .let(::ColorDrawable)
+                  .let(RequestOptions::placeholderOf)
+          )
+          .into(imageIconCityItem)
       Unit
     }
 

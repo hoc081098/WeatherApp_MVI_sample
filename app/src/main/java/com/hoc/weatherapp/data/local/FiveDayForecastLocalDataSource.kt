@@ -10,8 +10,8 @@ class FiveDayForecastLocalDataSource(private val fiveDayForecastDao: FiveDayFore
   }
 
   fun deleteDailyWeathersByCityIdAndInsert(
-    cityId: Long,
-    weathers: List<DailyWeather>
+      cityId: Long,
+      weathers: List<DailyWeather>
   ): Completable {
     return Completable.fromAction {
       fiveDayForecastDao.deleteDailyWeathersByCityIdAndInsert(cityId, weathers)

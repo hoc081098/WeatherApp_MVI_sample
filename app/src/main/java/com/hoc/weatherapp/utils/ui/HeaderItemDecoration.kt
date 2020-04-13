@@ -7,7 +7,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 
 class HeaderItemDecoration(private val listener: StickyHeaderInterface) :
-  RecyclerView.ItemDecoration() {
+    RecyclerView.ItemDecoration() {
   private lateinit var headerView: View
 
   override fun onDrawOver(c: Canvas, parent: RecyclerView, state: RecyclerView.State) {
@@ -50,9 +50,9 @@ class HeaderItemDecoration(private val listener: StickyHeaderInterface) :
 
   private fun getChildInContact(parent: RecyclerView, contactPoint: Int): View? {
     return (0 until parent.childCount)
-      .asSequence()
-      .map { parent.getChildAt(it) }
-      .find { contactPoint < it.bottom && it.top <= contactPoint }
+        .asSequence()
+        .map { parent.getChildAt(it) }
+        .find { contactPoint < it.bottom && it.top <= contactPoint }
   }
 
   private fun fixLayoutSize(parent: ViewGroup, view: View) {
@@ -63,14 +63,14 @@ class HeaderItemDecoration(private val listener: StickyHeaderInterface) :
 
     // Specs for children (headers)
     val childWidthSpec = ViewGroup.getChildMeasureSpec(
-      widthSpec,
-      parent.paddingLeft + parent.paddingRight,
-      view.layoutParams.width
+        widthSpec,
+        parent.paddingLeft + parent.paddingRight,
+        view.layoutParams.width
     )
     val childHeightSpec = ViewGroup.getChildMeasureSpec(
-      heightSpec,
-      parent.paddingTop + parent.paddingBottom,
-      view.layoutParams.height
+        heightSpec,
+        parent.paddingTop + parent.paddingBottom,
+        view.layoutParams.height
     )
 
     view.measure(childWidthSpec, childHeightSpec)

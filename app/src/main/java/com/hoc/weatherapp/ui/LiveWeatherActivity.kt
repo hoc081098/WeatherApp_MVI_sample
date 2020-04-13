@@ -2,11 +2,10 @@ package com.hoc.weatherapp.ui
 
 import android.os.Bundle
 import android.view.MenuItem
-import androidx.appcompat.app.AppCompatActivity
 import com.hoc.weatherapp.R
 import kotlinx.android.synthetic.main.activity_live_weather.*
 
-class LiveWeatherActivity : AppCompatActivity() {
+class LiveWeatherActivity : BaseAppCompatActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     setContentView(R.layout.activity_live_weather)
@@ -18,8 +17,8 @@ class LiveWeatherActivity : AppCompatActivity() {
     }
   }
 
-  override fun onOptionsItemSelected(item: MenuItem?): Boolean {
-    return when (item?.itemId) {
+  override fun onOptionsItemSelected(item: MenuItem): Boolean {
+    return when (item.itemId) {
       android.R.id.home -> {
         finish()
         true

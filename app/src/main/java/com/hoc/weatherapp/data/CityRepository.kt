@@ -32,7 +32,7 @@ interface CityRepository {
 
   /**
    * Get stream of selected city
-   * @return [Observable] emit [None] when having no selected city, otherwise emit [Some] of [City]
+   * @return [Observable] emit None when having no selected city, otherwise emit Some of [City]
    */
   fun getSelectedCity(): Observable<Optional<City>>
 

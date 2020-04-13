@@ -11,9 +11,9 @@ interface MainContract {
     abstract val vibrantColor: Int
 
     data class CityAndWeather(
-      val city: City,
-      val weather: CurrentWeather,
-      @ColorInt override val vibrantColor: Int
+        val city: City,
+        val weather: CurrentWeather,
+        @ColorInt override val vibrantColor: Int
     ) : ViewState()
 
     data class NoSelectedCity(@ColorInt override val vibrantColor: Int) : ViewState()

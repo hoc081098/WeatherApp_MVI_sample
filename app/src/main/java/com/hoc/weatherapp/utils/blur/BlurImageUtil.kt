@@ -14,9 +14,9 @@ object BlurImageUtil {
 
     try {
       val output = Bitmap.createBitmap(
-        bitmap.width,
-        bitmap.height,
-        Bitmap.Config.ARGB_8888
+          bitmap.width,
+          bitmap.height,
+          Bitmap.Config.ARGB_8888
       )
 
       // Create a RenderScript context.
@@ -28,11 +28,11 @@ object BlurImageUtil {
 
       // Use the ScriptIntrinsicBlur intrinsic.
       ScriptIntrinsicBlur.create(rsContext, Element.U8_4(rsContext))
-        .run {
-          setRadius(radius)
-          setInput(inAlloc)
-          forEach(outAlloc)
-        }
+          .run {
+            setRadius(radius)
+            setInput(inAlloc)
+            forEach(outAlloc)
+          }
 
       // Copy to the output bitmap from the allocation.
       outAlloc.copyTo(output)
