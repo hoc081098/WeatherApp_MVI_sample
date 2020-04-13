@@ -1,11 +1,7 @@
 package com.hoc.weatherapp.data.local
 
-import androidx.room.Dao
-import androidx.room.Delete
-import androidx.room.Insert
+import androidx.room.*
 import androidx.room.OnConflictStrategy.IGNORE
-import androidx.room.Transaction
-import androidx.room.Update
 import com.hoc.weatherapp.data.models.entity.City
 import com.hoc.weatherapp.utils.debug
 
@@ -23,10 +19,10 @@ abstract class CityDao {
   @Transaction
   open fun upsert(city: City) {
     insertCity(city)
-      .takeIf {
-        debug("insertCity => $it", "__DAO__")
-        it == -1L
-      }
-      ?.let { updateCity(city) }
+        .takeIf {
+          debug("insertCity => $it", "__DAO__")
+          it == -1L
+        }
+        ?.let { updateCity(city) }
   }
 }

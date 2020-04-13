@@ -12,17 +12,17 @@ const val OPEN_WEATHER_MAP_APP_ID = "6592d24a33ae13c2ac1401db99732c61"
 interface OpenWeatherMapApiService {
   @GET("weather")
   fun getCurrentWeatherByLatLng(
-    @Query("lat") lat: Double,
-    @Query("lon") lon: Double
+      @Query("lat") lat: Double,
+      @Query("lon") lon: Double
   ): Single<CurrentWeatherResponse>
 
   @GET("weather")
   fun getCurrentWeatherByCityId(
-    @Query("id") id: Long
+      @Query("id") id: Long
   ): Single<CurrentWeatherResponse>
 
   @GET("forecast")
   fun get5DayEvery3HourForecastByCityId(
-    @Query("id") id: Long
+      @Query("id") id: Long
   ): Single<FiveDayForecastResponse>
 }

@@ -6,8 +6,8 @@ import io.reactivex.Observable
 interface DailyWeatherContract {
   sealed class PartialStateChange {
     data class Error(
-      val throwable: Throwable,
-      val showMessage: Boolean
+        val throwable: Throwable,
+        val showMessage: Boolean
     ) : PartialStateChange()
 
     data class Weather(val dailyWeatherListItem: List<DailyWeatherListItem>) : PartialStateChange()
@@ -16,10 +16,10 @@ interface DailyWeatherContract {
   }
 
   data class ViewState(
-    val dailyWeatherListItem: List<DailyWeatherListItem>? = null,
-    val error: Throwable? = null,
-    val showError: Boolean = false,
-    val showRefreshSuccessfully: Boolean = false
+      val dailyWeatherListItem: List<DailyWeatherListItem>? = null,
+      val error: Throwable? = null,
+      val showError: Boolean = false,
+      val showRefreshSuccessfully: Boolean = false
   )
 
   sealed class RefreshIntent {

@@ -4,13 +4,9 @@ import com.hoc.weatherapp.data.models.PressureUnit
 import com.hoc.weatherapp.data.models.PressureUnit.HPA
 import com.hoc.weatherapp.data.models.PressureUnit.MM_HG
 import com.hoc.weatherapp.data.models.SpeedUnit
-import com.hoc.weatherapp.data.models.SpeedUnit.KILOMETERS_PER_HOUR
-import com.hoc.weatherapp.data.models.SpeedUnit.METERS_PER_SECOND
-import com.hoc.weatherapp.data.models.SpeedUnit.MILES_PER_HOUR
+import com.hoc.weatherapp.data.models.SpeedUnit.*
 import com.hoc.weatherapp.data.models.TemperatureUnit
-import com.hoc.weatherapp.data.models.TemperatureUnit.CELSIUS
-import com.hoc.weatherapp.data.models.TemperatureUnit.FAHRENHEIT
-import com.hoc.weatherapp.data.models.TemperatureUnit.KELVIN
+import com.hoc.weatherapp.data.models.TemperatureUnit.*
 
 object UnitConverter {
   /**

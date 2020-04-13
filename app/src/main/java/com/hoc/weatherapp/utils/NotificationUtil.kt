@@ -19,6 +19,7 @@ import com.hoc.weatherapp.data.models.entity.CurrentWeather
 import com.hoc.weatherapp.ui.SplashActivity
 import com.hoc.weatherapp.utils.ui.getIconDrawableFromCurrentWeather
 import org.threeten.bp.format.DateTimeFormatter
+import java.util.*
 
 const val WEATHER_NOTIFICATION_ID = 2
 const val ACTION_CANCEL_NOTIFICATION = "com.hoc.weatherapp.CancelNotificationReceiver"
@@ -26,97 +27,99 @@ const val ACTION_CANCEL_NOTIFICATION = "com.hoc.weatherapp.CancelNotificationRec
 private val DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm, dd/MM/yy")
 private const val TAG = "__notification__"
 
+@ExperimentalStdlibApi
 fun Context.showOrUpdateNotification(
-  weather: CurrentWeather,
-  city: City,
-  unit: TemperatureUnit,
-  popUpAndSound: Boolean // TODO:something is wrong
+    weather: CurrentWeather,
+    city: City,
+    unit: TemperatureUnit,
+    popUpAndSound: Boolean // TODO:something is wrong
 ) {
   val temperature = unit.format(weather.temperature)
   val text = HtmlCompat.fromHtml(
-    """$temperature
+      """$temperature
       |<br>
-      |${weather.description.capitalize()}
+      |${weather.description.capitalize(Locale.ROOT)}
       |<br>
       |<i>Update time: ${weather.dataTime.toZonedDateTime(city.zoneId).format(DATE_TIME_FORMATTER)}</i>
       """.trimMargin(),
-    HtmlCompat.FROM_HTML_MODE_LEGACY
+      HtmlCompat.FROM_HTML_MODE_LEGACY
   )
   val notification = NotificationCompat.Builder(this, App.CHANNEL_ID)
-    .setSmallIcon(
-      getIconDrawableFromCurrentWeather(
-        weatherConditionId = weather.weatherConditionId,
-        weatherIcon = weather.icon
+      .setSmallIcon(
+          getIconDrawableFromCurrentWeather(
+              weatherConditionId = weather.weatherConditionId,
+              weatherIcon = weather.icon
+          )
       )
-    )
-    .setContentTitle("${city.name} - ${city.country}")
-    .setContentText(temperature)
-    .setStyle(NotificationCompat.BigTextStyle().bigText(text))
-    .addAction(
-      R.drawable.ic_close,
-      "Dismiss",
-      PendingIntent.getBroadcast(
-        this,
-        0,
-        Intent(this, CancelNotificationReceiver::class.java).apply {
-          action = ACTION_CANCEL_NOTIFICATION
-        },
-        PendingIntent.FLAG_CANCEL_CURRENT
+      .setContentTitle("${city.name} - ${city.country}")
+      .setContentText(temperature)
+      .setStyle(NotificationCompat.BigTextStyle().bigText(text))
+      .addAction(
+          R.drawable.ic_close,
+          "Dismiss",
+          PendingIntent.getBroadcast(
+              this,
+              0,
+              Intent(this, CancelNotificationReceiver::class.java).apply {
+                action = ACTION_CANCEL_NOTIFICATION
+              },
+              PendingIntent.FLAG_CANCEL_CURRENT
+          )
       )
-    )
-    .setAutoCancel(false)
-    .setOngoing(true)
-    .setWhen(System.currentTimeMillis())
-    .apply {
-      if (popUpAndSound) {
-        priority = NotificationCompat.PRIORITY_HIGH
-        setDefaults(NotificationCompat.DEFAULT_ALL)
-        setSound(RingtoneManager.getDefaultUri(TYPE_NOTIFICATION))
-      }
+      .setAutoCancel(false)
+      .setOngoing(true)
+      .setWhen(System.currentTimeMillis())
+      .apply {
+        if (popUpAndSound) {
+          priority = NotificationCompat.PRIORITY_HIGH
+          setDefaults(NotificationCompat.DEFAULT_ALL)
+          setSound(RingtoneManager.getDefaultUri(TYPE_NOTIFICATION))
+        }
 
-      val resultPendingIntent = PendingIntent.getActivity(
-        this@showOrUpdateNotification,
-        0,
-        Intent(applicationContext, SplashActivity::class.java),
-        PendingIntent.FLAG_UPDATE_CURRENT
-      )
-      setContentIntent(resultPendingIntent)
-    }.build()
+        val resultPendingIntent = PendingIntent.getActivity(
+            this@showOrUpdateNotification,
+            0,
+            Intent(applicationContext, SplashActivity::class.java),
+            PendingIntent.FLAG_UPDATE_CURRENT
+        )
+        setContentIntent(resultPendingIntent)
+      }.build()
 
   debug(
-    "<top>.showOrUpdateNotification weather = [$weather], city = [$city], unit = [$unit], popUpAndSound = [$popUpAndSound]",
-    TAG
+      "<top>.showOrUpdateNotification weather = [$weather], city = [$city], unit = [$unit], popUpAndSound = [$popUpAndSound]",
+      TAG
   )
   debug(
-    "<top>.showOrUpdateNotification notification = [$notification]",
-    TAG
+      "<top>.showOrUpdateNotification notification = [$notification]",
+      TAG
   )
   (applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).notify(
-    WEATHER_NOTIFICATION_ID,
-    notification
+      WEATHER_NOTIFICATION_ID,
+      notification
   )
 }
 
 fun Context.cancelNotificationById(id: Int) =
-  (applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager)
-    .cancel(id).also { debug("<top>.cancelNotificationById id = [$id]", TAG) }
+    (applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager)
+        .cancel(id).also { debug("<top>.cancelNotificationById id = [$id]", TAG) }
 
 
+@ExperimentalStdlibApi
 fun Context.showNotificationIfEnabled(
-  cityAndCurrentWeather: CityAndCurrentWeather,
-  settingPreferences: SettingPreferences
+    cityAndCurrentWeather: CityAndCurrentWeather,
+    settingPreferences: SettingPreferences
 ) {
   debug("<top>.showNotificationIfEnabled", TAG)
   debug(
-    "cityAndCurrentWeather = [$cityAndCurrentWeather], settingPreferences = [$settingPreferences]",
-    TAG
+      "cityAndCurrentWeather = [$cityAndCurrentWeather], settingPreferences = [$settingPreferences]",
+      TAG
   )
   if (settingPreferences.showNotificationPreference.value) {
     showOrUpdateNotification(
-      weather = cityAndCurrentWeather.currentWeather,
-      city = cityAndCurrentWeather.city,
-      unit = settingPreferences.temperatureUnitPreference.value,
-      popUpAndSound = settingPreferences.soundNotificationPreference.value
+        weather = cityAndCurrentWeather.currentWeather,
+        city = cityAndCurrentWeather.city,
+        unit = settingPreferences.temperatureUnitPreference.value,
+        popUpAndSound = settingPreferences.soundNotificationPreference.value
     )
   }
 }

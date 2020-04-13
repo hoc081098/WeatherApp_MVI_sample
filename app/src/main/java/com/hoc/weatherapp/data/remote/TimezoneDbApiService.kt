@@ -12,25 +12,25 @@ const val TIMEZONE_DB_API_KEY = "AAHLCYFT7MLW"
 interface TimezoneDbApiService {
   @GET("get-time-zone")
   fun getTimezoneByLatLng(
-    @Query("lat") lat: Double,
-    @Query("lng") lng: Double
+      @Query("lat") lat: Double,
+      @Query("lng") lng: Double
   ): Single<TimezoneDbResponse>
 }
 
 fun getZoneId(
-  timezoneDbApiService: TimezoneDbApiService,
-  latitude: Double,
-  longitude: Double
+    timezoneDbApiService: TimezoneDbApiService,
+    latitude: Double,
+    longitude: Double
 ): Single<String> {
   return timezoneDbApiService
-    .getTimezoneByLatLng(latitude, longitude)
-    .subscribeOn(Schedulers.io())
-    .map {
-      if (it.status != "OK") {
-        ""
-      } else {
-        it.zoneName
+      .getTimezoneByLatLng(latitude, longitude)
+      .subscribeOn(Schedulers.io())
+      .map {
+        if (it.status != "OK") {
+          ""
+        } else {
+          it.zoneName
+        }
       }
-    }
-    .onErrorReturnItem("")
+      .onErrorReturnItem("")
 }

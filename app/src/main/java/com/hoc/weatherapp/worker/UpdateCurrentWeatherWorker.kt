@@ -13,33 +13,36 @@ import com.hoc.weatherapp.utils.debug
 import com.hoc.weatherapp.utils.showNotificationIfEnabled
 import com.hoc.weatherapp.worker.WorkerUtil.cancelUpdateCurrentWeatherWorkRequest
 import io.reactivex.Single
-import org.koin.standalone.KoinComponent
-import org.koin.standalone.inject
+import org.koin.core.KoinComponent
+import org.koin.core.inject
 import org.threeten.bp.LocalDateTime
 
-class UpdateCurrentWeatherWorker(context: Context, workerParams: WorkerParameters) :
-  RxWorker(context, workerParams), KoinComponent {
+class UpdateCurrentWeatherWorker(
+    context: Context,
+    workerParams: WorkerParameters
+) : RxWorker(context, workerParams), KoinComponent {
   private val currentWeatherRepository by inject<CurrentWeatherRepository>()
   private val settingPreferences by inject<SettingPreferences>()
 
+  @ExperimentalStdlibApi
   override fun createWork(): Single<Result> {
     return currentWeatherRepository
-      .refreshCurrentWeatherOfSelectedCity()
-      .doOnSubscribe { debug("[RUNNING] doWork ${LocalDateTime.now()}", TAG) }
-      .doOnSuccess {
-        debug("[SUCCESS] doWork $it", TAG)
-        applicationContext.showNotificationIfEnabled(it, settingPreferences)
-      }
-      .doOnError {
-        debug("[FAILURE] doWork $it", TAG)
-        if (it is NoSelectedCityException) {
-          debug("[FAILURE] cancel work request and notification", TAG)
-          applicationContext.cancelNotificationById(WEATHER_NOTIFICATION_ID)
-          cancelUpdateCurrentWeatherWorkRequest()
+        .refreshCurrentWeatherOfSelectedCity()
+        .doOnSubscribe { debug("[RUNNING] doWork ${LocalDateTime.now()}", TAG) }
+        .doOnSuccess {
+          debug("[SUCCESS] doWork $it", TAG)
+          applicationContext.showNotificationIfEnabled(it, settingPreferences)
         }
-      }
-      .map { Result.success(workDataOf("RESULT" to "Update current success")) }
-      .onErrorReturn { Result.failure(workDataOf("RESULT" to "Update current failure: ${it.message}")) }
+        .doOnError {
+          debug("[FAILURE] doWork $it", TAG)
+          if (it is NoSelectedCityException) {
+            debug("[FAILURE] cancel work request and notification", TAG)
+            applicationContext.cancelNotificationById(WEATHER_NOTIFICATION_ID)
+            cancelUpdateCurrentWeatherWorkRequest()
+          }
+        }
+        .map { Result.success(workDataOf("RESULT" to "Update current success")) }
+        .onErrorReturn { Result.failure(workDataOf("RESULT" to "Update current failure: ${it.message}")) }
   }
 
   companion object {

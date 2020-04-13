@@ -8,10 +8,10 @@ import com.hoc.weatherapp.ui.main.chart.ChartPresenter
 import com.hoc.weatherapp.ui.main.currentweather.CurrentWeatherPresenter
 import com.hoc.weatherapp.ui.main.fivedayforecast.DailyWeatherPresenter
 import org.koin.android.ext.koin.androidApplication
-import org.koin.dsl.context.ModuleDefinition
-import org.koin.dsl.module.module
+import org.koin.core.scope.Scope
+import org.koin.dsl.module
 
-val presenterModule = module {
+@ExperimentalStdlibApi val presenterModule = module {
   factory { getCitiesPresenter() }
 
   factory { getCurrentWeatherPresenter() }
@@ -27,28 +27,31 @@ val presenterModule = module {
   single { getColorHolderSource() }
 }
 
-private fun ModuleDefinition.getColorHolderSource() = ColorHolderSource(androidApplication())
+private fun Scope.getColorHolderSource() = ColorHolderSource(androidApplication())
 
-private fun ModuleDefinition.getChartPresenter(): ChartPresenter {
+private fun Scope.getChartPresenter(): ChartPresenter {
   return ChartPresenter(get(), get())
 }
 
-private fun ModuleDefinition.getMainPresenter(): MainPresenter {
+private fun Scope.getMainPresenter(): MainPresenter {
   return MainPresenter(get(), get(), androidApplication())
 }
 
-private fun ModuleDefinition.getDailyWeatherPresenter(): DailyWeatherPresenter {
+@ExperimentalStdlibApi
+private fun Scope.getDailyWeatherPresenter(): DailyWeatherPresenter {
   return DailyWeatherPresenter(get(), get(), get(), get(), androidApplication())
 }
 
-private fun ModuleDefinition.getAddCityPresenter(): AddCityPresenter {
+private fun Scope.getAddCityPresenter(): AddCityPresenter {
   return AddCityPresenter(get(), get(), androidApplication())
 }
 
-private fun ModuleDefinition.getCurrentWeatherPresenter(): CurrentWeatherPresenter {
+@ExperimentalStdlibApi
+private fun Scope.getCurrentWeatherPresenter(): CurrentWeatherPresenter {
   return CurrentWeatherPresenter(get(), get(), androidApplication(), get())
 }
 
-private fun ModuleDefinition.getCitiesPresenter(): CitiesPresenter {
+@ExperimentalStdlibApi
+private fun Scope.getCitiesPresenter(): CitiesPresenter {
   return CitiesPresenter(get(), get(), get(), get(), androidApplication())
 }

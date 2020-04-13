@@ -3,10 +3,9 @@ package com.hoc.weatherapp.utils
 import org.threeten.bp.Instant
 import org.threeten.bp.ZoneId
 import org.threeten.bp.ZonedDateTime
-import java.util.Calendar
-import java.util.Date
+import java.util.*
 
-private val CALENDAR = Calendar.getInstance()!!
+private val CALENDAR = Calendar.getInstance()
 
 /**
  * Return Date with hour, minute, second and millisecond set to ZERO
@@ -22,5 +21,5 @@ fun Date.trim(): Date {
 
 fun Date.toZonedDateTime(zoneId: String): ZonedDateTime {
   return Instant.ofEpochMilli(time)
-    .atZone(runCatching { ZoneId.of(zoneId) }.getOrElse { ZoneId.systemDefault() })
+      .atZone(runCatching { ZoneId.of(zoneId) }.getOrElse { ZoneId.systemDefault() })
 }
