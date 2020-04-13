@@ -5,6 +5,7 @@ import android.view.MenuItem
 import com.hoc.weatherapp.R
 import kotlinx.android.synthetic.main.activity_live_weather.*
 
+@ExperimentalStdlibApi
 class LiveWeatherActivity : BaseAppCompatActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)

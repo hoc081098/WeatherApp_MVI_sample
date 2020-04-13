@@ -1,6 +1,5 @@
 package com.hoc.weatherapp.ui
 
-import android.content.Intent
 import android.os.Bundle
 import androidx.annotation.CallSuper
 import androidx.annotation.CheckResult
@@ -10,14 +9,15 @@ import com.hannesdorfmann.mosby3.mvi.MviPresenter
 import com.hannesdorfmann.mosby3.mvp.MvpView
 import com.hoc.weatherapp.R
 import com.hoc.weatherapp.data.local.SettingPreferences
+import com.hoc.weatherapp.utils.debug
 import io.reactivex.Observable
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
 import io.reactivex.rxkotlin.addTo
 import io.reactivex.rxkotlin.subscribeBy
 import org.koin.android.ext.android.inject
-import java.util.concurrent.TimeUnit
 
+@ExperimentalStdlibApi
 abstract class BaseMviActivity<V : MvpView, P : MviPresenter<V, *>> : MviActivity<V, P>() {
   private val settings by inject<SettingPreferences>()
   private val compositeDisposable = CompositeDisposable()
@@ -36,6 +36,7 @@ abstract class BaseMviActivity<V : MvpView, P : MviPresenter<V, *>> : MviActivit
   }
 }
 
+@ExperimentalStdlibApi
 abstract class BaseAppCompatActivity : AppCompatActivity() {
   private val settings by inject<SettingPreferences>()
   private val compositeDisposable = CompositeDisposable()
@@ -54,16 +55,19 @@ abstract class BaseAppCompatActivity : AppCompatActivity() {
   }
 }
 
+@ExperimentalStdlibApi
 @CheckResult
 private fun AppCompatActivity.observeTheme(darkThemeObservable: Observable<Boolean>): Disposable {
   return darkThemeObservable
       .distinctUntilChanged()
       .skip(1)
-      .delay(50, TimeUnit.MILLISECONDS)
+      .take(1)
       .subscribeBy {
-        Intent(this, this::class.java)
-            .let(::startActivity)
+        overridePendingTransition(0, 0)
         finish()
+        overridePendingTransition(0, 0)
+        startActivity(intent)
+        debug("Change theme $this $it", tag = "change_theme")
       }
 }
 

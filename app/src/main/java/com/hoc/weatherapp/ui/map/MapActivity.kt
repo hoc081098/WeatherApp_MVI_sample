@@ -12,6 +12,7 @@ import com.hoc.weatherapp.ui.BaseAppCompatActivity
 import kotlinx.android.synthetic.main.activity_map.*
 import org.koin.android.ext.android.inject
 
+@ExperimentalStdlibApi
 class MapActivity : BaseAppCompatActivity() {
   private val cityRepository by inject<CityRepository>()
 

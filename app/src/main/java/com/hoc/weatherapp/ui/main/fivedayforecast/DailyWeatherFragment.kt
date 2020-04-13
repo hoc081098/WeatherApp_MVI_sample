@@ -32,6 +32,7 @@ import kotlinx.android.synthetic.main.fragment_daily_weather.*
 import org.koin.android.ext.android.get
 import org.threeten.bp.format.DateTimeFormatter
 
+@ExperimentalStdlibApi
 class DailyDetailActivity : BaseAppCompatActivity() {
   companion object {
     const val TAG = "com.hoc.weatherapp.ui.main.fivedayforecast.daily_detail_activity"

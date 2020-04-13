@@ -30,6 +30,7 @@ import kotlinx.android.synthetic.main.some_city_layout.*
 import org.koin.android.ext.android.get
 import java.util.concurrent.TimeUnit
 
+@ExperimentalStdlibApi
 class AddCityActivity : BaseMviActivity<AddCityContract.View, AddCityPresenter>(),
     AddCityContract.View {
   private val tag = "addcity"
