@@ -29,7 +29,7 @@ import io.reactivex.subjects.PublishSubject
 import kotlinx.android.synthetic.main.activity_detail_daily_weather.*
 import kotlinx.android.synthetic.main.detail_item_layout.view.*
 import kotlinx.android.synthetic.main.fragment_daily_weather.*
-import org.koin.android.ext.android.get
+import org.koin.androidx.scope.lifecycleScope
 import org.threeten.bp.format.DateTimeFormatter
 
 @ExperimentalStdlibApi
@@ -149,7 +149,7 @@ class DailyWeatherFragment : MviFragment<DailyWeatherContract.View, DailyWeather
         .doOnNext { debug("refreshDailyWeatherIntent", "_daily_weather_") }
   }
 
-  override fun createPresenter() = get<DailyWeatherPresenter>()
+  override fun createPresenter() = requireActivity().lifecycleScope.get<DailyWeatherPresenter>()
 
   override fun onCreateView(
       inflater: LayoutInflater,

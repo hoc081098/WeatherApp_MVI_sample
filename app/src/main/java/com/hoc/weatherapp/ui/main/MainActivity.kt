@@ -43,7 +43,7 @@ import com.hoc.weatherapp.utils.ui.getBackgroundDrawableFromWeather
 import com.hoc.weatherapp.utils.ui.getSoundUriFromCurrentWeather
 import io.reactivex.subjects.PublishSubject
 import kotlinx.android.synthetic.main.activity_main.*
-import org.koin.android.ext.android.get
+import org.koin.androidx.scope.lifecycleScope
 import java.lang.ref.WeakReference
 
 @ExperimentalStdlibApi
@@ -239,7 +239,7 @@ class MainActivity : BaseMviActivity<MainContract.View, MainPresenter>(), MainCo
     enableIndicatorAndViewPager(false)
   }
 
-  override fun createPresenter() = get<MainPresenter>()
+  override fun createPresenter() = lifecycleScope.get<MainPresenter>()
 
   companion object {
     @JvmStatic
