@@ -2,7 +2,7 @@ package com.hoc.weatherapp.ui.map
 
 import android.annotation.SuppressLint
 import android.os.Bundle
-import android.view.WindowManager
+import android.view.MenuItem
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import com.hoc.weatherapp.R
@@ -13,29 +13,39 @@ import kotlinx.android.synthetic.main.activity_map.*
 import org.koin.android.ext.android.inject
 
 @ExperimentalStdlibApi
-class MapActivity : BaseAppCompatActivity() {
+class MapActivity : BaseAppCompatActivity(noActionBar = false) {
   private val cityRepository by inject<CityRepository>()
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
-    window.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN)
     setContentView(R.layout.activity_map)
+    supportActionBar?.run {
+      setDisplayHomeAsUpEnabled(true)
+      title = "Maps"
+    }
 
     loadMap(cityRepository.selectedCity)
 
     bottom_nav.setOnNavigationItemSelectedListener {
       web_view.loadUrl(
-        when (it.itemId) {
-          R.id.rain_map ->
-            "javascript:map.removeLayer(windLayer);map.removeLayer(tempLayer);map.addLayer(rainLayer);"
-          R.id.wind_map ->
-            "javascript:map.removeLayer(rainLayer);map.removeLayer(tempLayer);map.addLayer(windLayer);"
-          R.id.temperature_map ->
-            "javascript:map.removeLayer(windLayer);map.removeLayer(rainLayer);map.addLayer(tempLayer);"
-          else -> throw IllegalStateException()
-        }
+          when (it.itemId) {
+            R.id.rain_map ->
+              "javascript:map.removeLayer(windLayer);map.removeLayer(tempLayer);map.addLayer(rainLayer);"
+            R.id.wind_map ->
+              "javascript:map.removeLayer(rainLayer);map.removeLayer(tempLayer);map.addLayer(windLayer);"
+            R.id.temperature_map ->
+              "javascript:map.removeLayer(windLayer);map.removeLayer(rainLayer);map.addLayer(tempLayer);"
+            else -> throw IllegalStateException()
+          }
       )
       true
+    }
+  }
+
+  override fun onOptionsItemSelected(item: MenuItem): Boolean {
+    return when (item.itemId) {
+      android.R.id.home -> true.also { finish() }
+      else -> super.onOptionsItemSelected(item)
     }
   }
 
@@ -44,8 +54,8 @@ class MapActivity : BaseAppCompatActivity() {
       @SuppressLint("SetJavaScriptEnabled")
       settings.javaScriptEnabled = true
       loadUrl(
-        "file:///android_asset/map.html?lat=${city?.lat ?: 0.0}&lon=${city?.lng
-          ?: 0.0}&k=2.0&appid=${getString(R.string.app_id)}"
+          "file:///android_asset/map.html?lat=${city?.lat ?: 0.0}&lon=${city?.lng
+              ?: 0.0}&k=2.0&appid=${getString(R.string.app_id)}"
       )
       setInitialScale(1)
       settings.loadWithOverviewMode = true

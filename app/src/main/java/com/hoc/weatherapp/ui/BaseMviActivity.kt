@@ -18,13 +18,15 @@ import io.reactivex.rxkotlin.subscribeBy
 import org.koin.android.ext.android.inject
 
 @ExperimentalStdlibApi
-abstract class BaseMviActivity<V : MvpView, P : MviPresenter<V, *>> : MviActivity<V, P>() {
+abstract class BaseMviActivity<V : MvpView, P : MviPresenter<V, *>>(
+    private val noActionBar: Boolean = true
+) : MviActivity<V, P>() {
   private val settings by inject<SettingPreferences>()
   private val compositeDisposable = CompositeDisposable()
 
   @CallSuper
   override fun onCreate(savedInstanceState: Bundle?) {
-    setTheme(settings.darkThemePreference.value)
+    setTheme(settings.darkThemePreference.value, noActionBar)
     super.onCreate(savedInstanceState)
     observeTheme(settings.darkThemePreference.observable).addTo(compositeDisposable)
   }
@@ -37,13 +39,13 @@ abstract class BaseMviActivity<V : MvpView, P : MviPresenter<V, *>> : MviActivit
 }
 
 @ExperimentalStdlibApi
-abstract class BaseAppCompatActivity : AppCompatActivity() {
+abstract class BaseAppCompatActivity(private val noActionBar: Boolean = true) : AppCompatActivity() {
   private val settings by inject<SettingPreferences>()
   private val compositeDisposable = CompositeDisposable()
 
   @CallSuper
   override fun onCreate(savedInstanceState: Bundle?) {
-    setTheme(settings.darkThemePreference.value)
+    setTheme(settings.darkThemePreference.value, noActionBar)
     super.onCreate(savedInstanceState)
     observeTheme(settings.darkThemePreference.observable).addTo(compositeDisposable)
   }
@@ -71,12 +73,17 @@ private fun AppCompatActivity.observeTheme(darkThemeObservable: Observable<Boole
       }
 }
 
-private fun AppCompatActivity.setTheme(isDarkTheme: Boolean) {
+private fun AppCompatActivity.setTheme(isDarkTheme: Boolean, noActionBar: Boolean) {
   setTheme(
-      if (isDarkTheme) {
-        R.style.AppTheme_DarkTheme_NoActionBar
-      } else {
-        R.style.AppTheme_LightTheme_NoActionBar
+      when {
+        isDarkTheme -> {
+          if (noActionBar) R.style.AppTheme_DarkTheme_NoActionBar
+          else R.style.AppTheme_DarkTheme
+        }
+        else -> {
+          if (noActionBar) R.style.AppTheme_LightTheme_NoActionBar
+          else R.style.AppTheme_LightTheme
+        }
       }
   )
 }
