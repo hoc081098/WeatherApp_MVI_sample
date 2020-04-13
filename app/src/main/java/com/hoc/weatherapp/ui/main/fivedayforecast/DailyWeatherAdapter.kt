@@ -27,21 +27,21 @@ import org.threeten.bp.ZonedDateTime
 import org.threeten.bp.format.DateTimeFormatter
 
 class DailyWeatherAdapter : ListAdapter<DailyWeatherListItem, RecyclerView.ViewHolder>(
-  object : DiffUtil.ItemCallback<DailyWeatherListItem>() {
-    override fun areItemsTheSame(
-      oldItem: DailyWeatherListItem,
-      newItem: DailyWeatherListItem
-    ) = when {
-      oldItem is DailyWeatherListItem.Weather && newItem is DailyWeatherListItem.Weather -> oldItem.dataTime == newItem.dataTime
-      oldItem is DailyWeatherListItem.Header && newItem is DailyWeatherListItem.Header -> oldItem.date == newItem.date
-      else -> oldItem == newItem
-    }
+    object : DiffUtil.ItemCallback<DailyWeatherListItem>() {
+      override fun areItemsTheSame(
+          oldItem: DailyWeatherListItem,
+          newItem: DailyWeatherListItem
+      ) = when {
+        oldItem is DailyWeatherListItem.Weather && newItem is DailyWeatherListItem.Weather -> oldItem.dataTime == newItem.dataTime
+        oldItem is DailyWeatherListItem.Header && newItem is DailyWeatherListItem.Header -> oldItem.date == newItem.date
+        else -> oldItem == newItem
+      }
 
-    override fun areContentsTheSame(
-      oldItem: DailyWeatherListItem,
-      newItem: DailyWeatherListItem
-    ) = newItem == oldItem
-  }
+      override fun areContentsTheSame(
+          oldItem: DailyWeatherListItem,
+          newItem: DailyWeatherListItem
+      ) = newItem == oldItem
+    }
 ), HeaderItemDecoration.StickyHeaderInterface {
   override val headerLayout = R.layout.daily_weather_header_layout
 
@@ -55,10 +55,10 @@ class DailyWeatherAdapter : ListAdapter<DailyWeatherListItem, RecyclerView.ViewH
     val headerItem = getItem(headerPosition) as? DailyWeatherListItem.Header ?: return
 
     val weather =
-      (runCatching { getItem(headerPosition - 1) }.getOrNull() as? DailyWeatherListItem.Weather
-        ?: runCatching { getItem(headerPosition + 1) }.getOrNull() as? DailyWeatherListItem.Weather)
+        (runCatching { getItem(headerPosition - 1) }.getOrNull() as? DailyWeatherListItem.Weather
+            ?: runCatching { getItem(headerPosition + 1) }.getOrNull() as? DailyWeatherListItem.Weather)
 
-    bindHeader(textViewDate, headerItem, header, weather?.iconBackgroundColor)
+    bindHeader(textViewDate, headerItem, header, weather?.colors?.first)
     textViewDate.setTextColor(ContextCompat.getColor(header.context, R.color.colorHeaderText))
   }
 
@@ -71,25 +71,23 @@ class DailyWeatherAdapter : ListAdapter<DailyWeatherListItem, RecyclerView.ViewH
 
   @ViewType
   override fun getItemViewType(position: Int): Int {
-    return when (
-      val item = getItem(position)) {
+    return when (getItem(position)) {
       is DailyWeatherListItem.Header -> HEADER_TYPE
       is DailyWeatherListItem.Weather -> DAILY_WEATHER_TYPE
-      else -> throw  IllegalStateException("Unknown type of item $item at position $position")
     }
   }
 
   override fun onCreateViewHolder(parent: ViewGroup, @ViewType viewType: Int): RecyclerView.ViewHolder {
     return when (viewType) {
       HEADER_TYPE -> LayoutInflater.from(parent.context).inflate(
-        R.layout.daily_weather_header_layout,
-        parent,
-        false
+          R.layout.daily_weather_header_layout,
+          parent,
+          false
       ).let(::HeaderViewHolder)
       DAILY_WEATHER_TYPE -> LayoutInflater.from(parent.context).inflate(
-        R.layout.daily_weather_item_layout,
-        parent,
-        false
+          R.layout.daily_weather_item_layout,
+          parent,
+          false
       ).let(::DailyWeatherViewHolder)
       else -> throw IllegalStateException("Unknown view type $viewType")
     }
@@ -109,7 +107,7 @@ class DailyWeatherAdapter : ListAdapter<DailyWeatherListItem, RecyclerView.ViewH
   }
 
   inner class DailyWeatherViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView),
-    View.OnClickListener {
+      View.OnClickListener {
     override fun onClick(v: View) {
       val adapterPosition = adapterPosition
       if (adapterPosition != RecyclerView.NO_POSITION) {
@@ -132,14 +130,14 @@ class DailyWeatherAdapter : ListAdapter<DailyWeatherListItem, RecyclerView.ViewH
       textTempMax.text = weather.temperatureMax
       textWeather.text = weather.weatherDescription
       textViewDataTime.text = ITEM_DATE_FORMATTER.format(weather.dataTime)
-      imageIconCityItem.setBackgroundColor(weather.iconBackgroundColor)
+      imageIconCityItem.setBackgroundColor(weather.colors.first)
 
       Glide.with(itemView.context)
-        .load(itemView.context.getIconDrawableFromDailyWeather(weather.weatherIcon))
-        .apply(RequestOptions.fitCenterTransform().centerCrop())
-        .transition(DrawableTransitionOptions.withCrossFade())
-        .apply(ColorDrawable(weather.iconBackgroundColor).let(RequestOptions::placeholderOf))
-        .into(imageIconCityItem)
+          .load(itemView.context.getIconDrawableFromDailyWeather(weather.weatherIcon))
+          .apply(RequestOptions.fitCenterTransform().centerCrop())
+          .transition(DrawableTransitionOptions.withCrossFade())
+          .apply(ColorDrawable(weather.colors.first).let(RequestOptions::placeholderOf))
+          .into(imageIconCityItem)
     }
   }
 
@@ -155,16 +153,16 @@ class DailyWeatherAdapter : ListAdapter<DailyWeatherListItem, RecyclerView.ViewH
     private const val DAILY_WEATHER_TYPE = 3
 
     private fun bindHeader(
-      textView: TextView,
-      headerItem: DailyWeatherListItem.Header,
-      itemView: View, @ColorInt iconBackgroundColor: Int? = null
+        textView: TextView,
+        headerItem: DailyWeatherListItem.Header,
+        itemView: View, @ColorInt iconBackgroundColor: Int? = null
     ) {
       /**
        * Set background color
        */
       @ColorInt val bgColor = iconBackgroundColor
-        ?.let { ColorUtils.setAlphaComponent(it, 0xE6) }
-        ?: Color.TRANSPARENT
+          ?.let { ColorUtils.setAlphaComponent(it, 0xE6) }
+          ?: Color.TRANSPARENT
       itemView.setBackgroundColor(bgColor)
 
       /**

@@ -2,10 +2,10 @@ package com.hoc.weatherapp.ui
 
 import android.content.Intent
 import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
 import com.hoc.weatherapp.ui.main.MainActivity
 
-class SplashActivity : AppCompatActivity() {
+@ExperimentalStdlibApi
+class SplashActivity : BaseAppCompatActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     startActivity(Intent(this, MainActivity::class.java).apply {

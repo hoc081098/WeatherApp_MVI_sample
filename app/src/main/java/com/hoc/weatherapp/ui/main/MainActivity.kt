@@ -12,7 +12,6 @@ import android.view.WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS
 import android.view.WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS
 import android.widget.ImageView
 import androidx.annotation.ColorInt
-import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentPagerAdapter
@@ -23,12 +22,11 @@ import com.bumptech.glide.load.resource.bitmap.BitmapTransitionOptions
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.bumptech.glide.request.RequestOptions
 import com.bumptech.glide.request.target.CustomViewTarget
-import com.bumptech.glide.request.target.ViewTarget
 import com.bumptech.glide.request.transition.Transition
-import com.hannesdorfmann.mosby3.mvi.MviActivity
 import com.hoc.weatherapp.R
 import com.hoc.weatherapp.data.models.entity.City
 import com.hoc.weatherapp.data.models.entity.CurrentWeather
+import com.hoc.weatherapp.ui.BaseMviActivity
 import com.hoc.weatherapp.ui.cities.CitiesActivity
 import com.hoc.weatherapp.ui.main.chart.ChartFragment
 import com.hoc.weatherapp.ui.main.currentweather.CurrentWeatherFragment
@@ -39,6 +37,7 @@ import com.hoc.weatherapp.utils.asObservable
 import com.hoc.weatherapp.utils.blur.GlideBlurTransformation
 import com.hoc.weatherapp.utils.debug
 import com.hoc.weatherapp.utils.startActivity
+import com.hoc.weatherapp.utils.themeColor
 import com.hoc.weatherapp.utils.ui.ZoomOutPageTransformer
 import com.hoc.weatherapp.utils.ui.getBackgroundDrawableFromWeather
 import com.hoc.weatherapp.utils.ui.getSoundUriFromCurrentWeather
@@ -47,13 +46,15 @@ import kotlinx.android.synthetic.main.activity_main.*
 import org.koin.android.ext.android.get
 import java.lang.ref.WeakReference
 
-class MainActivity : MviActivity<MainContract.View, MainPresenter>(), MainContract.View {
-  private val colorSubject = PublishSubject.create<@ColorInt Int>()
+@ExperimentalStdlibApi
+class MainActivity : BaseMviActivity<MainContract.View, MainPresenter>(), MainContract.View {
+  private val colorSubject = PublishSubject.create<Pair<@ColorInt Int, @ColorInt Int>>()
+
   private var mediaPlayer: MediaPlayer? = null
   private var asyncTask: AsyncTask<*, *, *>? = null
+
   private var target1: CustomViewTarget<*, *>? = null
-  @Suppress("DEPRECATION")
-  private var target2: ViewTarget<ImageView, Drawable>? = null
+  private var target2: CustomViewTarget<*, *>? = null
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
@@ -95,13 +96,13 @@ class MainActivity : MviActivity<MainContract.View, MainPresenter>(), MainContra
   private fun setupViewPager() {
     view_pager.run {
       val fragments: List<Fragment> = listOf(
-        CurrentWeatherFragment(),
-        DailyWeatherFragment(),
-        ChartFragment()
+          CurrentWeatherFragment(),
+          DailyWeatherFragment(),
+          ChartFragment()
       )
       adapter = SectionsPagerAdapter(
-        supportFragmentManager,
-        fragments
+          supportFragmentManager,
+          fragments
       )
       offscreenPageLimit = fragments.size
 
@@ -123,8 +124,10 @@ class MainActivity : MviActivity<MainContract.View, MainPresenter>(), MainContra
     }
   }
 
-  private class SectionsPagerAdapter(fm: FragmentManager, private val fragments: List<Fragment>) :
-    FragmentPagerAdapter(fm) {
+  private class SectionsPagerAdapter(
+      fm: FragmentManager,
+      private val fragments: List<Fragment>
+  ) : FragmentPagerAdapter(fm, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT) {
     override fun getItem(position: Int) = fragments[position]
     override fun getCount() = fragments.size
   }
@@ -134,8 +137,8 @@ class MainActivity : MviActivity<MainContract.View, MainPresenter>(), MainContra
     return true
   }
 
-  override fun onOptionsItemSelected(item: MenuItem?): Boolean {
-    return when (item?.itemId) {
+  override fun onOptionsItemSelected(item: MenuItem): Boolean {
+    return when (item.itemId) {
       android.R.id.home -> true.also { startActivity<CitiesActivity>() }
       R.id.action_settings -> true.also { startActivity<SettingsActivity>() }
       R.id.action_map -> true.also { startActivity<MapActivity>() }
@@ -145,33 +148,33 @@ class MainActivity : MviActivity<MainContract.View, MainPresenter>(), MainContra
 
 
   private fun updateBackground(
-    weather: CurrentWeather,
-    city: City
+      weather: CurrentWeather,
+      city: City
   ) {
     Glide
-      .with(this)
-      .apply { clear(target1); clear(target2); asyncTask?.cancel(true) }
-      .asBitmap()
-      .load(getBackgroundDrawableFromWeather(weather, city))
-      .apply(
-        RequestOptions
-          .bitmapTransform(GlideBlurTransformation(this, 20f))
-          .fitCenter()
-          .centerCrop()
-      )
-      .transition(BitmapTransitionOptions.withCrossFade())
-      .into(object : CustomViewTarget<ImageView, Bitmap>(image_background) {
-        override fun onLoadFailed(errorDrawable: Drawable?) = Unit
+        .with(this)
+        .apply { clear(target1); clear(target2); asyncTask?.cancel(true) }
+        .asBitmap()
+        .load(getBackgroundDrawableFromWeather(weather, city))
+        .apply(
+            RequestOptions
+                .bitmapTransform(GlideBlurTransformation(this, 20f))
+                .fitCenter()
+                .centerCrop()
+        )
+        .transition(BitmapTransitionOptions.withCrossFade())
+        .into(object : CustomViewTarget<ImageView, Bitmap>(image_background) {
+          override fun onLoadFailed(errorDrawable: Drawable?) = Unit
 
-        override fun onResourceCleared(placeholder: Drawable?) = Unit
+          override fun onResourceCleared(placeholder: Drawable?) = Unit
 
-        override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
-          view.setImageBitmap(resource)
-          asyncTask?.cancel(true)
-          asyncTask = getVibrantColor(resource, WeakReference(this@MainActivity))
-        }
-      })
-      .also { target1 = it }
+          override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
+            view.setImageBitmap(resource)
+            asyncTask?.cancel(true)
+            asyncTask = getVibrantColor(resource, WeakReference(this@MainActivity))
+          }
+        })
+        .also { target1 = it }
   }
 
 
@@ -186,11 +189,11 @@ class MainActivity : MviActivity<MainContract.View, MainPresenter>(), MainContra
       mediaPlayer?.takeIf { it.isPlaying }?.stop()
     }
     mediaPlayer =
-      MediaPlayer.create(this, getSoundUriFromCurrentWeather(weather))
-        .apply {
-          setVolume(0.3f, 0.3f)
-          runCatching { start() }.onSuccess { debug("MediaPlayer::start", "__main__") }
-        }
+        MediaPlayer.create(this, getSoundUriFromCurrentWeather(weather))
+            .apply {
+              setVolume(0.3f, 0.3f)
+              runCatching { start() }.onSuccess { debug("MediaPlayer::start", "__main__") }
+            }
   }
 
   override fun render(state: MainContract.ViewState) {
@@ -207,24 +210,29 @@ class MainActivity : MviActivity<MainContract.View, MainPresenter>(), MainContra
     updateBackground(state.weather, state.city)
 
     toolbar_title.text = getString(
-      R.string.city_name_and_country,
-      state.city.name,
-      state.city.country
+        R.string.city_name_and_country,
+        state.city.name,
+        state.city.country
     )
     playSound(state.weather)
     enableIndicatorAndViewPager(true)
   }
 
-
   private fun renderNoSelectedCity() {
     Glide.with(this)
-      .apply { clear(target1); clear(target2); asyncTask?.cancel(true) }
-      .load(R.drawable.default_bg)
-      .transition(DrawableTransitionOptions.withCrossFade())
-      .apply(RequestOptions.fitCenterTransform().centerCrop())
-      .apply(RequestOptions.bitmapTransform(GlideBlurTransformation(this, 25f)))
-      .into(image_background)
-      .also { target2 = it }
+        .apply { clear(target1); clear(target2); asyncTask?.cancel(true) }
+        .load(R.drawable.default_bg)
+        .transition(DrawableTransitionOptions.withCrossFade())
+        .apply(RequestOptions.fitCenterTransform().centerCrop())
+        .apply(RequestOptions.bitmapTransform(GlideBlurTransformation(this, 25f)))
+        .into(object : CustomViewTarget<ImageView, Drawable>(image_background) {
+          override fun onLoadFailed(errorDrawable: Drawable?) = Unit
+          override fun onResourceCleared(placeholder: Drawable?) = Unit
+          override fun onResourceReady(resource: Drawable, transition: Transition<in Drawable>?) {
+            view.setImageDrawable(resource)
+          }
+        })
+        .also { target2 = it }
 
     toolbar_title.text = getString(R.string.no_selected_city)
     stopSound()
@@ -236,27 +244,34 @@ class MainActivity : MviActivity<MainContract.View, MainPresenter>(), MainContra
   companion object {
     @JvmStatic
     private fun getVibrantColor(
-      resource: Bitmap,
-      mainActivity: WeakReference<MainActivity>
+        resource: Bitmap,
+        mainActivity: WeakReference<MainActivity>
     ): AsyncTask<*, *, *> {
       return Palette
-        .from(resource)
-        .generate { palette ->
-          palette ?: return@generate
+          .from(resource)
+          .generate { palette ->
+            palette ?: return@generate
 
-          @ColorInt val color = listOf(
-            palette.getSwatchForTarget(Target.DARK_VIBRANT)?.rgb,
-            palette.getSwatchForTarget(Target.VIBRANT)?.rgb,
-            palette.getSwatchForTarget(Target.LIGHT_VIBRANT)?.rgb,
-            palette.getSwatchForTarget(Target.DARK_MUTED)?.rgb,
-            palette.getSwatchForTarget(Target.MUTED)?.rgb,
-            palette.getSwatchForTarget(Target.DARK_MUTED)?.rgb
-          ).find { it !== null }
-            ?: mainActivity.get()?.let { ContextCompat.getColor(it, R.color.colorPrimaryDark) }
-            ?: return@generate
+            @ColorInt val darkColor = listOf(
+                palette.getSwatchForTarget(Target.DARK_VIBRANT)?.rgb,
+                palette.getSwatchForTarget(Target.VIBRANT)?.rgb,
+                palette.getSwatchForTarget(Target.LIGHT_VIBRANT)?.rgb,
+                palette.getSwatchForTarget(Target.DARK_MUTED)?.rgb,
+                palette.getSwatchForTarget(Target.MUTED)?.rgb,
+                palette.getSwatchForTarget(Target.DARK_MUTED)?.rgb
+            ).find { it !== null }
+                ?: mainActivity.get()?.themeColor(R.attr.colorPrimaryDark)
+                ?: return@generate
 
-          mainActivity.get()?.colorSubject?.onNext(color)
-        }
+            @ColorInt val lightColor = listOf(
+                palette.getSwatchForTarget(Target.LIGHT_VIBRANT)?.rgb,
+                palette.getSwatchForTarget(Target.LIGHT_MUTED)?.rgb
+            ).find { it !== null }
+                ?: mainActivity.get()?.themeColor(R.attr.colorAccent)
+                ?: return@generate
+
+            mainActivity.get()?.colorSubject?.onNext(darkColor to lightColor)
+          }
     }
   }
 }

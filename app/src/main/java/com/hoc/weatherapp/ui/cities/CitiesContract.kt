@@ -9,29 +9,29 @@ interface CitiesContract {
     data class CityListItems(val items: List<CityListItem>) : PartialStateChange()
 
     data class Error(
-      val throwable: Throwable,
-      val showMessage: Boolean
+        val throwable: Throwable,
+        val showMessage: Boolean
     ) : PartialStateChange()
 
     data class DeleteCity(
-      val showMessage: Boolean,
-      val deletedCity: City
+        val showMessage: Boolean,
+        val deletedCity: City
     ) : PartialStateChange()
 
     data class RefreshWeather(
-      val showMessage: Boolean,
-      val refreshCity: City
+        val showMessage: Boolean,
+        val refreshCity: City
     ) : PartialStateChange()
   }
 
   data class ViewState(
-    val cityListItems: List<CityListItem> = emptyList(),
-    val error: Throwable? = null,
-    val showError: Boolean = false,
-    val showDeleteCitySuccessfully: Boolean = false,
-    val deletedCity: City? = null,
-    val showRefreshSuccessfully: Boolean = false,
-    val refreshCity: City? = null
+      val cityListItems: List<CityListItem> = emptyList(),
+      val error: Throwable? = null,
+      val showError: Boolean = false,
+      val showDeleteCitySuccessfully: Boolean = false,
+      val deletedCity: City? = null,
+      val showRefreshSuccessfully: Boolean = false,
+      val refreshCity: City? = null
   )
 
   sealed class SearchStringIntent {

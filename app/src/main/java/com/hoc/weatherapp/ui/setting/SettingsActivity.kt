@@ -8,7 +8,6 @@ import android.net.Uri
 import android.os.Bundle
 import android.view.MenuItem
 import android.view.View
-import androidx.appcompat.app.AppCompatActivity
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
@@ -19,14 +18,8 @@ import com.hoc.weatherapp.data.local.SettingPreferences
 import com.hoc.weatherapp.data.models.PressureUnit
 import com.hoc.weatherapp.data.models.SpeedUnit
 import com.hoc.weatherapp.data.models.TemperatureUnit
-import com.hoc.weatherapp.utils.ACTION_CANCEL_NOTIFICATION
-import com.hoc.weatherapp.utils.None
-import com.hoc.weatherapp.utils.Some
-import com.hoc.weatherapp.utils.WEATHER_NOTIFICATION_ID
-import com.hoc.weatherapp.utils.cancelNotificationById
-import com.hoc.weatherapp.utils.debug
-import com.hoc.weatherapp.utils.map
-import com.hoc.weatherapp.utils.showOrUpdateNotification
+import com.hoc.weatherapp.ui.BaseAppCompatActivity
+import com.hoc.weatherapp.utils.*
 import com.hoc.weatherapp.worker.WorkerUtil.cancelUpdateCurrentWeatherWorkRequest
 import com.hoc.weatherapp.worker.WorkerUtil.cancelUpdateDailyWeatherWorkRequest
 import com.hoc.weatherapp.worker.WorkerUtil.enqueueUpdateCurrentWeatherWorkRequest
@@ -41,7 +34,8 @@ import io.reactivex.subjects.PublishSubject
 import org.koin.android.ext.android.inject
 import kotlin.LazyThreadSafetyMode.NONE
 
-class SettingsActivity : AppCompatActivity() {
+@ExperimentalStdlibApi
+class SettingsActivity : BaseAppCompatActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
 
@@ -52,13 +46,13 @@ class SettingsActivity : AppCompatActivity() {
 
     if (supportFragmentManager.findFragmentById(android.R.id.content) === null) {
       supportFragmentManager.beginTransaction()
-        .add(android.R.id.content, SettingFragment())
-        .commit()
+          .add(android.R.id.content, SettingFragment())
+          .commit()
     }
   }
 
-  override fun onOptionsItemSelected(item: MenuItem?): Boolean {
-    return when (item?.itemId) {
+  override fun onOptionsItemSelected(item: MenuItem): Boolean {
+    return when (item.itemId) {
       android.R.id.home -> true.also { finish() }
       else -> super.onOptionsItemSelected(item)
     }
@@ -72,7 +66,7 @@ class SettingsActivity : AppCompatActivity() {
     private val tempUnitS = PublishSubject.create<TemperatureUnit>()
     private val compositeDisposable = CompositeDisposable()
 
-    private val showNotificationPreference by lazy(NONE) { findPreference(getString(R.string.key_show_notification)) as SwitchPreferenceCompat }
+    private val showNotificationPreference by lazy(NONE) { findPreference<Preference>(getString(R.string.key_show_notification)) as SwitchPreferenceCompat }
     private val broadcastReceiver = object : BroadcastReceiver() {
       override fun onReceive(context: Context?, intent: Intent?) {
         showNotificationPreference.isChecked = false
@@ -80,7 +74,7 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) =
-      setPreferencesFromResource(R.xml.preferences, rootKey)
+        setPreferencesFromResource(R.xml.preferences, rootKey)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
       super.onViewCreated(view, savedInstanceState)
@@ -90,24 +84,25 @@ class SettingsActivity : AppCompatActivity() {
        */
 
       showNotificationPreference.onPreferenceChangeListener = this
-      findPreference(getString(R.string.key_temperature_unit)).onPreferenceChangeListener = this
-      findPreference(getString(R.string.key_pressure_unit)).onPreferenceChangeListener = this
-      findPreference(getString(R.string.key_speed_unit)).onPreferenceChangeListener = this
-      findPreference(getString(R.string.key_auto_update)).onPreferenceChangeListener = this
-      findPreference(getString(R.string.key_sound_notification)).run {
+      findPreference<Preference>(getString(R.string.key_temperature_unit))!!.onPreferenceChangeListener = this
+      findPreference<Preference>(getString(R.string.key_pressure_unit))!!.onPreferenceChangeListener = this
+      findPreference<Preference>(getString(R.string.key_speed_unit))!!.onPreferenceChangeListener = this
+      findPreference<Preference>(getString(R.string.key_auto_update))!!.onPreferenceChangeListener = this
+      findPreference<Preference>(getString(R.string.key_dark_theme))!!.onPreferenceChangeListener = this
+      findPreference<Preference>(getString(R.string.key_sound_notification))!!.run {
         onPreferenceChangeListener = this@SettingFragment
         /**
          * Only show `enable sound notification` when `show notification` is enabled
          */
         settingPreferences.showNotificationPreference.observable
-          .observeOn(AndroidSchedulers.mainThread())
-          .subscribeBy(onNext = { isVisible = it })
-          .addTo(compositeDisposable)
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribeBy(onNext = { isVisible = it })
+            .addTo(compositeDisposable)
       }
-      findPreference("About").setOnPreferenceClickListener {
+      findPreference<Preference>("About")!!.setOnPreferenceClickListener {
         Intent(Intent.ACTION_VIEW)
-          .apply { data = Uri.parse("https://github.com/hoc081098/WeatherApp.git") }
-          .let { startActivity(it); true }
+            .apply { data = Uri.parse("https://github.com/hoc081098/WeatherApp.git") }
+            .let { startActivity(it); true }
       }
 
       /**
@@ -118,31 +113,31 @@ class SettingsActivity : AppCompatActivity() {
 
     private fun setupSettingShowNotificationAndChangeTemperatureUnit() {
       Observable.mergeArray(
-        showNotificationS
-          .switchMap {
-            if (it) {
-              repository
-                .getSelectedCityAndCurrentWeatherOfSelectedCity()
-                .take(1)
-                .withLatestFrom(
-                  settingPreferences.temperatureUnitPreference.observable,
-                  settingPreferences.soundNotificationPreference.observable
-                )
-                .map { triple -> triple.first.map { Triple(it, triple.second, triple.third) } }
-            } else {
-              Observable.just(None)
-            }
-          },
-        tempUnitS
-          .withLatestFrom(settingPreferences.showNotificationPreference.observable)
-          .filter { it.second }
-          .switchMap { pair1 ->
-            repository
-              .getSelectedCityAndCurrentWeatherOfSelectedCity()
-              .take(1)
-              .withLatestFrom(settingPreferences.soundNotificationPreference.observable)
-              .map { pair2 -> pair2.first.map { Triple(it, pair1.first, pair2.second) } }
-          }
+          showNotificationS
+              .switchMap { showNotification ->
+                if (showNotification) {
+                  repository
+                      .getSelectedCityAndCurrentWeatherOfSelectedCity()
+                      .take(1)
+                      .withLatestFrom(
+                          settingPreferences.temperatureUnitPreference.observable,
+                          settingPreferences.soundNotificationPreference.observable
+                      )
+                      .map { triple -> triple.first.map { Triple(it, triple.second, triple.third) } }
+                } else {
+                  Observable.just(None)
+                }
+              },
+          tempUnitS
+              .withLatestFrom(settingPreferences.showNotificationPreference.observable)
+              .filter { it.second }
+              .switchMap { pair1 ->
+                repository
+                    .getSelectedCityAndCurrentWeatherOfSelectedCity()
+                    .take(1)
+                    .withLatestFrom(settingPreferences.soundNotificationPreference.observable)
+                    .map { pair2 -> pair2.first.map { Triple(it, pair1.first, pair2.second) } }
+              }
       ).subscribeBy(onNext = {
         debug("setting $it", "SETTINGS")
 
@@ -152,10 +147,10 @@ class SettingsActivity : AppCompatActivity() {
           is Some -> it.value.let { triple ->
             triple.first.run {
               context.showOrUpdateNotification(
-                weather = currentWeather,
-                city = city,
-                unit = triple.second,
-                popUpAndSound = triple.third
+                  weather = currentWeather,
+                  city = city,
+                  unit = triple.second,
+                  popUpAndSound = triple.third
               )
             }
           }
@@ -170,16 +165,16 @@ class SettingsActivity : AppCompatActivity() {
        */
       showNotificationPreference.isChecked = settingPreferences.showNotificationPreference.value
       LocalBroadcastManager
-        .getInstance(requireContext())
-        .registerReceiver(broadcastReceiver, IntentFilter(ACTION_CANCEL_NOTIFICATION))
+          .getInstance(requireContext())
+          .registerReceiver(broadcastReceiver, IntentFilter(ACTION_CANCEL_NOTIFICATION))
     }
 
     override fun onPause() {
       super.onPause()
 
       LocalBroadcastManager
-        .getInstance(requireContext())
-        .unregisterReceiver(broadcastReceiver)
+          .getInstance(requireContext())
+          .unregisterReceiver(broadcastReceiver)
     }
 
     override fun onDestroyView() {
@@ -218,6 +213,9 @@ class SettingsActivity : AppCompatActivity() {
         key == getString(R.string.key_sound_notification) && newValue is Boolean -> {
           debug("Sound: $newValue", "SETTINGS")
           settingPreferences.soundNotificationPreference.save(newValue)
+        }
+        key == getString(R.string.key_dark_theme) && newValue is Boolean -> {
+          settingPreferences.darkThemePreference.save(newValue)
         }
       }
       return true

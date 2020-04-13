@@ -9,7 +9,6 @@
     android:focusable="true"
     android:foreground="?attr/selectableItemBackground"
     android:orientation="vertical"
-    app:cardBackgroundColor="@android:color/white"
     app:cardCornerRadius="2dp"
     app:cardElevation="1dp"
     app:cardPreventCornerOverlap="false"
@@ -53,7 +52,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_gravity="center"
-                android:background="@color/colorPrimaryDark"
+                android:background="?attr/colorAccent"
                 android:padding="8dp"
                 tools:src="@mipmap/ic_launcher_round" />
 
@@ -69,7 +68,6 @@
             android:ellipsize="end"
             android:fontFamily="@font/nunito_sans"
             android:maxLines="2"
-            android:textColor="#424242"
             android:textSize="19sp"
             app:layout_constraintBottom_toTopOf="@+id/text_main"
             app:layout_constraintEnd_toStartOf="@+id/radio_button_selected_city"
@@ -110,7 +108,6 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
             android:fontFamily="@font/nunito_sans"
-            android:textColor="#424242"
             android:textSize="14sp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="@+id/text_name"

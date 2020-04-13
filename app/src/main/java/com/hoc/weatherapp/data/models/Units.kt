@@ -18,10 +18,10 @@ enum class TemperatureUnit {
 
   fun format(temperatureInKelvin: Double): String {
     return NUMBER_FORMAT.format(
-      UnitConverter.convertTemperature(
-        temperatureInKelvin,
-        this
-      )
+        UnitConverter.convertTemperature(
+            temperatureInKelvin,
+            this
+        )
     ) + symbol()
   }
 
@@ -55,10 +55,10 @@ enum class SpeedUnit {
 
   fun format(speedInMetersPerSecond: Double): String {
     return NUMBER_FORMAT.format(
-      UnitConverter.convertSpeed(
-        speedInMetersPerSecond,
-        this
-      )
+        UnitConverter.convertSpeed(
+            speedInMetersPerSecond,
+            this
+        )
     ) + symbol()
   }
 
@@ -78,10 +78,10 @@ enum class PressureUnit {
 
   fun format(pressureIn_hPa: Double): String {
     return NUMBER_FORMAT.format(
-      UnitConverter.convertPressure(
-        pressureIn_hPa,
-        this
-      )
+        UnitConverter.convertPressure(
+            pressureIn_hPa,
+            this
+        )
     ) + symbol()
   }
 

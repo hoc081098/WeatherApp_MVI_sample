@@ -16,7 +16,7 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme.LightTheme_NoActionBar"
+        android:theme="@style/AppTheme.DarkTheme_NoActionBar"
         android:usesCleartextTraffic="true"
         tools:ignore="GoogleAppIndexingWarning">
 
@@ -35,15 +35,15 @@
             android:name=".ui.main.MainActivity"
             android:label="@string/app_name"
             android:launchMode="singleTop"
-            android:theme="@style/AppTheme.LightTheme_NoActionBar" />
+            android:theme="@style/AppTheme.DarkTheme_NoActionBar" />
 
         <activity
             android:name=".ui.cities.CitiesActivity"
-            android:theme="@style/AppTheme.LightTheme_NoActionBar" />
+            android:theme="@style/AppTheme.DarkTheme_NoActionBar" />
 
         <activity
             android:name=".ui.LiveWeatherActivity"
-            android:theme="@style/AppTheme.LightTheme_NoActionBar" />
+            android:theme="@style/AppTheme.DarkTheme_NoActionBar" />
 
         <meta-data
             android:name="preloaded_fonts"
@@ -62,19 +62,19 @@
 
         <activity
             android:name=".ui.setting.SettingsActivity"
-            android:theme="@style/AppTheme.LightTheme" />
+            android:theme="@style/AppTheme.DarkTheme" />
 
         <activity
             android:name=".ui.map.MapActivity"
-            android:theme="@style/AppTheme.LightTheme_NoActionBar" />
+            android:theme="@style/AppTheme.DarkTheme_NoActionBar" />
 
         <activity
             android:name=".ui.addcity.AddCityActivity"
-            android:theme="@style/AppTheme.LightTheme_NoActionBar" />
+            android:theme="@style/AppTheme.DarkTheme_NoActionBar" />
 
         <activity
             android:name=".ui.main.fivedayforecast.DailyDetailActivity"
-            android:theme="@style/AppTheme.LightTheme_NoActionBar" />
+            android:theme="@style/AppTheme.DarkTheme_NoActionBar" />
 
         <receiver
             android:name=".CancelNotificationReceiver"

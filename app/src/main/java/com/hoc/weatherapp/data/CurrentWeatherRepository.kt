@@ -23,7 +23,7 @@ interface CurrentWeatherRepository {
 
   /**
    * Get pair of selected city and current weather, get from local database
-   * @return [Observable] that emits [Optional]s of [CityAndCurrentWeather], [None] when having no selected city
+   * @return [Observable] that emits [Optional]s of [CityAndCurrentWeather], None when having no selected city
    */
   fun getSelectedCityAndCurrentWeatherOfSelectedCity(): Observable<Optional<CityAndCurrentWeather>>
 

@@ -17,8 +17,8 @@ import com.google.android.gms.common.api.Status
 import com.google.android.gms.location.places.Place
 import com.google.android.gms.location.places.ui.PlaceSelectionListener
 import com.google.android.gms.location.places.ui.SupportPlaceAutocompleteFragment
-import com.hannesdorfmann.mosby3.mvi.MviActivity
 import com.hoc.weatherapp.R
+import com.hoc.weatherapp.ui.BaseMviActivity
 import com.hoc.weatherapp.utils.debug
 import com.hoc.weatherapp.utils.toast
 import com.jakewharton.rxbinding3.view.clicks
@@ -30,29 +30,29 @@ import kotlinx.android.synthetic.main.some_city_layout.*
 import org.koin.android.ext.android.get
 import java.util.concurrent.TimeUnit
 
-class AddCityActivity : MviActivity<AddCityContract.View, AddCityPresenter>(),
-  AddCityContract.View {
+class AddCityActivity : BaseMviActivity<AddCityContract.View, AddCityPresenter>(),
+    AddCityContract.View {
   private val tag = "addcity"
   private val publishSubjectAutoCompletePlace = PublishSubject.create<Pair<Double, Double>>()
   private val publishSubjectTriggerAddCurrentLocation = PublishSubject.create<Unit>()
 
   override fun addCurrentLocationIntent(): Observable<Unit> {
     return button_my_loction.clicks()
-      .throttleFirst(600, TimeUnit.MILLISECONDS)
-      .compose(
-        RxPermissions(this).ensureEach(
-          Manifest.permission.ACCESS_FINE_LOCATION
+        .throttleFirst(600, TimeUnit.MILLISECONDS)
+        .compose(
+            RxPermissions(this).ensureEach(
+                Manifest.permission.ACCESS_FINE_LOCATION
+            )
         )
-      )
-      .filter { it.granted }
-      .map { Unit }
-      .mergeWith(publishSubjectTriggerAddCurrentLocation)
-      .doOnNext { debug("button my location clicks", tag) }
+        .filter { it.granted }
+        .map { Unit }
+        .mergeWith(publishSubjectTriggerAddCurrentLocation)
+        .doOnNext { debug("button my location clicks", tag) }
   }
 
   override fun addCityByLatLngIntent(): Observable<Pair<Double, Double>> {
     return publishSubjectAutoCompletePlace
-      .doOnNext { debug("publishSubjectAutoCompletePlace $it", tag) }
+        .doOnNext { debug("publishSubjectAutoCompletePlace $it", tag) }
   }
 
   override fun createPresenter() = get<AddCityPresenter>()
@@ -110,11 +110,11 @@ class AddCityActivity : MviActivity<AddCityContract.View, AddCityPresenter>(),
 
   private fun showProgressbar() {
     TransitionManager.beginDelayedTransition(
-      findViewById(android.R.id.content),
-      TransitionSet()
-        .addTransition(ChangeBounds())
-        .addTransition(Fade(Fade.IN).addTarget(progress_bar))
-        .setInterpolator(AccelerateDecelerateInterpolator())
+        findViewById(android.R.id.content),
+        TransitionSet()
+            .addTransition(ChangeBounds())
+            .addTransition(Fade(Fade.IN).addTarget(progress_bar))
+            .setInterpolator(AccelerateDecelerateInterpolator())
     )
 
     (button_my_loction.layoutParams as ConstraintLayout.LayoutParams).run {
@@ -126,11 +126,11 @@ class AddCityActivity : MviActivity<AddCityContract.View, AddCityPresenter>(),
 
   private fun hideProgressbar() {
     TransitionManager.beginDelayedTransition(
-      findViewById(android.R.id.content),
-      TransitionSet()
-        .addTransition(Fade(Fade.OUT).addTarget(progress_bar))
-        .addTransition(ChangeBounds())
-        .setInterpolator(AccelerateDecelerateInterpolator())
+        findViewById(android.R.id.content),
+        TransitionSet()
+            .addTransition(Fade(Fade.OUT).addTarget(progress_bar))
+            .addTransition(ChangeBounds())
+            .setInterpolator(AccelerateDecelerateInterpolator())
     )
 
     progress_bar.visibility = View.INVISIBLE
@@ -140,8 +140,8 @@ class AddCityActivity : MviActivity<AddCityContract.View, AddCityPresenter>(),
     }
   }
 
-  override fun onOptionsItemSelected(item: MenuItem?): Boolean {
-    return when (item?.itemId) {
+  override fun onOptionsItemSelected(item: MenuItem): Boolean {
+    return when (item.itemId) {
       android.R.id.home -> true.also { finish() }
       else -> return super.onOptionsItemSelected(item)
     }

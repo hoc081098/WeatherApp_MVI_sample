@@ -12,9 +12,9 @@ fun checkMainThread(observer: Observer<*>): Boolean {
   if (Looper.myLooper() != Looper.getMainLooper()) {
     observer.onSubscribe(Disposables.empty())
     observer.onError(
-      IllegalStateException(
-        "Expected to be called on the main thread but was ${Thread.currentThread().name}"
-      )
+        IllegalStateException(
+            "Expected to be called on the main thread but was ${Thread.currentThread().name}"
+        )
     )
     return false
   }
@@ -27,7 +27,7 @@ fun MaterialSearchView.textChanges(): Observable<String> {
 }
 
 internal class MaterialSearchViewObservable(private val view: MaterialSearchView) :
-  Observable<String>() {
+    Observable<String>() {
   override fun subscribeActual(observer: Observer<in String>) {
     if (!checkMainThread(observer)) {
       return
@@ -39,10 +39,10 @@ internal class MaterialSearchViewObservable(private val view: MaterialSearchView
   }
 
   private class Listener(
-    private val view: MaterialSearchView,
-    private val observer: Observer<in String>
+      private val view: MaterialSearchView,
+      private val observer: Observer<in String>
   ) :
-    MainThreadDisposable(), MaterialSearchView.OnQueryTextListener {
+      MainThreadDisposable(), MaterialSearchView.OnQueryTextListener {
     override fun onQueryTextChange(newText: String?): Boolean {
       return newText?.let {
         if (!isDisposed) {

@@ -5,19 +5,19 @@ import android.os.Bundle
 import android.view.WindowManager
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import androidx.appcompat.app.AppCompatActivity
 import com.hoc.weatherapp.R
 import com.hoc.weatherapp.data.CityRepository
 import com.hoc.weatherapp.data.models.entity.City
+import com.hoc.weatherapp.ui.BaseAppCompatActivity
 import kotlinx.android.synthetic.main.activity_map.*
 import org.koin.android.ext.android.inject
 
-class MapActivity : AppCompatActivity() {
+class MapActivity : BaseAppCompatActivity() {
   private val cityRepository by inject<CityRepository>()
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
-    window.addFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS)
+    window.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN)
     setContentView(R.layout.activity_map)
 
     loadMap(cityRepository.selectedCity)

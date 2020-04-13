@@ -11,16 +11,16 @@ interface MainContract {
     abstract val vibrantColor: Int
 
     data class CityAndWeather(
-      val city: City,
-      val weather: CurrentWeather,
-      @ColorInt override val vibrantColor: Int
+        val city: City,
+        val weather: CurrentWeather,
+        @ColorInt override val vibrantColor: Int
     ) : ViewState()
 
     data class NoSelectedCity(@ColorInt override val vibrantColor: Int) : ViewState()
   }
 
   interface View : MvpView {
-    fun changeColorIntent(): Observable<Int>
+    fun changeColorIntent(): Observable<Pair<Int, Int>>
 
     fun render(state: ViewState)
   }
