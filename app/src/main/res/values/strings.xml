@@ -77,4 +77,7 @@
     <string name="search">Search</string>
     <string name="today">Today</string>
     <string name="tomorrow">Tomorrow</string>
+
+    <string name="notification_channel_id" translatable="false">com.hoc.weatherapp</string>
+    <string name="notification_channel_name">Weather app</string>
 </resources>

@@ -8,7 +8,6 @@ import android.media.RingtoneManager
 import android.media.RingtoneManager.TYPE_NOTIFICATION
 import androidx.core.app.NotificationCompat
 import androidx.core.text.HtmlCompat
-import com.hoc.weatherapp.App
 import com.hoc.weatherapp.CancelNotificationReceiver
 import com.hoc.weatherapp.R
 import com.hoc.weatherapp.data.local.SettingPreferences
@@ -44,7 +43,7 @@ fun Context.showOrUpdateNotification(
       """.trimMargin(),
       HtmlCompat.FROM_HTML_MODE_LEGACY
   )
-  val notification = NotificationCompat.Builder(this, App.CHANNEL_ID)
+  val notification = NotificationCompat.Builder(this, getString(R.string.notification_channel_id))
       .setSmallIcon(
           getIconDrawableFromCurrentWeather(
               weatherConditionId = weather.weatherConditionId,
