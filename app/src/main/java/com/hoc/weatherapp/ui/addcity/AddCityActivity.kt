@@ -14,9 +14,10 @@ import androidx.transition.TransitionManager
 import androidx.transition.TransitionSet
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.common.api.Status
-import com.google.android.gms.location.places.Place
-import com.google.android.gms.location.places.ui.PlaceSelectionListener
-import com.google.android.gms.location.places.ui.SupportPlaceAutocompleteFragment
+import com.google.android.libraries.places.api.model.Place
+import com.google.android.libraries.places.api.model.Place.Field
+import com.google.android.libraries.places.widget.AutocompleteSupportFragment
+import com.google.android.libraries.places.widget.listener.PlaceSelectionListener
 import com.hoc.weatherapp.R
 import com.hoc.weatherapp.ui.BaseMviActivity
 import com.hoc.weatherapp.utils.debug
@@ -93,11 +94,14 @@ class AddCityActivity : BaseMviActivity<AddCityContract.View, AddCityPresenter>(
   }
 
   private fun setupAutoCompletePlace() {
-    (supportFragmentManager.findFragmentById(R.id.place_autocomplete_fragment) as SupportPlaceAutocompleteFragment).run {
+    (supportFragmentManager.findFragmentById(R.id.place_autocomplete_fragment) as AutocompleteSupportFragment).run {
       setHint("Search city ...")
+
+      setPlaceFields(listOf(Field.LAT_LNG))
+
       setOnPlaceSelectedListener(object : PlaceSelectionListener {
-        override fun onPlaceSelected(place: Place?) {
-          val latitude = place?.latLng?.latitude ?: return
+        override fun onPlaceSelected(place: Place) {
+          val latitude = place.latLng?.latitude ?: return
           val longitude = place.latLng?.longitude ?: return
           publishSubjectAutoCompletePlace.onNext(latitude to longitude)
         }

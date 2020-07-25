@@ -5,6 +5,7 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.os.Build
 import androidx.work.WorkManager
+import com.google.android.libraries.places.api.Places
 import com.hoc.weatherapp.koin.dataSourceModule
 import com.hoc.weatherapp.koin.presenterModule
 import com.hoc.weatherapp.koin.retrofitModule
@@ -27,8 +28,13 @@ class App : Application() {
     AndroidThreeTen.init(this)
     RxJavaPlugins.setErrorHandler { debug("RxJava error: $it", "RXJAVA_ERROR", it) }
     startKoin()
+    setupPlaceApi()
     createNotificationChannel()
     observeWorkInfo()
+  }
+
+  private fun setupPlaceApi() {
+    Places.initialize(this, BuildConfig.PLACE_API_KEY)
   }
 
   private fun startKoin() {
