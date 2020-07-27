@@ -111,7 +111,7 @@ class SwipeController(private val buttonsActions: SwipeControllerActions) :
       actionState: Int,
       isCurrentlyActive: Boolean
   ) {
-    recyclerView.setOnTouchListener { v, event ->
+    recyclerView.setOnTouchListener { _, event ->
       swipeBack = event.action == MotionEvent.ACTION_CANCEL || event.action ==
           MotionEvent.ACTION_UP
       if (swipeBack) {
@@ -149,7 +149,7 @@ class SwipeController(private val buttonsActions: SwipeControllerActions) :
       actionState: Int,
       isCurrentlyActive: Boolean
   ) {
-    recyclerView.setOnTouchListener { v, event ->
+    recyclerView.setOnTouchListener { _, event ->
       if (event.action == MotionEvent.ACTION_DOWN && event.action != MotionEvent.ACTION_MOVE) {
         setTouchUpListener(
             c,
@@ -175,7 +175,7 @@ class SwipeController(private val buttonsActions: SwipeControllerActions) :
       actionState: Int,
       isCurrentlyActive: Boolean
   ) {
-    recyclerView.setOnTouchListener { v, event ->
+    recyclerView.setOnTouchListener { _, event ->
       if (event.action == MotionEvent.ACTION_UP) {
         super@SwipeController.onChildDraw(
             c,

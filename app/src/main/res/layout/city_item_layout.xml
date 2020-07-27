@@ -51,7 +51,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_gravity="center"
-                android:background="?attr/colorAccent"
+                android:background="?attr/colorSecondary"
                 android:padding="8dp"
                 tools:src="@mipmap/ic_launcher_round" />
 

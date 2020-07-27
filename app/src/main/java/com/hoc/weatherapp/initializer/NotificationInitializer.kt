@@ -6,7 +6,6 @@ import android.content.Context
 import android.os.Build
 import androidx.core.content.ContextCompat.getSystemService
 import androidx.startup.Initializer
-import com.hoc.weatherapp.App
 import com.hoc.weatherapp.R
 import com.hoc.weatherapp.utils.debug
 

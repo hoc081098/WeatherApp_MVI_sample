@@ -1,9 +1,9 @@
 package com.hoc.weatherapp.ui.main
 
 import android.graphics.Bitmap
+import android.graphics.Color
 import android.graphics.drawable.Drawable
 import android.media.MediaPlayer
-import android.os.AsyncTask
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
@@ -12,6 +12,7 @@ import android.view.WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS
 import android.view.WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS
 import android.widget.ImageView
 import androidx.annotation.ColorInt
+import androidx.annotation.WorkerThread
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentPagerAdapter
@@ -33,25 +34,21 @@ import com.hoc.weatherapp.ui.main.currentweather.CurrentWeatherFragment
 import com.hoc.weatherapp.ui.main.fivedayforecast.DailyWeatherFragment
 import com.hoc.weatherapp.ui.map.MapActivity
 import com.hoc.weatherapp.ui.setting.SettingsActivity
-import com.hoc.weatherapp.utils.asObservable
+import com.hoc.weatherapp.utils.*
 import com.hoc.weatherapp.utils.blur.GlideBlurTransformation
-import com.hoc.weatherapp.utils.debug
-import com.hoc.weatherapp.utils.startActivity
-import com.hoc.weatherapp.utils.themeColor
 import com.hoc.weatherapp.utils.ui.ZoomOutPageTransformer
 import com.hoc.weatherapp.utils.ui.getBackgroundDrawableFromWeather
 import com.hoc.weatherapp.utils.ui.getSoundUriFromCurrentWeather
+import io.reactivex.Observable
+import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.PublishSubject
 import kotlinx.android.synthetic.main.activity_main.*
 import org.koin.androidx.scope.lifecycleScope
-import java.lang.ref.WeakReference
 
 @ExperimentalStdlibApi
 class MainActivity : BaseMviActivity<MainContract.View, MainPresenter>(), MainContract.View {
-  private val colorSubject = PublishSubject.create<Pair<@ColorInt Int, @ColorInt Int>>()
-
   private var mediaPlayer: MediaPlayer? = null
-  private var asyncTask: AsyncTask<*, *, *>? = null
+  private val changeBackground = PublishSubject.create<Optional<Bitmap>>()
 
   private var target1: CustomViewTarget<*, *>? = null
   private var target2: CustomViewTarget<*, *>? = null
@@ -83,9 +80,6 @@ class MainActivity : BaseMviActivity<MainContract.View, MainPresenter>(), MainCo
   override fun onDestroy() {
     super.onDestroy()
 
-    asyncTask?.cancel(true)
-    colorSubject.onComplete()
-
     stopSound()
 
     // free memory
@@ -109,7 +103,7 @@ class MainActivity : BaseMviActivity<MainContract.View, MainPresenter>(), MainCo
       setPageTransformer(true, ZoomOutPageTransformer())
 
       dots_indicator.setViewPager(view_pager)
-      dots_indicator.setDotsClickable(true)
+      dots_indicator.dotsClickable = true
     }
   }
 
@@ -153,7 +147,11 @@ class MainActivity : BaseMviActivity<MainContract.View, MainPresenter>(), MainCo
   ) {
     Glide
         .with(this)
-        .apply { clear(target1); clear(target2); asyncTask?.cancel(true) }
+        .apply {
+          clear(target1)
+          clear(target2)
+          changeBackground.onNext(None)
+        }
         .asBitmap()
         .load(getBackgroundDrawableFromWeather(weather, city))
         .apply(
@@ -170,8 +168,7 @@ class MainActivity : BaseMviActivity<MainContract.View, MainPresenter>(), MainCo
 
           override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
             view.setImageBitmap(resource)
-            asyncTask?.cancel(true)
-            asyncTask = getVibrantColor(resource, WeakReference(this@MainActivity))
+            changeBackground.onNext(Some(resource))
           }
         })
         .also { target1 = it }
@@ -204,7 +201,25 @@ class MainActivity : BaseMviActivity<MainContract.View, MainPresenter>(), MainCo
     }
   }
 
-  override fun changeColorIntent() = colorSubject.asObservable()
+  override fun changeColorIntent(): Observable<Pair<Int, Int>> {
+    return changeBackground
+        .switchMap { optional ->
+          when (optional) {
+            is Some -> {
+              Observable
+                  .fromCallable {
+                    getVibrantColor(
+                        resource = optional.value,
+                        colorPrimaryVariant = themeColor(R.attr.colorPrimaryVariant),
+                        colorSecondary = themeColor(R.attr.colorSecondary),
+                    )
+                  }
+                  .subscribeOn(Schedulers.computation())
+            }
+            None -> Observable.empty()
+          }
+        }
+  }
 
   private fun renderCityAndWeather(state: MainContract.ViewState.CityAndWeather) {
     updateBackground(state.weather, state.city)
@@ -220,7 +235,11 @@ class MainActivity : BaseMviActivity<MainContract.View, MainPresenter>(), MainCo
 
   private fun renderNoSelectedCity() {
     Glide.with(this)
-        .apply { clear(target1); clear(target2); asyncTask?.cancel(true) }
+        .apply {
+          clear(target1)
+          clear(target2)
+          changeBackground.onNext(None)
+        }
         .load(R.drawable.default_bg)
         .transition(DrawableTransitionOptions.withCrossFade())
         .apply(RequestOptions.fitCenterTransform().centerCrop())
@@ -240,38 +259,32 @@ class MainActivity : BaseMviActivity<MainContract.View, MainPresenter>(), MainCo
   }
 
   override fun createPresenter() = lifecycleScope.get<MainPresenter>()
+}
 
-  companion object {
-    @JvmStatic
-    private fun getVibrantColor(
-        resource: Bitmap,
-        mainActivity: WeakReference<MainActivity>
-    ): AsyncTask<*, *, *> {
-      return Palette
-          .from(resource)
-          .generate { palette ->
-            palette ?: return@generate
+@WorkerThread
+private fun getVibrantColor(
+    resource: Bitmap,
+    @ColorInt colorPrimaryVariant: Int,
+    @ColorInt colorSecondary: Int,
+): Pair<Int, Int> {
+  return Palette
+      .from(resource)
+      .generate()
+      .let { palette ->
+        @ColorInt val darkColor = listOf(
+            palette.getSwatchForTarget(Target.DARK_VIBRANT)?.rgb,
+            palette.getSwatchForTarget(Target.VIBRANT)?.rgb,
+            palette.getSwatchForTarget(Target.LIGHT_VIBRANT)?.rgb,
+            palette.getSwatchForTarget(Target.DARK_MUTED)?.rgb,
+            palette.getSwatchForTarget(Target.MUTED)?.rgb,
+            palette.getSwatchForTarget(Target.DARK_MUTED)?.rgb
+        ).find { it !== null } ?: colorPrimaryVariant
 
-            @ColorInt val darkColor = listOf(
-                palette.getSwatchForTarget(Target.DARK_VIBRANT)?.rgb,
-                palette.getSwatchForTarget(Target.VIBRANT)?.rgb,
-                palette.getSwatchForTarget(Target.LIGHT_VIBRANT)?.rgb,
-                palette.getSwatchForTarget(Target.DARK_MUTED)?.rgb,
-                palette.getSwatchForTarget(Target.MUTED)?.rgb,
-                palette.getSwatchForTarget(Target.DARK_MUTED)?.rgb
-            ).find { it !== null }
-                ?: mainActivity.get()?.themeColor(R.attr.colorPrimaryDark)
-                ?: return@generate
+        @ColorInt val lightColor = listOf(
+            palette.getSwatchForTarget(Target.LIGHT_VIBRANT)?.rgb,
+            palette.getSwatchForTarget(Target.LIGHT_MUTED)?.rgb
+        ).find { it !== null } ?: colorSecondary
 
-            @ColorInt val lightColor = listOf(
-                palette.getSwatchForTarget(Target.LIGHT_VIBRANT)?.rgb,
-                palette.getSwatchForTarget(Target.LIGHT_MUTED)?.rgb
-            ).find { it !== null }
-                ?: mainActivity.get()?.themeColor(R.attr.colorAccent)
-                ?: return@generate
-
-            mainActivity.get()?.colorSubject?.onNext(darkColor to lightColor)
-          }
-    }
-  }
+        darkColor to lightColor
+      }
 }

@@ -26,7 +26,7 @@ class MainPresenter(
           source2 = colorHolderSource.colorObservable
       ).map {
         when (val optional = it.first) {
-          None -> NoSelectedCity(androidApplication.themeColor(R.attr.colorPrimaryDark))
+          None -> NoSelectedCity(androidApplication.themeColor(R.attr.colorPrimaryVariant))
           is Some -> CityAndWeather(
               city = optional.value.city,
               weather = optional.value.currentWeather,

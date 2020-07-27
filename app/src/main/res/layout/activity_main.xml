@@ -22,7 +22,7 @@
             android:scaleType="centerCrop" />
 
 
-        <androidx.appcompat.widget.Toolbar
+        <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
@@ -52,7 +52,7 @@
                 tools:layout_editor_absoluteY="13dp"
                 tools:text="Weather app" />
 
-        </androidx.appcompat.widget.Toolbar>
+        </com.google.android.material.appbar.MaterialToolbar>
 
         <com.hoc.weatherapp.utils.ui.CustomViewPager
             android:id="@+id/view_pager"
@@ -69,7 +69,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
-            app:dotsColor="?attr/colorAccent"
+            app:dotsColor="?attr/colorSecondary"
+            app:selectedDotColor="?attr/colorSecondary"
             app:dotsCornerRadius="8dp"
             app:dotsSize="12dp"
             app:dotsSpacing="4dp"

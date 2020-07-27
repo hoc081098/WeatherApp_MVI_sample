@@ -42,11 +42,14 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
-                <com.db.chart.view.LineChartView
+                <com.db.williamchart.view.LineChartView
                     android:id="@+id/chart_temperature"
                     android:layout_width="0dp"
                     android:layout_height="256dp"
                     android:layout_marginTop="8dp"
+                    app:chart_labelsColor="?attr/colorOnSurface"
+                    app:chart_labelsFont="@font/nunito"
+                    app:chart_labelsSize="12sp"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/text_temperature" />
@@ -86,11 +89,14 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
-                <com.db.chart.view.LineChartView
+                <com.db.williamchart.view.LineChartView
                     android:id="@+id/chart_rain"
                     android:layout_width="0dp"
                     android:layout_height="256dp"
                     android:layout_marginTop="8dp"
+                    app:chart_labelsColor="?attr/colorOnSurface"
+                    app:chart_labelsFont="@font/nunito"
+                    app:chart_labelsSize="12sp"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/text_rain" />
@@ -130,11 +136,14 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
-                <com.db.chart.view.LineChartView
+                <com.db.williamchart.view.LineChartView
                     android:id="@+id/chart_pressure"
                     android:layout_width="0dp"
                     android:layout_height="256dp"
                     android:layout_marginTop="8dp"
+                    app:chart_labelsColor="?attr/colorOnSurface"
+                    app:chart_labelsFont="@font/nunito"
+                    app:chart_labelsSize="12sp"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/text_pressure" />
@@ -174,11 +183,14 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
-                <com.db.chart.view.LineChartView
+                <com.db.williamchart.view.LineChartView
                     android:id="@+id/chart_wind_speed"
                     android:layout_width="0dp"
                     android:layout_height="256dp"
                     android:layout_marginTop="8dp"
+                    app:chart_labelsColor="?attr/colorOnSurface"
+                    app:chart_labelsFont="@font/nunito"
+                    app:chart_labelsSize="12sp"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/text_wind_speed" />

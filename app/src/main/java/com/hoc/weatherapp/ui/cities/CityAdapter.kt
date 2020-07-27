@@ -98,7 +98,7 @@ class CitiesAdapter : ListAdapter<CityListItem, CitiesAdapter.ViewHolder>(object
           .transition(DrawableTransitionOptions.withCrossFade())
           .apply(
               itemView.context
-                  .themeColor(R.attr.colorAccent)
+                  .themeColor(R.attr.colorSecondary)
                   .let(::ColorDrawable)
                   .let(RequestOptions::placeholderOf)
           )

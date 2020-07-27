@@ -3,6 +3,7 @@ package com.hoc.weatherapp.ui.main.fivedayforecast
 import android.os.Bundle
 import android.view.*
 import androidx.annotation.ColorInt
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -37,7 +38,7 @@ class DailyDetailActivity : BaseAppCompatActivity() {
     item.colors.second.let { color ->
       window.statusBarColor = color
       text_data_time.setTextColor(color)
-      getDrawable(R.drawable.ic_navigate_before_black_24dp)!!.mutate()
+      ContextCompat.getDrawable(this, R.drawable.ic_navigate_before_black_24dp)!!.mutate()
           .apply { setColorFilter(color, Mode.SRC_IN) }
           .let { image_back.setImageDrawable(it) }
     }
@@ -102,7 +103,7 @@ class DailyDetailActivity : BaseAppCompatActivity() {
     private val text = itemView.textView
 
     fun bind(pair: Pair<Int, String>, @ColorInt iconBackgroundColor: Int) {
-      itemView.context.getDrawable(pair.first)!!.mutate()
+      ContextCompat.getDrawable(itemView.context, pair.first)!!.mutate()
           .apply { setColorFilter(iconBackgroundColor, Mode.SRC_IN) }
           .let { image.setImageDrawable(it) }
       text.text = pair.second

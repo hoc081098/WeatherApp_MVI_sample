@@ -88,12 +88,14 @@ class AddCityPresenter(
       ObservableTransformer<Unit, ViewState> { addCurrentLocationIntent ->
         addCurrentLocationIntent
             .exhaustMap {
-              application.checkLocationSettingAndGetCurrentLocation(
+              application
+                  .checkLocationSettingAndGetCurrentLocation(
                       settingsClient = settingsClient,
                       fusedLocationProviderClient = fusedLocationProviderClient,
                       locationRequest = locationRequest,
                       locationSettingsRequest = locationSettingsRequest
-                  ).subscribeOn(AndroidSchedulers.mainThread())
+                  )
+                  .subscribeOn(AndroidSchedulers.mainThread())
                   .timeout(5_000, TimeUnit.MILLISECONDS) //  5 seconds timeout
                   .retry { count, throwable -> throwable is TimeoutException && count < 3 } // Try 3 times
                   .toObservable()

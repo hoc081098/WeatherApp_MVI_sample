@@ -7,7 +7,7 @@
     android:background="@drawable/default_bg"
     android:orientation="vertical">
 
-    <androidx.appcompat.widget.Toolbar
+    <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
@@ -32,7 +32,7 @@
             android:textSize="20sp"
             tools:text="Quang Tri" />
 
-    </androidx.appcompat.widget.Toolbar>
+    </com.google.android.material.appbar.MaterialToolbar>
 
     <TextView
         android:layout_width="wrap_content"

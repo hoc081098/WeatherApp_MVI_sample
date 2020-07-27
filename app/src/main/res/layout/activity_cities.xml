@@ -17,7 +17,7 @@
             android:layout_height="match_parent"
             app:layout_scrollFlags="scroll|enterAlways|snap">
 
-            <androidx.appcompat.widget.Toolbar
+            <com.google.android.material.appbar.MaterialToolbar
                 android:id="@+id/toolbar"
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
@@ -49,9 +49,10 @@
         android:layout_gravity="bottom|end"
         android:layout_margin="16dp"
         android:clickable="true"
+        android:contentDescription="Add city"
         android:focusable="true"
-        app:backgroundTint="?attr/colorAccent"
         android:src="@drawable/ic_add_white_24dp"
-        app:elevation="2dp"
+        app:backgroundTint="?attr/colorSecondary"
+        app:elevation="6dp"
         app:fabSize="normal" />
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -51,7 +51,7 @@ object WorkerUtil {
    *
    */
   private inline infix fun <T : Any> ListenableFuture<T>.then(crossinline listener: () -> Unit) {
-    addListener(Runnable { listener() }, DirectExecutor)
+    addListener({ listener() }, DirectExecutor)
   }
 
   /**

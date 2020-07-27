@@ -84,7 +84,7 @@
                 android:layout_marginTop="8dp"
                 android:elevation="4dp"
                 android:padding="0dp"
-                app:backgroundTint="?attr/colorAccent"
+                app:backgroundTint="?attr/colorSecondary"
                 android:paddingEnd="8dp"
                 android:text="Live"
                 android:textAllCaps="false"
