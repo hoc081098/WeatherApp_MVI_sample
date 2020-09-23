@@ -1,7 +1,6 @@
 package com.hoc.weatherapp.ui.main
 
 import android.graphics.Bitmap
-import android.graphics.Color
 import android.graphics.drawable.Drawable
 import android.media.MediaPlayer
 import android.os.Bundle
@@ -43,10 +42,9 @@ import io.reactivex.Observable
 import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.PublishSubject
 import kotlinx.android.synthetic.main.activity_main.*
-import org.koin.androidx.scope.lifecycleScope
 
 @ExperimentalStdlibApi
-class MainActivity : BaseMviActivity<MainContract.View, MainPresenter>(), MainContract.View {
+class MainActivity : BaseMviActivity<MainContract.View, MainPresenter>(createScope = true), MainContract.View {
   private var mediaPlayer: MediaPlayer? = null
   private val changeBackground = PublishSubject.create<Optional<Bitmap>>()
 

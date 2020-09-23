@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.snackbar.Snackbar
 import com.hannesdorfmann.mosby3.mvi.MviFragment
 import com.hoc.weatherapp.R
+import com.hoc.weatherapp.ui.main.MainActivity
 import com.hoc.weatherapp.ui.main.fivedayforecast.DailyWeatherContract.RefreshIntent
 import com.hoc.weatherapp.utils.debug
 import com.hoc.weatherapp.utils.snackBar
@@ -23,7 +24,6 @@ import io.reactivex.rxkotlin.cast
 import io.reactivex.rxkotlin.subscribeBy
 import io.reactivex.subjects.PublishSubject
 import kotlinx.android.synthetic.main.fragment_daily_weather.*
-import org.koin.androidx.scope.lifecycleScope
 
 @ExperimentalStdlibApi
 class DailyWeatherFragment : MviFragment<DailyWeatherContract.View, DailyWeatherPresenter>(),
@@ -44,7 +44,7 @@ class DailyWeatherFragment : MviFragment<DailyWeatherContract.View, DailyWeather
         .doOnNext { debug("refreshDailyWeatherIntent", "_daily_weather_") }
   }
 
-  override fun createPresenter() = requireActivity().lifecycleScope.get<DailyWeatherPresenter>()
+  override fun createPresenter() = (requireActivity() as MainActivity).lifecycleScope.get<DailyWeatherPresenter>()
 
   override fun onCreateView(
       inflater: LayoutInflater,
