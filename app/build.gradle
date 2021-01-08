@@ -16,7 +16,7 @@ if (localPropertiesFile.exists()) {
 }
 
 if (localProperties['PLACE_API_KEY'] == null) {
-    throw new GradleException("PLACE_API_KEY not found. Define PLACE_API_KEY with flutter.sdk in the local.properties file.")
+    throw new GradleException("PLACE_API_KEY not found. Define PLACE_API_KEY in the local.properties file.")
 }
 
 android {
