@@ -133,5 +133,5 @@ dependencies {
     implementation 'com.miguelcatalan:materialsearchview:1.4.0'
 
     // rxPermission
-    implementation 'com.github.tbruyelle:rxpermissions:0.11'
+    implementation 'com.github.tbruyelle:rxpermissions:0.12'
 }
