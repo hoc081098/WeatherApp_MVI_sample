@@ -81,7 +81,7 @@ dependencies {
     implementation 'com.google.android.libraries.places:places:2.4.0'
 
     // room persistence
-    def roomVersion = '2.3.0-alpha02'
+    def roomVersion = '2.3.0'
     implementation "androidx.room:room-runtime:$roomVersion"
     kapt "androidx.room:room-compiler:$roomVersion"
     implementation "androidx.room:room-rxjava2:$roomVersion"
