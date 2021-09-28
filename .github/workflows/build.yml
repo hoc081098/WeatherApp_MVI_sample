@@ -21,6 +21,11 @@ jobs:
     - name: Make gradlew executable
       run: chmod +x ./gradlew
       
+    - name: Decode PLACE_API_KEY
+      env:
+        BASEURL: ${{ secrets.PLACE_API_KEY }}
+      run: echo PLACE_API_KEY="$PLACE_API_KEY" > ./local.properties
+      
 #     - name: Spotless check
 #       run: ./gradlew spotlessCheck
     
