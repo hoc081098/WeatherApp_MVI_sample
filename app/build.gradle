@@ -129,7 +129,7 @@ dependencies {
 
     // chart & material search view
     implementation 'com.diogobernardino:williamchart:3.7.1'
-    implementation 'com.diogobernardino.williamchart:tooltip-slider:3.7.1'
+    implementation 'com.diogobernardino.williamchart:tooltip-slider:3.11.0'
     implementation 'com.miguelcatalan:materialsearchview:1.4.0'
 
     // rxPermission
