@@ -182,8 +182,8 @@ class SettingsActivity : BaseAppCompatActivity(noActionBar = false) {
       compositeDisposable.clear()
     }
 
-    override fun onPreferenceChange(preference: Preference?, newValue: Any?): Boolean {
-      val key = preference?.key
+    override fun onPreferenceChange(preference: Preference, newValue: Any?): Boolean {
+      val key = preference.key
       when {
         key == getString(R.string.key_show_notification) && newValue is Boolean -> {
           settingPreferences.showNotificationPreference.save(newValue)

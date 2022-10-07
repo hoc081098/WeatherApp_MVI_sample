@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.media.RingtoneManager
 import android.media.RingtoneManager.TYPE_NOTIFICATION
+import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.text.HtmlCompat
 import com.hoc.weatherapp.CancelNotificationReceiver
@@ -62,7 +63,11 @@ fun Context.showOrUpdateNotification(
               Intent(this, CancelNotificationReceiver::class.java).apply {
                 action = ACTION_CANCEL_NOTIFICATION
               },
-              PendingIntent.FLAG_CANCEL_CURRENT
+              if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                PendingIntent.FLAG_CANCEL_CURRENT or PendingIntent.FLAG_IMMUTABLE
+              } else {
+                PendingIntent.FLAG_CANCEL_CURRENT
+              }
           )
       )
       .setAutoCancel(false)
@@ -79,7 +84,11 @@ fun Context.showOrUpdateNotification(
             this@showOrUpdateNotification,
             0,
             Intent(applicationContext, SplashActivity::class.java),
-            PendingIntent.FLAG_UPDATE_CURRENT
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+              PendingIntent.FLAG_CANCEL_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            } else {
+              PendingIntent.FLAG_CANCEL_CURRENT
+            }
         )
         setContentIntent(resultPendingIntent)
       }.build()
