@@ -2,7 +2,7 @@ package com.hoc.weatherapp.ui.main.fivedayforecast
 
 import android.os.Parcelable
 import com.hoc.weatherapp.data.models.WindDirection
-import kotlinx.android.parcel.Parcelize
+import kotlinx.parcelize.Parcelize
 import org.threeten.bp.ZonedDateTime
 
 sealed class DailyWeatherListItem {
