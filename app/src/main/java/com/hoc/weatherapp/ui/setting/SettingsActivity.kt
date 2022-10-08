@@ -35,7 +35,10 @@ import org.koin.android.ext.android.inject
 import kotlin.LazyThreadSafetyMode.NONE
 
 @ExperimentalStdlibApi
-class SettingsActivity : BaseAppCompatActivity(noActionBar = false) {
+class SettingsActivity : BaseAppCompatActivity(
+  contentLayoutId = 0,
+  noActionBar = false
+) {
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
 

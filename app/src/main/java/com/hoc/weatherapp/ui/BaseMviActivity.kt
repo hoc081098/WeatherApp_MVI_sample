@@ -3,6 +3,7 @@ package com.hoc.weatherapp.ui
 import android.os.Bundle
 import androidx.annotation.CallSuper
 import androidx.annotation.CheckResult
+import androidx.annotation.LayoutRes
 import androidx.appcompat.app.AppCompatActivity
 import com.hannesdorfmann.mosby3.mvi.MviActivity
 import com.hannesdorfmann.mosby3.mvi.MviPresenter
@@ -24,6 +25,7 @@ import kotlin.LazyThreadSafetyMode.NONE
 
 @ExperimentalStdlibApi
 abstract class BaseMviActivity<V : MvpView, P : MviPresenter<V, *>>(
+    @LayoutRes private val contentLayoutId: Int,
     private val noActionBar: Boolean = true,
     private val createScope: Boolean = false,
 ) : MviActivity<V, P>() {
@@ -49,6 +51,7 @@ abstract class BaseMviActivity<V : MvpView, P : MviPresenter<V, *>>(
 
     setTheme(settings.darkThemePreference.value, noActionBar)
     super.onCreate(savedInstanceState)
+    setContentView(contentLayoutId)
     observeTheme(settings.darkThemePreference.observable).addTo(compositeDisposable)
   }
 
@@ -65,7 +68,10 @@ abstract class BaseMviActivity<V : MvpView, P : MviPresenter<V, *>>(
 }
 
 @ExperimentalStdlibApi
-abstract class BaseAppCompatActivity(private val noActionBar: Boolean = true) : AppCompatActivity() {
+abstract class BaseAppCompatActivity(
+  @LayoutRes contentLayoutId: Int,
+  private val noActionBar: Boolean = true
+) : AppCompatActivity(contentLayoutId) {
   private val settings by inject<SettingPreferences>()
   private val compositeDisposable = CompositeDisposable()
 

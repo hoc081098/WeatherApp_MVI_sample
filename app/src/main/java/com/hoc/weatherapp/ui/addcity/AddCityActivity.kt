@@ -19,42 +19,45 @@ import com.google.android.libraries.places.api.model.Place.Field
 import com.google.android.libraries.places.widget.AutocompleteSupportFragment
 import com.google.android.libraries.places.widget.listener.PlaceSelectionListener
 import com.hoc.weatherapp.R
+import com.hoc.weatherapp.databinding.ActivityAddCityBinding
 import com.hoc.weatherapp.ui.BaseMviActivity
 import com.hoc.weatherapp.utils.debug
 import com.hoc.weatherapp.utils.toast
+import com.hoc081098.viewbindingdelegate.viewBinding
 import com.jakewharton.rxbinding3.view.clicks
 import com.tbruyelle.rxpermissions2.RxPermissions
 import io.reactivex.Observable
 import io.reactivex.subjects.PublishSubject
-import kotlinx.android.synthetic.main.activity_add_city.*
-import kotlinx.android.synthetic.main.some_city_layout.*
 import org.koin.android.ext.android.get
 import java.util.concurrent.TimeUnit
 
 @ExperimentalStdlibApi
-class AddCityActivity : BaseMviActivity<AddCityContract.View, AddCityPresenter>(),
-    AddCityContract.View {
+class AddCityActivity :
+  BaseMviActivity<AddCityContract.View, AddCityPresenter>(R.layout.activity_add_city),
+  AddCityContract.View {
+  private val binding by viewBinding<ActivityAddCityBinding>()
+
   private val tag = "addcity"
   private val publishSubjectAutoCompletePlace = PublishSubject.create<Pair<Double, Double>>()
   private val publishSubjectTriggerAddCurrentLocation = PublishSubject.create<Unit>()
 
   override fun addCurrentLocationIntent(): Observable<Unit> {
-    return button_my_loction.clicks()
-        .throttleFirst(600, TimeUnit.MILLISECONDS)
-        .compose(
-            RxPermissions(this).ensureEach(
-                Manifest.permission.ACCESS_FINE_LOCATION
-            )
+    return binding.layoutSomeCity.buttonMyLoction.clicks()
+      .throttleFirst(600, TimeUnit.MILLISECONDS)
+      .compose(
+        RxPermissions(this).ensureEach(
+          Manifest.permission.ACCESS_FINE_LOCATION
         )
-        .filter { it.granted }
-        .map { Unit }
-        .mergeWith(publishSubjectTriggerAddCurrentLocation)
-        .doOnNext { debug("button my location clicks", tag) }
+      )
+      .filter { it.granted }
+      .map { Unit }
+      .mergeWith(publishSubjectTriggerAddCurrentLocation)
+      .doOnNext { debug("button my location clicks", tag) }
   }
 
   override fun addCityByLatLngIntent(): Observable<Pair<Double, Double>> {
     return publishSubjectAutoCompletePlace
-        .doOnNext { debug("publishSubjectAutoCompletePlace $it", tag) }
+      .doOnNext { debug("publishSubjectAutoCompletePlace $it", tag) }
   }
 
   override fun createPresenter() = get<AddCityPresenter>()
@@ -84,7 +87,7 @@ class AddCityActivity : BaseMviActivity<AddCityContract.View, AddCityPresenter>(
     super.onCreate(savedInstanceState)
     setContentView(R.layout.activity_add_city)
 
-    setSupportActionBar(toolbar)
+    setSupportActionBar(binding.toolbar)
     supportActionBar?.run {
       setDisplayHomeAsUpEnabled(true)
       title = "Add a city"
@@ -115,32 +118,32 @@ class AddCityActivity : BaseMviActivity<AddCityContract.View, AddCityPresenter>(
 
   private fun showProgressbar() {
     TransitionManager.beginDelayedTransition(
-        findViewById(android.R.id.content),
-        TransitionSet()
-            .addTransition(ChangeBounds())
-            .addTransition(Fade(Fade.IN).addTarget(progress_bar))
-            .setInterpolator(AccelerateDecelerateInterpolator())
+      findViewById(android.R.id.content),
+      TransitionSet()
+        .addTransition(ChangeBounds())
+        .addTransition(Fade(Fade.IN).addTarget(binding.layoutSomeCity.progressBar))
+        .setInterpolator(AccelerateDecelerateInterpolator())
     )
 
-    (button_my_loction.layoutParams as ConstraintLayout.LayoutParams).run {
+    (binding.layoutSomeCity.buttonMyLoction.layoutParams as ConstraintLayout.LayoutParams).run {
       width = height
     }
-    button_my_loction.visibility = View.INVISIBLE
-    progress_bar.visibility = View.VISIBLE
+    binding.layoutSomeCity.buttonMyLoction.visibility = View.INVISIBLE
+    binding.layoutSomeCity.progressBar.visibility = View.VISIBLE
   }
 
   private fun hideProgressbar() {
     TransitionManager.beginDelayedTransition(
-        findViewById(android.R.id.content),
-        TransitionSet()
-            .addTransition(Fade(Fade.OUT).addTarget(progress_bar))
-            .addTransition(ChangeBounds())
-            .setInterpolator(AccelerateDecelerateInterpolator())
+      findViewById(android.R.id.content),
+      TransitionSet()
+        .addTransition(Fade(Fade.OUT).addTarget(binding.layoutSomeCity.progressBar))
+        .addTransition(ChangeBounds())
+        .setInterpolator(AccelerateDecelerateInterpolator())
     )
 
-    progress_bar.visibility = View.INVISIBLE
-    button_my_loction.visibility = View.VISIBLE
-    (button_my_loction.layoutParams as ConstraintLayout.LayoutParams).run {
+    binding.layoutSomeCity.progressBar.visibility = View.INVISIBLE
+    binding.layoutSomeCity.buttonMyLoction.visibility = View.VISIBLE
+    (binding.layoutSomeCity.buttonMyLoction.layoutParams as ConstraintLayout.LayoutParams).run {
       width = ConstraintLayout.LayoutParams.MATCH_CONSTRAINT
     }
   }

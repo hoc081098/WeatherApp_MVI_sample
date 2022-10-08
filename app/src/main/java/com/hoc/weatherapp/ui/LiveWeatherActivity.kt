@@ -3,15 +3,17 @@ package com.hoc.weatherapp.ui
 import android.os.Bundle
 import android.view.MenuItem
 import com.hoc.weatherapp.R
-import kotlinx.android.synthetic.main.activity_live_weather.*
+import com.hoc.weatherapp.databinding.ActivityLiveWeatherBinding
+import com.hoc081098.viewbindingdelegate.viewBinding
 
 @ExperimentalStdlibApi
-class LiveWeatherActivity : BaseAppCompatActivity() {
+class LiveWeatherActivity : BaseAppCompatActivity(R.layout.activity_live_weather) {
+  private val binding by viewBinding<ActivityLiveWeatherBinding>()
+
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
-    setContentView(R.layout.activity_live_weather)
 
-    setSupportActionBar(toolbar)
+    setSupportActionBar(binding.toolbar)
     supportActionBar?.run {
       setDisplayHomeAsUpEnabled(true)
       setHomeAsUpIndicator(R.drawable.ic_navigate_before_white_24dp)

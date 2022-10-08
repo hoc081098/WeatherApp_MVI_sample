@@ -1,14 +1,14 @@
 package com.hoc.weatherapp.utils.ui
 
 import android.graphics.Canvas
-import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import androidx.viewbinding.ViewBinding
 
-class HeaderItemDecoration(private val listener: StickyHeaderInterface) :
-    RecyclerView.ItemDecoration() {
-  private lateinit var headerView: View
+class HeaderItemDecoration<VB : ViewBinding>(private val listener: StickyHeaderInterface<VB>) :
+  RecyclerView.ItemDecoration() {
+  private var headerViewBinding: VB? = null
 
   override fun onDrawOver(c: Canvas, parent: RecyclerView, state: RecyclerView.State) {
     super.onDrawOver(c, parent, state)
@@ -18,11 +18,14 @@ class HeaderItemDecoration(private val listener: StickyHeaderInterface) :
 
     val headerPosition = listener.getHeaderPositionForItem(topChildPosition) ?: return
 
-    if (!::headerView.isInitialized) {
-      headerView = LayoutInflater.from(parent.context).inflate(listener.headerLayout, parent, false)
-      fixLayoutSize(parent, headerView)
-    }
-    listener.bindHeaderData(headerView, headerPosition)
+    val headerView = headerViewBinding?.root ?: listener.viewBinding(parent)
+      .also {
+        headerViewBinding = it
+        fixLayoutSize(parent, it.root)
+      }
+      .root
+
+    listener.bindHeaderData(headerViewBinding!!, headerPosition)
 
     val childInContact = getChildInContact(parent, headerView.bottom)
 
@@ -50,9 +53,9 @@ class HeaderItemDecoration(private val listener: StickyHeaderInterface) :
 
   private fun getChildInContact(parent: RecyclerView, contactPoint: Int): View? {
     return (0 until parent.childCount)
-        .asSequence()
-        .map { parent.getChildAt(it) }
-        .find { contactPoint < it.bottom && it.top <= contactPoint }
+      .asSequence()
+      .map { parent.getChildAt(it) }
+      .find { contactPoint < it.bottom && it.top <= contactPoint }
   }
 
   private fun fixLayoutSize(parent: ViewGroup, view: View) {
@@ -63,14 +66,14 @@ class HeaderItemDecoration(private val listener: StickyHeaderInterface) :
 
     // Specs for children (headers)
     val childWidthSpec = ViewGroup.getChildMeasureSpec(
-        widthSpec,
-        parent.paddingLeft + parent.paddingRight,
-        view.layoutParams.width
+      widthSpec,
+      parent.paddingLeft + parent.paddingRight,
+      view.layoutParams.width
     )
     val childHeightSpec = ViewGroup.getChildMeasureSpec(
-        heightSpec,
-        parent.paddingTop + parent.paddingBottom,
-        view.layoutParams.height
+      heightSpec,
+      parent.paddingTop + parent.paddingBottom,
+      view.layoutParams.height
     )
 
     view.measure(childWidthSpec, childHeightSpec)
@@ -78,12 +81,12 @@ class HeaderItemDecoration(private val listener: StickyHeaderInterface) :
     view.layout(0, 0, view.measuredWidth, view.measuredHeight)
   }
 
-  interface StickyHeaderInterface {
-    val headerLayout: Int
+  interface StickyHeaderInterface<VB : ViewBinding> {
+    fun viewBinding(parent: RecyclerView): VB
 
     fun getHeaderPositionForItem(itemPosition: Int): Int?
 
-    fun bindHeaderData(header: View, headerPosition: Int)
+    fun bindHeaderData(binding: VB, headerPosition: Int)
 
     fun isHeader(itemPosition: Int): Boolean
   }

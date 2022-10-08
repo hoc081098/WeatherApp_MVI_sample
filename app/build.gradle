@@ -53,6 +53,9 @@ android {
     kotlinOptions {
         jvmTarget = "1.8"
     }
+    buildFeatures {
+        viewBinding true
+    }
 }
 
 tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
@@ -134,4 +137,7 @@ dependencies {
 
     // rxPermission
     implementation 'com.github.tbruyelle:rxpermissions:2.x.v0.9.3'
+
+    // ViewBindingDelegate
+    implementation("com.github.hoc081098:ViewBindingDelegate:1.4.0")
 }

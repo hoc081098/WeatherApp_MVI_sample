@@ -14,10 +14,11 @@ import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.bumptech.glide.request.RequestOptions
 import com.hoc.weatherapp.R
 import com.hoc.weatherapp.data.models.entity.City
+import com.hoc.weatherapp.databinding.CityItemLayoutBinding
 import com.hoc.weatherapp.utils.themeColor
 import com.hoc.weatherapp.utils.ui.getIconDrawableFromCurrentWeather
+import com.hoc081098.viewbindingdelegate.inflateViewBinding
 import io.reactivex.subjects.PublishSubject
-import kotlinx.android.synthetic.main.city_item_layout.view.*
 import org.threeten.bp.format.DateTimeFormatter
 import java.util.*
 
@@ -43,9 +44,7 @@ class CitiesAdapter : ListAdapter<CityListItem, CitiesAdapter.ViewHolder>(object
   val itemClickObservable get() = _itemClickSubject.hide()!!
 
   override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) =
-      LayoutInflater.from(parent.context)
-          .inflate(R.layout.city_item_layout, parent, false)
-          .let(::ViewHolder)
+    ViewHolder(parent inflateViewBinding false)
 
   override fun onBindViewHolder(holder: ViewHolder, position: Int) =
       holder.bind(getItem(position))
@@ -55,15 +54,8 @@ class CitiesAdapter : ListAdapter<CityListItem, CitiesAdapter.ViewHolder>(object
     holder.updateRadio(isSelected)
   }
 
-  inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView),
+  inner class ViewHolder(private val binding: CityItemLayoutBinding) : RecyclerView.ViewHolder(binding.root),
       View.OnClickListener {
-    private val textName = itemView.text_name!!
-    private val textMain = itemView.text_main!!
-    private val textLastUpdated = itemView.text_last_updated!!
-    private val textTemps = itemView.text_temps!!
-    private val imageIconCityItem = itemView.image_icon_city_item!!
-    private val radioButtonSelectedCity = itemView.radio_button_selected_city!!
-
     init {
       itemView.setOnClickListener(this)
     }
@@ -76,22 +68,22 @@ class CitiesAdapter : ListAdapter<CityListItem, CitiesAdapter.ViewHolder>(object
     }
 
     @SuppressLint("SetTextI18n")
-    fun bind(item: CityListItem) = item.run {
+    fun bind(item: CityListItem) = binding.run {
       textName.text = itemView.context.getString(
           R.string.city_name_and_country,
-          city.name,
-          city.country
+          item.city.name,
+          item.city.country
       )
-      textMain.text = weatherDescription.capitalize(Locale.ROOT)
-      updateRadio(isSelected)
-      textLastUpdated.text = "${lastUpdated.format(TIME_FORMATTER)} (${lastUpdated.zone.id}): "
-      textTemps.text = "$temperatureMin ~ $temperatureMax"
+      textMain.text = item.weatherDescription.capitalize(Locale.ROOT)
+      updateRadio(item.isSelected)
+      textLastUpdated.text = "${item.lastUpdated.format(TIME_FORMATTER)} (${item.lastUpdated.zone.id}): "
+      textTemps.text = "${item.temperatureMin} ~ ${item.temperatureMax}"
 
       Glide.with(itemView.context)
           .load(
               itemView.context.getIconDrawableFromCurrentWeather(
-                  weatherConditionId = weatherConditionId,
-                  weatherIcon = weatherIcon
+                  weatherConditionId = item.weatherConditionId,
+                  weatherIcon = item.weatherIcon
               )
           )
           .apply(RequestOptions.fitCenterTransform().centerCrop())
@@ -107,7 +99,7 @@ class CitiesAdapter : ListAdapter<CityListItem, CitiesAdapter.ViewHolder>(object
     }
 
     fun updateRadio(isSelected: Boolean) {
-      radioButtonSelectedCity.isChecked = isSelected
+      binding.radioButtonSelectedCity.isChecked = isSelected
     }
   }
 

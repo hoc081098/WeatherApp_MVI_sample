@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
 import com.hoc.weatherapp.R
 import com.hoc.weatherapp.data.models.entity.City
+import com.hoc.weatherapp.databinding.ActivityCitiesBinding
 import com.hoc.weatherapp.ui.BaseMviActivity
 import com.hoc.weatherapp.ui.addcity.AddCityActivity
 import com.hoc.weatherapp.ui.cities.CitiesContract.SearchStringIntent
@@ -23,16 +24,18 @@ import com.hoc.weatherapp.utils.startActivity
 import com.hoc.weatherapp.utils.ui.SwipeController
 import com.hoc.weatherapp.utils.ui.SwipeControllerActions
 import com.hoc.weatherapp.utils.ui.textChanges
+import com.hoc081098.viewbindingdelegate.viewBinding
 import io.reactivex.Observable
 import io.reactivex.rxkotlin.cast
 import io.reactivex.subjects.PublishSubject.create
-import kotlinx.android.synthetic.main.activity_cities.*
 import org.koin.android.ext.android.get
 import java.util.concurrent.TimeUnit
 import kotlin.LazyThreadSafetyMode.NONE
 
 @ExperimentalStdlibApi
-class CitiesActivity : BaseMviActivity<View, CitiesPresenter>(), View {
+class CitiesActivity : BaseMviActivity<View, CitiesPresenter>(R.layout.activity_cities), View {
+  private val binding by viewBinding<ActivityCitiesBinding>()
+
   private var refreshSnackBar: Snackbar? = null
   private var snackBar: Snackbar? = null
   private var deleteSnackBar: Snackbar? = null
@@ -47,24 +50,24 @@ class CitiesActivity : BaseMviActivity<View, CitiesPresenter>(), View {
   override fun createPresenter() = get<CitiesPresenter>()
 
   override fun refreshCurrentWeatherAtPosition() =
-      refreshPositionPublishSubject.hide()!!
+    refreshPositionPublishSubject.hide()!!
 
   override fun deleteCityAtPosition() = deletePositionPublishSubject.hide()!!
 
   override fun changeSelectedCity(): Observable<City> {
     return cityAdapter
-        .itemClickObservable
-        .throttleFirst(500, TimeUnit.MILLISECONDS)
+      .itemClickObservable
+      .throttleFirst(500, TimeUnit.MILLISECONDS)
   }
 
   override fun searchStringIntent(): Observable<SearchStringIntent> {
-    return search_view.textChanges()
-        .debounce(600, TimeUnit.MILLISECONDS)
-        .map { SearchStringIntent.UserSearchStringIntent(it) }
-        .cast<SearchStringIntent>()
-        .mergeWith(searchStringInitial)
-        .distinctUntilChanged()
-        .doOnNext { debug("searchStringIntent '$it'") }
+    return binding.searchView.textChanges()
+      .debounce(600, TimeUnit.MILLISECONDS)
+      .map { SearchStringIntent.UserSearchStringIntent(it) }
+      .cast<SearchStringIntent>()
+      .mergeWith(searchStringInitial)
+      .distinctUntilChanged()
+      .doOnNext { debug("searchStringIntent '$it'") }
   }
 
   override fun render(state: CitiesContract.ViewState) {
@@ -73,8 +76,8 @@ class CitiesActivity : BaseMviActivity<View, CitiesPresenter>(), View {
     if (state.error != null && state.showError) {
       snackBar?.dismiss()
       snackBar = root.snackBar(
-          state.error.message ?: "An error occurred!",
-          Snackbar.LENGTH_INDEFINITE
+        state.error.message ?: "An error occurred!",
+        Snackbar.LENGTH_INDEFINITE
       )
     }
     if (!state.showError) {
@@ -84,8 +87,8 @@ class CitiesActivity : BaseMviActivity<View, CitiesPresenter>(), View {
     if (state.deletedCity != null && state.showDeleteCitySuccessfully) {
       deleteSnackBar?.dismiss()
       deleteSnackBar = root.snackBar(
-          "Delete city ${state.deletedCity.name} successfully",
-          Snackbar.LENGTH_INDEFINITE
+        "Delete city ${state.deletedCity.name} successfully",
+        Snackbar.LENGTH_INDEFINITE
       )
     }
     if (!state.showDeleteCitySuccessfully) {
@@ -95,8 +98,8 @@ class CitiesActivity : BaseMviActivity<View, CitiesPresenter>(), View {
     if (state.refreshCity != null && state.showRefreshSuccessfully) {
       refreshSnackBar?.dismiss()
       refreshSnackBar = root.snackBar(
-          "Refresh weather of city ${state.refreshCity.name} successfully",
-          Snackbar.LENGTH_INDEFINITE
+        "Refresh weather of city ${state.refreshCity.name} successfully",
+        Snackbar.LENGTH_INDEFINITE
       )
     }
     if (!state.showRefreshSuccessfully) {
@@ -108,17 +111,17 @@ class CitiesActivity : BaseMviActivity<View, CitiesPresenter>(), View {
     super.onCreate(savedInstanceState)
     setContentView(R.layout.activity_cities)
 
-    setSupportActionBar(toolbar)
+    setSupportActionBar(binding.toolbar)
     supportActionBar?.run {
       setDisplayHomeAsUpEnabled(true)
       title = "City"
     }
-    fab.setOnClickListener { startActivity<AddCityActivity>() }
+    binding.fab.setOnClickListener { startActivity<AddCityActivity>() }
 
-    search_view.run {
+    binding.searchView.run {
       setHint("Search...")
       setHintTextColor(
-          ContextCompat.getColor(this@CitiesActivity, R.color.colorPrimaryText)
+        ContextCompat.getColor(this@CitiesActivity, R.color.colorPrimaryText)
       )
     }
     setupRecyclerViewCities()
@@ -130,7 +133,7 @@ class CitiesActivity : BaseMviActivity<View, CitiesPresenter>(), View {
   }
 
   private fun setupRecyclerViewCities() {
-    recycler_city.run {
+    binding.recyclerCity.run {
       setHasFixedSize(true)
       layoutManager = LinearLayoutManager(this@CitiesActivity)
       adapter = cityAdapter
@@ -139,30 +142,30 @@ class CitiesActivity : BaseMviActivity<View, CitiesPresenter>(), View {
         override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
           super.onScrolled(recyclerView, dx, dy)
           if (dy > 0) {
-            fab.hide()
+            binding.fab.hide()
           } else {
-            fab.show()
+            binding.fab.show()
           }
         }
       })
 
       val swipeController = SwipeController(object :
-          SwipeControllerActions {
+        SwipeControllerActions {
         override fun onLeftClicked(adapterPosition: Int) {
           refreshPositionPublishSubject.onNext(adapterPosition)
         }
 
         override fun onRightClicked(adapterPosition: Int) {
           AlertDialog.Builder(this@CitiesActivity)
-              .setTitle("Delete city")
-              .setMessage("Do you want to delete this city")
-              .setIcon(R.drawable.ic_delete_black_24dp)
-              .setNegativeButton("Cancel") { dialog, _ -> dialog.dismiss() }
-              .setPositiveButton("Ok") { dialog, _ ->
-                dialog.dismiss()
-                deletePositionPublishSubject.onNext(adapterPosition)
-              }
-              .show()
+            .setTitle("Delete city")
+            .setMessage("Do you want to delete this city")
+            .setIcon(R.drawable.ic_delete_black_24dp)
+            .setNegativeButton("Cancel") { dialog, _ -> dialog.dismiss() }
+            .setPositiveButton("Ok") { dialog, _ ->
+              dialog.dismiss()
+              deletePositionPublishSubject.onNext(adapterPosition)
+            }
+            .show()
         }
       })
       ItemTouchHelper(swipeController).attachToRecyclerView(this)
@@ -184,13 +187,13 @@ class CitiesActivity : BaseMviActivity<View, CitiesPresenter>(), View {
 
   override fun onCreateOptionsMenu(menu: Menu?): Boolean {
     menuInflater.inflate(R.menu.menu_location, menu)
-    menu?.findItem(R.id.action_search)?.let(search_view::setMenuItem)
+    menu?.findItem(R.id.action_search)?.let(binding.searchView::setMenuItem)
     return true
   }
 
   override fun onBackPressed() {
-    if (search_view.isSearchOpen) {
-      search_view.closeSearch()
+    if (binding.searchView.isSearchOpen) {
+      binding.searchView.closeSearch()
     } else {
       super.onBackPressed()
     }
