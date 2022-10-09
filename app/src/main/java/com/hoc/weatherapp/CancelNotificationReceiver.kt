@@ -14,8 +14,8 @@ import io.reactivex.CompletableObserver
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
-import org.koin.core.KoinComponent
-import org.koin.core.inject
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 
 class CancelNotificationReceiver : BroadcastReceiver(), KoinComponent {
   private val settingPreferences by inject<SettingPreferences>()

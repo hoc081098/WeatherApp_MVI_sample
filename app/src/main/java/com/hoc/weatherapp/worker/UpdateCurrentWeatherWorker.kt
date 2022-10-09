@@ -15,8 +15,8 @@ import com.hoc.weatherapp.utils.debug
 import com.hoc.weatherapp.utils.showNotificationIfEnabled
 import com.hoc.weatherapp.worker.WorkerUtil.cancelUpdateCurrentWeatherWorkRequest
 import io.reactivex.Single
-import org.koin.core.KoinComponent
-import org.koin.core.inject
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import org.threeten.bp.LocalDateTime
 
 class UpdateCurrentWeatherWorker(
@@ -28,7 +28,7 @@ class UpdateCurrentWeatherWorker(
   private val settingPreferences by inject<SettingPreferences>()
 
   init {
-    (applicationContext as Application).startKoinIfNeeded()
+    applicationContext.startKoinIfNeeded()
   }
 
   @ExperimentalStdlibApi

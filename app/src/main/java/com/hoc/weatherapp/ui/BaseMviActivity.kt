@@ -16,39 +16,18 @@ import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
 import io.reactivex.rxkotlin.addTo
 import io.reactivex.rxkotlin.subscribeBy
-import org.koin.android.ext.android.getKoin
 import org.koin.android.ext.android.inject
-import org.koin.core.qualifier.TypeQualifier
-import org.koin.core.scope.Scope
-import org.koin.ext.getFullName
-import kotlin.LazyThreadSafetyMode.NONE
 
 @ExperimentalStdlibApi
 abstract class BaseMviActivity<V : MvpView, P : MviPresenter<V, *>>(
   @LayoutRes private val contentLayoutId: Int,
   private val noActionBar: Boolean = true,
-  private val createScope: Boolean = false,
 ) : MviActivity<V, P>() {
-
-  val lifecycleScope: Scope by lazy(NONE) {
-    check(createScope) { "createScope must be true when accessing lifecycleScope" }
-
-    getKoin().createScope(
-      this::class.getFullName() + "@" + System.identityHashCode(this),
-      TypeQualifier(this::class),
-      this
-    )
-  }
-
   private val settings by inject<SettingPreferences>()
   private val compositeDisposable = CompositeDisposable()
 
   @CallSuper
   override fun onCreate(savedInstanceState: Bundle?) {
-    if (createScope) {
-      getKoin()._logger.debug("Open activity scope: $lifecycleScope")
-    }
-
     setTheme(settings.darkThemePreference.value, noActionBar)
 
     super.onCreate(savedInstanceState)
@@ -61,11 +40,6 @@ abstract class BaseMviActivity<V : MvpView, P : MviPresenter<V, *>>(
   override fun onDestroy() {
     super.onDestroy()
     compositeDisposable.clear()
-
-    if (createScope) {
-      getKoin()._logger.debug("Close activity scope: $lifecycleScope")
-      lifecycleScope.close()
-    }
   }
 }
 
