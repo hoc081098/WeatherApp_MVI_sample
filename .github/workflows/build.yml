@@ -25,9 +25,6 @@ jobs:
         env:
           BASEURL: ${{ secrets.PLACE_API_KEY }}
         run: echo PLACE_API_KEY="$PLACE_API_KEY" > ./local.properties
-      
-      #     - name: Spotless check
-      #       run: ./gradlew spotlessCheck
 
       - name: Build debug APK
         uses: gradle/gradle-build-action@v2
