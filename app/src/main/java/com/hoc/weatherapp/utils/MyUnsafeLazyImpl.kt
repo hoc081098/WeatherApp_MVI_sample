@@ -26,7 +26,7 @@ internal class MyUnsafeLazyImpl<out T>(initializer: () -> T) : Lazy<T>, Serializ
   override fun isInitialized(): Boolean = _value !== UninitializedValue
 
   override fun toString(): String =
-      if (isInitialized()) value.toString() else "Lazy value not initialized yet."
+    if (isInitialized()) value.toString() else "Lazy value not initialized yet."
 
   private fun writeReplace(): Any = InitializedLazyImpl(value)
 

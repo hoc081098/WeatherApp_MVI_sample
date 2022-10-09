@@ -33,15 +33,15 @@ class MapActivity : BaseAppCompatActivity(
 
     binding.bottomNav.setOnNavigationItemSelectedListener {
       binding.webView.loadUrl(
-          when (it.itemId) {
-            R.id.rain_map ->
-              "javascript:map.removeLayer(windLayer);map.removeLayer(tempLayer);map.addLayer(rainLayer);"
-            R.id.wind_map ->
-              "javascript:map.removeLayer(rainLayer);map.removeLayer(tempLayer);map.addLayer(windLayer);"
-            R.id.temperature_map ->
-              "javascript:map.removeLayer(windLayer);map.removeLayer(rainLayer);map.addLayer(tempLayer);"
-            else -> throw IllegalStateException()
-          }
+        when (it.itemId) {
+          R.id.rain_map ->
+            "javascript:map.removeLayer(windLayer);map.removeLayer(tempLayer);map.addLayer(rainLayer);"
+          R.id.wind_map ->
+            "javascript:map.removeLayer(rainLayer);map.removeLayer(tempLayer);map.addLayer(windLayer);"
+          R.id.temperature_map ->
+            "javascript:map.removeLayer(windLayer);map.removeLayer(rainLayer);map.addLayer(tempLayer);"
+          else -> throw IllegalStateException()
+        }
       )
       true
     }
@@ -59,8 +59,10 @@ class MapActivity : BaseAppCompatActivity(
       @SuppressLint("SetJavaScriptEnabled")
       settings.javaScriptEnabled = true
       loadUrl(
-          "file:///android_asset/map.html?lat=${city?.lat ?: 0.0}&lon=${city?.lng
-              ?: 0.0}&k=2.0&appid=${getString(R.string.app_id)}"
+        "file:///android_asset/map.html?lat=${city?.lat ?: 0.0}&lon=${
+        city?.lng
+          ?: 0.0
+        }&k=2.0&appid=${getString(R.string.app_id)}"
       )
       setInitialScale(1)
       settings.loadWithOverviewMode = true

@@ -16,9 +16,9 @@ class NotificationInitializer : Initializer<Unit> {
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
       val channel = NotificationChannel(
-          context.getString(R.string.notification_channel_id),
-          context.getString(R.string.notification_channel_name),
-          NotificationManager.IMPORTANCE_DEFAULT
+        context.getString(R.string.notification_channel_id),
+        context.getString(R.string.notification_channel_name),
+        NotificationManager.IMPORTANCE_DEFAULT
       ).apply { description = "Notification channel of weather app" }
 
       getSystemService(context, NotificationManager::class.java)!!.createNotificationChannel(channel)

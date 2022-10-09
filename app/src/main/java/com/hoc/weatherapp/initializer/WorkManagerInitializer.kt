@@ -15,32 +15,32 @@ class WorkManagerInitializer : Initializer<Unit> {
     debug("WorkManagerInitializer", "Initializer")
 
     WorkManager.initialize(
-        context,
-        Configuration.Builder()
-            .setMinimumLoggingLevel(Log.INFO)
-            .build()
+      context,
+      Configuration.Builder()
+        .setMinimumLoggingLevel(Log.INFO)
+        .build()
     )
 
     WorkManager.getInstance(context).run {
       getWorkInfosForUniqueWorkLiveData(UpdateDailyWeatherWorker.UNIQUE_WORK_NAME)
-          .observeForever {
-            it.forEach { workInfo ->
-              debug(
-                  "data=${workInfo.outputData.keyValueMap}, info=$workInfo",
-                  UpdateDailyWeatherWorker.TAG
-              )
-            }
+        .observeForever {
+          it.forEach { workInfo ->
+            debug(
+              "data=${workInfo.outputData.keyValueMap}, info=$workInfo",
+              UpdateDailyWeatherWorker.TAG
+            )
           }
+        }
 
       getWorkInfosForUniqueWorkLiveData(UpdateCurrentWeatherWorker.UNIQUE_WORK_NAME)
-          .observeForever {
-            it.forEach { workInfo ->
-              debug(
-                  "data=${workInfo.outputData.keyValueMap}, info=$workInfo",
-                  UpdateCurrentWeatherWorker.TAG
-              )
-            }
+        .observeForever {
+          it.forEach { workInfo ->
+            debug(
+              "data=${workInfo.outputData.keyValueMap}, info=$workInfo",
+              UpdateCurrentWeatherWorker.TAG
+            )
           }
+        }
     }
   }
 

@@ -28,9 +28,9 @@ import com.hoc081098.viewbindingdelegate.viewBinding
 import io.reactivex.Observable
 import io.reactivex.rxkotlin.cast
 import io.reactivex.subjects.PublishSubject.create
-import org.koin.android.ext.android.get
 import java.util.concurrent.TimeUnit
 import kotlin.LazyThreadSafetyMode.NONE
+import org.koin.android.ext.android.get
 
 @ExperimentalStdlibApi
 class CitiesActivity : BaseMviActivity<View, CitiesPresenter>(R.layout.activity_cities), View {
@@ -149,24 +149,24 @@ class CitiesActivity : BaseMviActivity<View, CitiesPresenter>(R.layout.activity_
       })
 
       val swipeController = SwipeController(object :
-        SwipeControllerActions {
-        override fun onLeftClicked(adapterPosition: Int) {
-          refreshPositionPublishSubject.onNext(adapterPosition)
-        }
+          SwipeControllerActions {
+          override fun onLeftClicked(adapterPosition: Int) {
+            refreshPositionPublishSubject.onNext(adapterPosition)
+          }
 
-        override fun onRightClicked(adapterPosition: Int) {
-          AlertDialog.Builder(this@CitiesActivity)
-            .setTitle("Delete city")
-            .setMessage("Do you want to delete this city")
-            .setIcon(R.drawable.ic_delete_black_24dp)
-            .setNegativeButton("Cancel") { dialog, _ -> dialog.dismiss() }
-            .setPositiveButton("Ok") { dialog, _ ->
-              dialog.dismiss()
-              deletePositionPublishSubject.onNext(adapterPosition)
-            }
-            .show()
-        }
-      })
+          override fun onRightClicked(adapterPosition: Int) {
+            AlertDialog.Builder(this@CitiesActivity)
+              .setTitle("Delete city")
+              .setMessage("Do you want to delete this city")
+              .setIcon(R.drawable.ic_delete_black_24dp)
+              .setNegativeButton("Cancel") { dialog, _ -> dialog.dismiss() }
+              .setPositiveButton("Ok") { dialog, _ ->
+                dialog.dismiss()
+                deletePositionPublishSubject.onNext(adapterPosition)
+              }
+              .show()
+          }
+        })
       ItemTouchHelper(swipeController).attachToRecyclerView(this)
       addItemDecoration(object : RecyclerView.ItemDecoration() {
         override fun onDraw(c: Canvas, parent: RecyclerView, state: RecyclerView.State) {
@@ -180,7 +180,6 @@ class CitiesActivity : BaseMviActivity<View, CitiesPresenter>(R.layout.activity_
     return when (item.itemId) {
       android.R.id.home -> true.also { finish() }
       else -> return super.onOptionsItemSelected(item)
-
     }
   }
 

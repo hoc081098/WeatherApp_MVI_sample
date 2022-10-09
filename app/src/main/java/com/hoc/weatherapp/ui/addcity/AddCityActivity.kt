@@ -28,8 +28,8 @@ import com.jakewharton.rxbinding3.view.clicks
 import com.tbruyelle.rxpermissions2.RxPermissions
 import io.reactivex.Observable
 import io.reactivex.subjects.PublishSubject
-import org.koin.android.ext.android.get
 import java.util.concurrent.TimeUnit
+import org.koin.android.ext.android.get
 
 @ExperimentalStdlibApi
 class AddCityActivity :

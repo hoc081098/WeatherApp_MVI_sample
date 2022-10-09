@@ -26,22 +26,22 @@ class CancelNotificationReceiver : BroadcastReceiver(), KoinComponent {
       context.cancelNotificationById(WEATHER_NOTIFICATION_ID)
 
       Completable
-          .fromCallable { settingPreferences.showNotificationPreference.saveActual(false) }
-          .subscribeOn(Schedulers.single())
-          .observeOn(AndroidSchedulers.mainThread())
-          .doOnComplete { settingPreferences.showNotificationPreference.save(false) }
-          .doOnTerminate { pendingResult.finish() }
-          .subscribe(object : CompletableObserver {
-            override fun onComplete() {
-              LocalBroadcastManager
-                  .getInstance(context)
-                  .sendBroadcast(Intent(ACTION_CANCEL_NOTIFICATION))
-              debug("[SUCCESS] showNotificationPreference", TAG)
-            }
+        .fromCallable { settingPreferences.showNotificationPreference.saveActual(false) }
+        .subscribeOn(Schedulers.single())
+        .observeOn(AndroidSchedulers.mainThread())
+        .doOnComplete { settingPreferences.showNotificationPreference.save(false) }
+        .doOnTerminate { pendingResult.finish() }
+        .subscribe(object : CompletableObserver {
+          override fun onComplete() {
+            LocalBroadcastManager
+              .getInstance(context)
+              .sendBroadcast(Intent(ACTION_CANCEL_NOTIFICATION))
+            debug("[SUCCESS] showNotificationPreference", TAG)
+          }
 
-            override fun onSubscribe(d: Disposable) = Unit
-            override fun onError(e: Throwable) = Unit
-          })
+          override fun onSubscribe(d: Disposable) = Unit
+          override fun onError(e: Throwable) = Unit
+        })
     }
   }
 

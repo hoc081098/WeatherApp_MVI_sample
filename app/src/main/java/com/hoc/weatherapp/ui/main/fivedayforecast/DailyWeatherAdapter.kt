@@ -26,23 +26,25 @@ import io.reactivex.subjects.PublishSubject
 import org.threeten.bp.ZonedDateTime
 import org.threeten.bp.format.DateTimeFormatter
 
-class DailyWeatherAdapter : ListAdapter<DailyWeatherListItem, RecyclerView.ViewHolder>(
-  object : DiffUtil.ItemCallback<DailyWeatherListItem>() {
-    override fun areItemsTheSame(
-      oldItem: DailyWeatherListItem,
-      newItem: DailyWeatherListItem
-    ) = when {
-      oldItem is DailyWeatherListItem.Weather && newItem is DailyWeatherListItem.Weather -> oldItem.dataTime == newItem.dataTime
-      oldItem is DailyWeatherListItem.Header && newItem is DailyWeatherListItem.Header -> oldItem.date == newItem.date
-      else -> oldItem == newItem
-    }
+class DailyWeatherAdapter :
+  ListAdapter<DailyWeatherListItem, RecyclerView.ViewHolder>(
+    object : DiffUtil.ItemCallback<DailyWeatherListItem>() {
+      override fun areItemsTheSame(
+        oldItem: DailyWeatherListItem,
+        newItem: DailyWeatherListItem
+      ) = when {
+        oldItem is DailyWeatherListItem.Weather && newItem is DailyWeatherListItem.Weather -> oldItem.dataTime == newItem.dataTime
+        oldItem is DailyWeatherListItem.Header && newItem is DailyWeatherListItem.Header -> oldItem.date == newItem.date
+        else -> oldItem == newItem
+      }
 
-    override fun areContentsTheSame(
-      oldItem: DailyWeatherListItem,
-      newItem: DailyWeatherListItem
-    ) = newItem == oldItem
-  }
-), HeaderItemDecoration.StickyHeaderInterface<DailyWeatherHeaderLayoutBinding> {
+      override fun areContentsTheSame(
+        oldItem: DailyWeatherListItem,
+        newItem: DailyWeatherListItem
+      ) = newItem == oldItem
+    }
+  ),
+  HeaderItemDecoration.StickyHeaderInterface<DailyWeatherHeaderLayoutBinding> {
   override fun viewBinding(parent: RecyclerView): DailyWeatherHeaderLayoutBinding =
     parent inflateViewBinding false
 
@@ -56,8 +58,10 @@ class DailyWeatherAdapter : ListAdapter<DailyWeatherListItem, RecyclerView.ViewH
       val headerItem = getItem(headerPosition) as? DailyWeatherListItem.Header ?: return
 
       val weather =
-        (runCatching { getItem(headerPosition - 1) }.getOrNull() as? DailyWeatherListItem.Weather
-          ?: runCatching { getItem(headerPosition + 1) }.getOrNull() as? DailyWeatherListItem.Weather)
+        (
+          runCatching { getItem(headerPosition - 1) }.getOrNull() as? DailyWeatherListItem.Weather
+            ?: runCatching { getItem(headerPosition + 1) }.getOrNull() as? DailyWeatherListItem.Weather
+          )
 
       bindHeader(
         textView = textViewDate,
@@ -134,7 +138,6 @@ class DailyWeatherAdapter : ListAdapter<DailyWeatherListItem, RecyclerView.ViewH
       Unit
     }
   }
-
 
   @IntDef(value = [HEADER_TYPE, DAILY_WEATHER_TYPE])
   @Retention(value = AnnotationRetention.SOURCE)

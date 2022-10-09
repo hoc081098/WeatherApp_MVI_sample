@@ -23,8 +23,8 @@ import org.threeten.bp.ZonedDateTime
  */
 
 private fun isDay(
-    w: CurrentWeather,
-    city: City
+  w: CurrentWeather,
+  city: City
 ): Boolean {
   val now = ZonedDateTime.now(ZoneId.of(city.zoneId))
   return now in w.sunrise.toZonedDateTime(city.zoneId)..w.sunset.toZonedDateTime(city.zoneId)
@@ -33,9 +33,9 @@ private fun isDay(
 @DrawableRes
 fun getBackgroundDrawableFromWeather(weather: CurrentWeather, city: City): Int {
   return when {
-    weather.weatherConditionId == 800L
-        && isDay(weather, city)
-        && weather.temperature > 35 + 273.15 /* 35℃ */ -> {
+    weather.weatherConditionId == 800L &&
+      isDay(weather, city) &&
+      weather.temperature > 35 + 273.15 /* 35℃ */ -> {
       R.drawable.hot_bg
     }
 
@@ -69,8 +69,8 @@ fun getBackgroundDrawableFromWeather(weather: CurrentWeather, city: City): Int {
 
 @DrawableRes
 fun Context.getIconDrawableFromCurrentWeather(
-    weatherConditionId: Long,
-    weatherIcon: String
+  weatherConditionId: Long,
+  weatherIcon: String
 ): Int {
   if (weatherConditionId == 741L) {
     return R.drawable.weather_foggy
@@ -85,18 +85,18 @@ fun Context.getIconDrawableFromCurrentWeather(
     return R.drawable.weather_tornado
   }
   return resources.getIdentifier(
-      "weather_icon_$weatherIcon",
-      "drawable",
-      packageName
+    "weather_icon_$weatherIcon",
+    "drawable",
+    packageName
   ).takeIf { it != 0 } ?: R.drawable.weather_icon_null
 }
 
 @DrawableRes
 fun Context.getIconDrawableFromDailyWeather(icon: String): Int {
   return resources.getIdentifier(
-      "weather_icon_$icon",
-      "drawable",
-      packageName
+    "weather_icon_$icon",
+    "drawable",
+    packageName
   ).takeIf { it != 0 } ?: R.drawable.weather_icon_null
 }
 

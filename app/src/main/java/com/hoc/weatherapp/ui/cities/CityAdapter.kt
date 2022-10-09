@@ -2,7 +2,6 @@ package com.hoc.weatherapp.ui.cities
 
 import android.annotation.SuppressLint
 import android.graphics.drawable.ColorDrawable
-import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
@@ -19,27 +18,27 @@ import com.hoc.weatherapp.utils.themeColor
 import com.hoc.weatherapp.utils.ui.getIconDrawableFromCurrentWeather
 import com.hoc081098.viewbindingdelegate.inflateViewBinding
 import io.reactivex.subjects.PublishSubject
+import java.util.Locale
 import org.threeten.bp.format.DateTimeFormatter
-import java.util.*
 
 @ExperimentalStdlibApi
 class CitiesAdapter : ListAdapter<CityListItem, CitiesAdapter.ViewHolder>(object :
     DiffUtil.ItemCallback<CityListItem>() {
-  override fun areItemsTheSame(oldItem: CityListItem, newItem: CityListItem): Boolean {
-    return oldItem.city.id == newItem.city.id
-  }
-
-  override fun areContentsTheSame(oldItem: CityListItem, newItem: CityListItem): Boolean {
-    return oldItem == newItem
-  }
-
-  override fun getChangePayload(oldItem: CityListItem, newItem: CityListItem): Any? {
-    return when {
-      newItem.sameExceptIsSelected(oldItem) -> newItem.isSelected
-      else -> null
+    override fun areItemsTheSame(oldItem: CityListItem, newItem: CityListItem): Boolean {
+      return oldItem.city.id == newItem.city.id
     }
-  }
-}) {
+
+    override fun areContentsTheSame(oldItem: CityListItem, newItem: CityListItem): Boolean {
+      return oldItem == newItem
+    }
+
+    override fun getChangePayload(oldItem: CityListItem, newItem: CityListItem): Any? {
+      return when {
+        newItem.sameExceptIsSelected(oldItem) -> newItem.isSelected
+        else -> null
+      }
+    }
+  }) {
   private val _itemClickSubject = PublishSubject.create<City>()
   val itemClickObservable get() = _itemClickSubject.hide()!!
 
@@ -47,15 +46,16 @@ class CitiesAdapter : ListAdapter<CityListItem, CitiesAdapter.ViewHolder>(object
     ViewHolder(parent inflateViewBinding false)
 
   override fun onBindViewHolder(holder: ViewHolder, position: Int) =
-      holder.bind(getItem(position))
+    holder.bind(getItem(position))
 
   override fun onBindViewHolder(holder: ViewHolder, position: Int, payloads: MutableList<Any>) {
     val isSelected = payloads.firstOrNull() as? Boolean ?: return onBindViewHolder(holder, position)
     holder.updateRadio(isSelected)
   }
 
-  inner class ViewHolder(private val binding: CityItemLayoutBinding) : RecyclerView.ViewHolder(binding.root),
-      View.OnClickListener {
+  inner class ViewHolder(private val binding: CityItemLayoutBinding) :
+    RecyclerView.ViewHolder(binding.root),
+    View.OnClickListener {
     init {
       itemView.setOnClickListener(this)
     }
@@ -70,31 +70,36 @@ class CitiesAdapter : ListAdapter<CityListItem, CitiesAdapter.ViewHolder>(object
     @SuppressLint("SetTextI18n")
     fun bind(item: CityListItem) = binding.run {
       textName.text = itemView.context.getString(
-          R.string.city_name_and_country,
-          item.city.name,
-          item.city.country
+        R.string.city_name_and_country,
+        item.city.name,
+        item.city.country
       )
-      textMain.text = item.weatherDescription.capitalize(Locale.ROOT)
+      textMain.text = item.weatherDescription.replaceFirstChar {
+        if (it.isLowerCase()) it.titlecase(
+          Locale.ROOT
+        ) else it.toString()
+      }
       updateRadio(item.isSelected)
-      textLastUpdated.text = "${item.lastUpdated.format(TIME_FORMATTER)} (${item.lastUpdated.zone.id}): "
+      textLastUpdated.text =
+        "${item.lastUpdated.format(TIME_FORMATTER)} (${item.lastUpdated.zone.id}): "
       textTemps.text = "${item.temperatureMin} ~ ${item.temperatureMax}"
 
       Glide.with(itemView.context)
-          .load(
-              itemView.context.getIconDrawableFromCurrentWeather(
-                  weatherConditionId = item.weatherConditionId,
-                  weatherIcon = item.weatherIcon
-              )
+        .load(
+          itemView.context.getIconDrawableFromCurrentWeather(
+            weatherConditionId = item.weatherConditionId,
+            weatherIcon = item.weatherIcon
           )
-          .apply(RequestOptions.fitCenterTransform().centerCrop())
-          .transition(DrawableTransitionOptions.withCrossFade())
-          .apply(
-              itemView.context
-                  .themeColor(R.attr.colorSecondary)
-                  .let(::ColorDrawable)
-                  .let(RequestOptions::placeholderOf)
-          )
-          .into(imageIconCityItem)
+        )
+        .apply(RequestOptions.fitCenterTransform().centerCrop())
+        .transition(DrawableTransitionOptions.withCrossFade())
+        .apply(
+          itemView.context
+            .themeColor(R.attr.colorSecondary)
+            .let(::ColorDrawable)
+            .let(RequestOptions::placeholderOf)
+        )
+        .into(imageIconCityItem)
       Unit
     }
 

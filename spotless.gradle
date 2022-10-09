@@ -1,0 +1,83 @@
+apply plugin: "com.diffplug.spotless"
+
+final Set<String> EDITOR_CONFIG_KEYS = [
+  "ij_kotlin_imports_layout",
+  "indent_size",
+  "end_of_line",
+  "charset",
+  "continuation_indent_size",
+  "disabled_rules"
+]
+
+final ktlintVersion = '0.46.1'
+
+spotless {
+  kotlin {
+    target("**/*.kt")
+
+    // TODO this should all come from editorconfig https://github.com/diffplug/spotless/issues/142
+    final data = [
+      "indent_size"             : "2",
+      "continuation_indent_size": "4",
+      "ij_kotlin_imports_layout": "*",
+      "end_of_line"             : "lf",
+      "charset"                 : "utf-8",
+      "disabled_rules"          : [
+        "experimental:package-name",
+        "experimental:type-parameter-list-spacing",
+        "experimental:comment-wrapping",
+        "trailing-comma",
+        "filename",
+        "annotation"
+      ].join(",")
+    ]
+
+    ktlint(ktlintVersion)
+      .setUseExperimental(true)
+      .userData(data.subMap(data.keySet() - EDITOR_CONFIG_KEYS))
+      .editorConfigOverride(data.subMap(EDITOR_CONFIG_KEYS))
+
+    trimTrailingWhitespace()
+    indentWithSpaces()
+    endWithNewline()
+  }
+
+  format("xml") {
+    target("**/res/**/*.xml")
+
+    trimTrailingWhitespace()
+    indentWithSpaces()
+    endWithNewline()
+  }
+
+  groovyGradle {
+    target("*.gradle")
+
+    trimTrailingWhitespace()
+    indentWithSpaces()
+    endWithNewline()
+  }
+
+  kotlinGradle {
+    target("**/*.gradle.kts", "*.gradle.kts")
+
+    // TODO this should all come from editorconfig https://github.com/diffplug/spotless/issues/142
+    final data = [
+      "indent_size"             : "2",
+      "continuation_indent_size": "4",
+      "ij_kotlin_imports_layout": "*",
+      "end_of_line"             : "lf",
+      "charset"                 : "utf-8",
+      "disabled_rules"          : "no-wildcard-imports",
+    ]
+
+    ktlint(ktlintVersion)
+      .setUseExperimental(true)
+      .userData(data.subMap(data.keySet() - EDITOR_CONFIG_KEYS))
+      .editorConfigOverride(data.subMap(EDITOR_CONFIG_KEYS))
+
+    trimTrailingWhitespace()
+    indentWithSpaces()
+    endWithNewline()
+  }
+}

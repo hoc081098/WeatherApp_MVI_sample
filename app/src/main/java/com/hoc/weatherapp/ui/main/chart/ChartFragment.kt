@@ -2,19 +2,10 @@ package com.hoc.weatherapp.ui.main.chart
 
 import android.annotation.SuppressLint
 import android.graphics.Color
-import android.graphics.DashPathEffect
-import android.graphics.Paint
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import androidx.annotation.ColorInt
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.ColorUtils
-import com.db.williamchart.ExperimentalFeature
-import com.db.williamchart.slidertooltip.SliderTooltip
 import com.db.williamchart.view.LineChartView
-import com.hannesdorfmann.mosby3.mvi.MviFragment
 import com.hoc.weatherapp.R
 import com.hoc.weatherapp.data.models.entity.DailyWeather
 import com.hoc.weatherapp.databinding.FragmentChartBinding
@@ -23,14 +14,14 @@ import com.hoc.weatherapp.utils.UnitConverter
 import com.hoc.weatherapp.utils.debug
 import com.hoc.weatherapp.utils.themeColor
 import com.hoc081098.viewbindingdelegate.viewBinding
-import org.koin.android.ext.android.get
 import java.text.DecimalFormat
-import java.util.*
-import kotlin.collections.LinkedHashMap
-import kotlin.math.ceil
-import kotlin.math.floor
+import java.util.Calendar
+import java.util.Locale
+import org.koin.android.ext.android.get
 
-class ChartFragment : BaseMviFragment<ChartContract.View, ChartPresenter>(R.layout.fragment_chart), ChartContract.View {
+class ChartFragment :
+  BaseMviFragment<ChartContract.View, ChartPresenter>(R.layout.fragment_chart),
+  ChartContract.View {
   private val binding by viewBinding<FragmentChartBinding>()
 
   private val decimalFormat = DecimalFormat("#.#")
@@ -43,53 +34,52 @@ class ChartFragment : BaseMviFragment<ChartContract.View, ChartPresenter>(R.layo
     val gridColor = requireContext().themeColor(R.attr.colorSecondary)
 
     binding.textTemperature.text =
-        getString(R.string.temperature_chart_title, temperatureUnit.symbol())
+      getString(R.string.temperature_chart_title, temperatureUnit.symbol())
     drawChart(
       binding.chartTemperature,
-        weathers,
-        { UnitConverter.convertTemperature(it.temperature, temperatureUnit).toFloat() },
-        ContextCompat.getColor(
-            requireContext(),
-            R.color.colorPrimary
-        ),
-        gridColor
+      weathers,
+      { UnitConverter.convertTemperature(it.temperature, temperatureUnit).toFloat() },
+      ContextCompat.getColor(
+        requireContext(),
+        R.color.colorPrimary
+      ),
+      gridColor
     )
 
     binding.textRain.text = getString(R.string.rain_chart_title)
     drawChart(
-        binding.chartRain,
-        weathers,
-        { it.rainVolumeForTheLast3Hours.toFloat() },
-        ContextCompat.getColor(
-            requireContext(),
-            R.color.colorMaterialBlue500
-        ),
-        gridColor
+      binding.chartRain,
+      weathers,
+      { it.rainVolumeForTheLast3Hours.toFloat() },
+      ContextCompat.getColor(
+        requireContext(),
+        R.color.colorMaterialBlue500
+      ),
+      gridColor
     )
 
     binding.textPressure.text = getString(R.string.pressure_chart_title, pressureUnit.symbol())
     drawChart(
-        binding.chartPressure,
-        weathers,
-        { UnitConverter.convertPressure(it.pressure, pressureUnit).toFloat() },
-        ContextCompat.getColor(
-            requireContext(),
-            R.color.colorMaterialCyan400
-        ),
-        gridColor
+      binding.chartPressure,
+      weathers,
+      { UnitConverter.convertPressure(it.pressure, pressureUnit).toFloat() },
+      ContextCompat.getColor(
+        requireContext(),
+        R.color.colorMaterialCyan400
+      ),
+      gridColor
     )
-
 
     binding.textWindSpeed.text = getString(R.string.wind_speed_chart_title, speedUnit.symbol())
     drawChart(
-        binding.chartWindSpeed,
-        weathers,
-        { UnitConverter.convertSpeed(it.windSpeed, speedUnit).toFloat() },
-        ContextCompat.getColor(
-            requireContext(),
-            R.color.colorDeepPurpleAccent700
-        ),
-        gridColor
+      binding.chartWindSpeed,
+      weathers,
+      { UnitConverter.convertSpeed(it.windSpeed, speedUnit).toFloat() },
+      ContextCompat.getColor(
+        requireContext(),
+        R.color.colorDeepPurpleAccent700
+      ),
+      gridColor
     )
   }
 
@@ -97,11 +87,11 @@ class ChartFragment : BaseMviFragment<ChartContract.View, ChartPresenter>(R.layo
 
   @SuppressLint("Range")
   private inline fun drawChart(
-      lineChartView: LineChartView,
-      dailyWeathers: List<DailyWeather>,
-      crossinline transform: (DailyWeather) -> Float,
-      @ColorInt lineColor: Int,
-      @ColorInt gridColor: Int
+    lineChartView: LineChartView,
+    dailyWeathers: List<DailyWeather>,
+    crossinline transform: (DailyWeather) -> Float,
+    @ColorInt lineColor: Int,
+    @ColorInt gridColor: Int
   ) {
     debug("::drawChart")
 
@@ -113,16 +103,16 @@ class ChartFragment : BaseMviFragment<ChartContract.View, ChartPresenter>(R.layo
       lineThickness = 4f
       this.lineColor = lineColor
       gradientFillColors = intArrayOf(
-          ColorUtils.setAlphaComponent(lineColor, 0x81),
-          Color.TRANSPARENT,
+        ColorUtils.setAlphaComponent(lineColor, 0x81),
+        Color.TRANSPARENT,
       )
       animation.duration = animationDuration
       animate(
-          LinkedHashMap(
-              dailyWeathers.getLabels()
-                  .zip(map)
-                  .toMap()
-          )
+        LinkedHashMap(
+          dailyWeathers.getLabels()
+            .zip(map)
+            .toMap()
+        )
       )
 
       // Grid
@@ -161,9 +151,9 @@ class ChartFragment : BaseMviFragment<ChartContract.View, ChartPresenter>(R.layo
         date != previousDate -> {
           previousDate = date
           instance.getDisplayName(
-              Calendar.DAY_OF_WEEK,
-              Calendar.SHORT,
-              Locale.getDefault()
+            Calendar.DAY_OF_WEEK,
+            Calendar.SHORT,
+            Locale.getDefault()
           )
         }
         else -> " "

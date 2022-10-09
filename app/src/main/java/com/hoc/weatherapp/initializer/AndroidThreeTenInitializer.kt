@@ -8,7 +8,7 @@ import com.jakewharton.threetenabp.AndroidThreeTen
 @Suppress("unused")
 class AndroidThreeTenInitializer : Initializer<Unit> {
   override fun create(context: Context) = AndroidThreeTen.init(context)
-      .also { debug("AndroidThreeTenInitializer", "Initializer") }
+    .also { debug("AndroidThreeTenInitializer", "Initializer") }
 
   override fun dependencies(): List<Class<out Initializer<*>>> = emptyList()
 }
