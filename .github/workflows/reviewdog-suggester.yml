@@ -2,6 +2,7 @@ name: reviewdog-suggester
 on:
   pull_request:
     types: [ opened, synchronize, reopened ]
+    paths-ignore: [ '**.md' ]
 
 jobs:
   kotlin:
