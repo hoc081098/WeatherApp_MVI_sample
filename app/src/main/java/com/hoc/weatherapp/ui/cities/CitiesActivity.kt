@@ -109,7 +109,6 @@ class CitiesActivity : BaseMviActivity<View, CitiesPresenter>(R.layout.activity_
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
-    setContentView(R.layout.activity_cities)
 
     setSupportActionBar(binding.toolbar)
     supportActionBar?.run {

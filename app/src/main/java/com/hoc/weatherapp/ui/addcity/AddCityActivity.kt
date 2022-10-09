@@ -85,7 +85,6 @@ class AddCityActivity :
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
-    setContentView(R.layout.activity_add_city)
 
     setSupportActionBar(binding.toolbar)
     supportActionBar?.run {

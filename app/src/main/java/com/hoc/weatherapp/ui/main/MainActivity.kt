@@ -68,8 +68,6 @@ class MainActivity : BaseMviActivity<MainContract.View, MainPresenter>(
     window.addFlags(FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
     window.clearFlags(FLAG_TRANSLUCENT_STATUS)
 
-    setContentView(R.layout.activity_main)
-
     setSupportActionBar(binding.toolbar)
     supportActionBar?.run {
       setDisplayShowTitleEnabled(false)

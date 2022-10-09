@@ -25,18 +25,18 @@ import kotlin.LazyThreadSafetyMode.NONE
 
 @ExperimentalStdlibApi
 abstract class BaseMviActivity<V : MvpView, P : MviPresenter<V, *>>(
-    @LayoutRes private val contentLayoutId: Int,
-    private val noActionBar: Boolean = true,
-    private val createScope: Boolean = false,
+  @LayoutRes private val contentLayoutId: Int,
+  private val noActionBar: Boolean = true,
+  private val createScope: Boolean = false,
 ) : MviActivity<V, P>() {
 
   val lifecycleScope: Scope by lazy(NONE) {
     check(createScope) { "createScope must be true when accessing lifecycleScope" }
 
     getKoin().createScope(
-        this::class.getFullName() + "@" + System.identityHashCode(this),
-        TypeQualifier(this::class),
-        this
+      this::class.getFullName() + "@" + System.identityHashCode(this),
+      TypeQualifier(this::class),
+      this
     )
   }
 
@@ -50,8 +50,10 @@ abstract class BaseMviActivity<V : MvpView, P : MviPresenter<V, *>>(
     }
 
     setTheme(settings.darkThemePreference.value, noActionBar)
+
     super.onCreate(savedInstanceState)
     setContentView(contentLayoutId)
+
     observeTheme(settings.darkThemePreference.observable).addTo(compositeDisposable)
   }
 
@@ -78,7 +80,9 @@ abstract class BaseAppCompatActivity(
   @CallSuper
   override fun onCreate(savedInstanceState: Bundle?) {
     setTheme(settings.darkThemePreference.value, noActionBar)
+
     super.onCreate(savedInstanceState)
+
     observeTheme(settings.darkThemePreference.observable).addTo(compositeDisposable)
   }
 
@@ -91,31 +95,32 @@ abstract class BaseAppCompatActivity(
 
 @ExperimentalStdlibApi
 @CheckResult
-private fun AppCompatActivity.observeTheme(darkThemeObservable: Observable<Boolean>): Disposable {
-  return darkThemeObservable
-      .distinctUntilChanged()
-      .skip(1)
-      .take(1)
-      .subscribeBy {
-        overridePendingTransition(0, 0)
-        finish()
-        overridePendingTransition(0, 0)
-        startActivity(intent)
-        debug("Change theme $this $it", tag = "change_theme")
-      }
-}
+private fun AppCompatActivity.observeTheme(darkThemeObservable: Observable<Boolean>): Disposable =
+  darkThemeObservable
+    .distinctUntilChanged()
+    .skip(1)
+    .take(1)
+    .subscribeBy {
+      overridePendingTransition(0, 0)
+      finish()
+
+      overridePendingTransition(0, 0)
+      startActivity(intent)
+
+      debug("Change theme $this $it", tag = "change_theme")
+    }
 
 private fun AppCompatActivity.setTheme(isDarkTheme: Boolean, noActionBar: Boolean) {
   setTheme(
-      when {
-        isDarkTheme -> {
-          if (noActionBar) R.style.AppTheme_DarkTheme_NoActionBar
-          else R.style.AppTheme_DarkTheme
-        }
-        else -> {
-          if (noActionBar) R.style.AppTheme_LightTheme_NoActionBar
-          else R.style.AppTheme_LightTheme
-        }
+    when {
+      isDarkTheme -> {
+        if (noActionBar) R.style.AppTheme_DarkTheme_NoActionBar
+        else R.style.AppTheme_DarkTheme
       }
+      else -> {
+        if (noActionBar) R.style.AppTheme_LightTheme_NoActionBar
+        else R.style.AppTheme_LightTheme
+      }
+    }
   )
 }

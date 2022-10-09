@@ -23,7 +23,7 @@ class MapActivity : BaseAppCompatActivity(
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
-    setContentView(R.layout.activity_map)
+
     supportActionBar?.run {
       setDisplayHomeAsUpEnabled(true)
       title = "Maps"
