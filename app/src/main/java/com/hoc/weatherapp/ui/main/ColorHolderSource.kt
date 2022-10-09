@@ -8,9 +8,11 @@ import com.hoc.weatherapp.utils.themeColor
 import io.reactivex.subjects.BehaviorSubject
 
 class ColorHolderSource(androidApplication: Application) {
+  val defaultColorPrimaryVariant = androidApplication.themeColor(R.attr.colorPrimaryVariant)
+  val defaultColorSecondary = androidApplication.themeColor(R.attr.colorSecondary)
+
   private val subject = BehaviorSubject.createDefault(
-    androidApplication.themeColor(R.attr.colorPrimaryVariant) to
-      androidApplication.themeColor(R.attr.colorSecondary)
+    defaultColorPrimaryVariant to defaultColorSecondary
   )
 
   val colorObservable = subject.asObservable()
