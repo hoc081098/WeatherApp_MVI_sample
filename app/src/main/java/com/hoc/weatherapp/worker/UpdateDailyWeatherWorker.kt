@@ -5,28 +5,16 @@ import android.content.Context
 import androidx.work.RxWorker
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
-import com.hoc.weatherapp.BuildConfig
 import com.hoc.weatherapp.data.FiveDayForecastRepository
 import com.hoc.weatherapp.data.NoSelectedCityException
 import com.hoc.weatherapp.initializer.startKoinIfNeeded
-import com.hoc.weatherapp.koin.dataSourceModule
-import com.hoc.weatherapp.koin.presenterModule
-import com.hoc.weatherapp.koin.retrofitModule
-import com.hoc.weatherapp.koin.sharePrefUtilModule
 import com.hoc.weatherapp.utils.WEATHER_NOTIFICATION_ID
 import com.hoc.weatherapp.utils.cancelNotificationById
 import com.hoc.weatherapp.utils.debug
 import com.hoc.weatherapp.worker.WorkerUtil.cancelUpdateDailyWeatherWorkRequest
 import io.reactivex.Single
-import org.koin.android.ext.koin.androidContext
-import org.koin.android.ext.koin.androidLogger
-import org.koin.core.KoinComponent
-import org.koin.core.context.KoinContextHandler
-import org.koin.core.context.startKoin
-import org.koin.core.get
-import org.koin.core.inject
-import org.koin.core.logger.Level
-import org.koin.dsl.koinApplication
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import org.threeten.bp.LocalDateTime
 
 class UpdateDailyWeatherWorker(
@@ -36,7 +24,7 @@ class UpdateDailyWeatherWorker(
   private val fiveDayForecastRepository by inject<FiveDayForecastRepository>()
 
   init {
-    (applicationContext as Application).startKoinIfNeeded()
+    applicationContext.startKoinIfNeeded()
   }
 
   override fun createWork(): Single<Result> {

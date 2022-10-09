@@ -2,18 +2,14 @@ package com.hoc.weatherapp.ui.main.fivedayforecast
 
 import android.content.Intent
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.snackbar.Snackbar
-import com.hannesdorfmann.mosby3.mvi.MviFragment
 import com.hoc.weatherapp.R
 import com.hoc.weatherapp.databinding.FragmentDailyWeatherBinding
 import com.hoc.weatherapp.ui.BaseMviFragment
-import com.hoc.weatherapp.ui.main.MainActivity
 import com.hoc.weatherapp.ui.main.fivedayforecast.DailyWeatherContract.RefreshIntent
 import com.hoc.weatherapp.utils.debug
 import com.hoc.weatherapp.utils.snackBar
@@ -26,10 +22,12 @@ import io.reactivex.rxkotlin.addTo
 import io.reactivex.rxkotlin.cast
 import io.reactivex.rxkotlin.subscribeBy
 import io.reactivex.subjects.PublishSubject
+import org.koin.android.ext.android.get
 
 @ExperimentalStdlibApi
-class DailyWeatherFragment : BaseMviFragment<DailyWeatherContract.View, DailyWeatherPresenter>(R.layout.fragment_daily_weather),
-    DailyWeatherContract.View {
+class DailyWeatherFragment :
+  BaseMviFragment<DailyWeatherContract.View, DailyWeatherPresenter>(R.layout.fragment_daily_weather),
+  DailyWeatherContract.View {
   private val binding by viewBinding<FragmentDailyWeatherBinding>()
 
   private var errorSnackBar: Snackbar? = null
@@ -41,13 +39,13 @@ class DailyWeatherFragment : BaseMviFragment<DailyWeatherContract.View, DailyWea
 
   override fun refreshDailyWeatherIntent(): Observable<RefreshIntent> {
     return binding.swipeRefreshLayout.refreshes()
-        .map { RefreshIntent.UserRefreshIntent }
-        .cast<RefreshIntent>()
-        .mergeWith(initialRefreshSubject)
-        .doOnNext { debug("refreshDailyWeatherIntent", "_daily_weather_") }
+      .map { RefreshIntent.UserRefreshIntent }
+      .cast<RefreshIntent>()
+      .mergeWith(initialRefreshSubject)
+      .doOnNext { debug("refreshDailyWeatherIntent", "_daily_weather_") }
   }
 
-  override fun createPresenter() = (requireActivity() as MainActivity).lifecycleScope.get<DailyWeatherPresenter>()
+  override fun createPresenter() = requireActivity().get<DailyWeatherPresenter>()
 
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
     super.onViewCreated(view, savedInstanceState)
@@ -59,13 +57,13 @@ class DailyWeatherFragment : BaseMviFragment<DailyWeatherContract.View, DailyWea
       adapter = dailyWeatherAdapter
 
       DividerItemDecoration(context, linearLayoutManager.orientation)
-          .apply {
-            ContextCompat.getDrawable(
-                context,
-                R.drawable.daily_weather_divider
-            )?.let(::setDrawable)
-          }
-          .let(::addItemDecoration)
+        .apply {
+          ContextCompat.getDrawable(
+            context,
+            R.drawable.daily_weather_divider
+          )?.let(::setDrawable)
+        }
+        .let(::addItemDecoration)
       addItemDecoration(HeaderItemDecoration(dailyWeatherAdapter))
     }
   }
@@ -74,17 +72,17 @@ class DailyWeatherFragment : BaseMviFragment<DailyWeatherContract.View, DailyWea
     super.onResume()
     initialRefreshSubject.onNext(RefreshIntent.InitialRefreshIntent)
     dailyWeatherAdapter
-        .clickObservable
-        .subscribeBy(onNext = ::showDetail)
-        .addTo(compositeDisposable)
+      .clickObservable
+      .subscribeBy(onNext = ::showDetail)
+      .addTo(compositeDisposable)
   }
 
   private fun showDetail(item: DailyWeatherListItem.Weather) {
     val context = requireContext()
     context.startActivity(
-        Intent(context, DailyDetailActivity::class.java).apply {
-          putExtra(DailyDetailActivity.ITEM_KEY, item)
-        }
+      Intent(context, DailyDetailActivity::class.java).apply {
+        putExtra(DailyDetailActivity.ITEM_KEY, item)
+      }
     )
   }
 

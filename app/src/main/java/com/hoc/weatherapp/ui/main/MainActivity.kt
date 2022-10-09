@@ -48,12 +48,15 @@ import com.hoc081098.viewbindingdelegate.viewBinding
 import io.reactivex.Observable
 import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.PublishSubject
+import org.koin.android.ext.android.get
+import org.koin.android.scope.AndroidScopeComponent
+import org.koin.androidx.scope.createActivityRetainedScope
+import org.koin.core.scope.Scope
 
 @ExperimentalStdlibApi
 class MainActivity : BaseMviActivity<MainContract.View, MainPresenter>(
-  contentLayoutId = R.layout.activity_main,
-  createScope = true
-), MainContract.View {
+  contentLayoutId = R.layout.activity_main
+), MainContract.View, AndroidScopeComponent {
   private val binding by viewBinding<ActivityMainBinding>()
 
   private var mediaPlayer: MediaPlayer? = null
@@ -62,7 +65,11 @@ class MainActivity : BaseMviActivity<MainContract.View, MainPresenter>(
   private var target1: CustomViewTarget<*, *>? = null
   private var target2: CustomViewTarget<*, *>? = null
 
+  override var scope: Scope? = null
+
   override fun onCreate(savedInstanceState: Bundle?) {
+    createActivityRetainedScope()
+
     super.onCreate(savedInstanceState)
 
     window.addFlags(FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
@@ -267,7 +274,7 @@ class MainActivity : BaseMviActivity<MainContract.View, MainPresenter>(
     enableIndicatorAndViewPager(false)
   }
 
-  override fun createPresenter() = lifecycleScope.get<MainPresenter>()
+  override fun createPresenter() = get<MainPresenter>()
 }
 
 @WorkerThread
