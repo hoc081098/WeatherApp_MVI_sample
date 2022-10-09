@@ -17,8 +17,6 @@ import io.reactivex.disposables.Disposable
 import io.reactivex.rxkotlin.addTo
 import io.reactivex.rxkotlin.subscribeBy
 import org.koin.android.ext.android.inject
-import org.koin.android.scope.AndroidScopeComponent
-import org.koin.core.scope.Scope
 
 @ExperimentalStdlibApi
 abstract class BaseMviActivity<V : MvpView, P : MviPresenter<V, *>>(
