@@ -19,8 +19,8 @@ enum class ButtonState {
 }
 
 interface SwipeControllerActions {
-  fun onLeftClicked(adapterPosition: Int) {}
-  fun onRightClicked(adapterPosition: Int) {}
+  fun onLeftClicked(adapterPosition: Int)
+  fun onRightClicked(adapterPosition: Int)
 }
 
 class SwipeController(private val buttonsActions: SwipeControllerActions) :

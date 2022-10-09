@@ -8,17 +8,22 @@ import android.webkit.WebViewClient
 import com.hoc.weatherapp.R
 import com.hoc.weatherapp.data.CityRepository
 import com.hoc.weatherapp.data.models.entity.City
+import com.hoc.weatherapp.databinding.ActivityMapBinding
 import com.hoc.weatherapp.ui.BaseAppCompatActivity
-import kotlinx.android.synthetic.main.activity_map.*
+import com.hoc081098.viewbindingdelegate.viewBinding
 import org.koin.android.ext.android.inject
 
 @ExperimentalStdlibApi
-class MapActivity : BaseAppCompatActivity(noActionBar = false) {
+class MapActivity : BaseAppCompatActivity(
+  contentLayoutId = R.layout.activity_map,
+  noActionBar = false
+) {
+  private val binding by viewBinding<ActivityMapBinding>()
   private val cityRepository by inject<CityRepository>()
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
-    setContentView(R.layout.activity_map)
+
     supportActionBar?.run {
       setDisplayHomeAsUpEnabled(true)
       title = "Maps"
@@ -26,8 +31,8 @@ class MapActivity : BaseAppCompatActivity(noActionBar = false) {
 
     loadMap(cityRepository.selectedCity)
 
-    bottom_nav.setOnNavigationItemSelectedListener {
-      web_view.loadUrl(
+    binding.bottomNav.setOnNavigationItemSelectedListener {
+      binding.webView.loadUrl(
           when (it.itemId) {
             R.id.rain_map ->
               "javascript:map.removeLayer(windLayer);map.removeLayer(tempLayer);map.addLayer(rainLayer);"
@@ -50,7 +55,7 @@ class MapActivity : BaseAppCompatActivity(noActionBar = false) {
   }
 
   private fun loadMap(city: City?) {
-    web_view.run {
+    binding.webView.run {
       @SuppressLint("SetJavaScriptEnabled")
       settings.javaScriptEnabled = true
       loadUrl(

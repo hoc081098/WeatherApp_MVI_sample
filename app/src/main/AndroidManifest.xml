@@ -21,6 +21,7 @@
 
         <activity
             android:name=".ui.SplashActivity"
+            android:exported="true"
             android:launchMode="singleTop"
             android:theme="@style/AppTheme.SplashTheme">
             <intent-filter>
@@ -110,13 +111,12 @@
             <meta-data
                 android:name="com.hoc.weatherapp.initializer.WorkManagerInitializer"
                 android:value="androidx.startup" />
-        </provider>
 
-        <provider
-            android:name="androidx.work.impl.WorkManagerInitializer"
-            android:authorities="${applicationId}.workmanager-init"
-            tools:node="remove"
-            android:exported="false" />
+            <meta-data
+                android:name="androidx.work.WorkManagerInitializer"
+                android:value="androidx.startup"
+                tools:node="remove" />
+        </provider>
 
     </application>
 

@@ -35,7 +35,10 @@ import org.koin.android.ext.android.inject
 import kotlin.LazyThreadSafetyMode.NONE
 
 @ExperimentalStdlibApi
-class SettingsActivity : BaseAppCompatActivity(noActionBar = false) {
+class SettingsActivity : BaseAppCompatActivity(
+  contentLayoutId = 0,
+  noActionBar = false
+) {
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
 
@@ -182,8 +185,8 @@ class SettingsActivity : BaseAppCompatActivity(noActionBar = false) {
       compositeDisposable.clear()
     }
 
-    override fun onPreferenceChange(preference: Preference?, newValue: Any?): Boolean {
-      val key = preference?.key
+    override fun onPreferenceChange(preference: Preference, newValue: Any?): Boolean {
+      val key = preference.key
       when {
         key == getString(R.string.key_show_notification) && newValue is Boolean -> {
           settingPreferences.showNotificationPreference.save(newValue)

@@ -102,8 +102,8 @@ fun Context.checkLocationSettingAndGetCurrentLocation(
               if (isAccessLocationPermissionDenied(emitter)) return@addOnSuccessListener
 
               val callback = object : LocationCallback() {
-                override fun onLocationResult(locationResult: LocationResult?) {
-                  val lastLocation = locationResult?.lastLocation ?: return
+                override fun onLocationResult(locationResult: LocationResult) {
+                  val lastLocation = locationResult.lastLocation ?: return
 
                   if (!emitter.isDisposed) {
                     emitter.onNext(lastLocation)

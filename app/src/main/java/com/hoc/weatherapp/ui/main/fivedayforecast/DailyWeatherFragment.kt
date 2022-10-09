@@ -11,11 +11,14 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.snackbar.Snackbar
 import com.hannesdorfmann.mosby3.mvi.MviFragment
 import com.hoc.weatherapp.R
+import com.hoc.weatherapp.databinding.FragmentDailyWeatherBinding
+import com.hoc.weatherapp.ui.BaseMviFragment
 import com.hoc.weatherapp.ui.main.MainActivity
 import com.hoc.weatherapp.ui.main.fivedayforecast.DailyWeatherContract.RefreshIntent
 import com.hoc.weatherapp.utils.debug
 import com.hoc.weatherapp.utils.snackBar
 import com.hoc.weatherapp.utils.ui.HeaderItemDecoration
+import com.hoc081098.viewbindingdelegate.viewBinding
 import com.jakewharton.rxbinding3.swiperefreshlayout.refreshes
 import io.reactivex.Observable
 import io.reactivex.disposables.CompositeDisposable
@@ -23,11 +26,11 @@ import io.reactivex.rxkotlin.addTo
 import io.reactivex.rxkotlin.cast
 import io.reactivex.rxkotlin.subscribeBy
 import io.reactivex.subjects.PublishSubject
-import kotlinx.android.synthetic.main.fragment_daily_weather.*
 
 @ExperimentalStdlibApi
-class DailyWeatherFragment : MviFragment<DailyWeatherContract.View, DailyWeatherPresenter>(),
+class DailyWeatherFragment : BaseMviFragment<DailyWeatherContract.View, DailyWeatherPresenter>(R.layout.fragment_daily_weather),
     DailyWeatherContract.View {
+  private val binding by viewBinding<FragmentDailyWeatherBinding>()
 
   private var errorSnackBar: Snackbar? = null
   private var refreshSnackBar: Snackbar? = null
@@ -37,7 +40,7 @@ class DailyWeatherFragment : MviFragment<DailyWeatherContract.View, DailyWeather
   private val initialRefreshSubject = PublishSubject.create<RefreshIntent.InitialRefreshIntent>()
 
   override fun refreshDailyWeatherIntent(): Observable<RefreshIntent> {
-    return swipe_refresh_layout.refreshes()
+    return binding.swipeRefreshLayout.refreshes()
         .map { RefreshIntent.UserRefreshIntent }
         .cast<RefreshIntent>()
         .mergeWith(initialRefreshSubject)
@@ -46,16 +49,10 @@ class DailyWeatherFragment : MviFragment<DailyWeatherContract.View, DailyWeather
 
   override fun createPresenter() = (requireActivity() as MainActivity).lifecycleScope.get<DailyWeatherPresenter>()
 
-  override fun onCreateView(
-      inflater: LayoutInflater,
-      container: ViewGroup?,
-      savedInstanceState: Bundle?
-  ): View = inflater.inflate(R.layout.fragment_daily_weather, container, false)
-
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
     super.onViewCreated(view, savedInstanceState)
 
-    recycler_daily_weathers.run {
+    binding.recyclerDailyWeathers.run {
       setHasFixedSize(true)
       val linearLayoutManager = LinearLayoutManager(context)
       layoutManager = linearLayoutManager
@@ -97,7 +94,7 @@ class DailyWeatherFragment : MviFragment<DailyWeatherContract.View, DailyWeather
   }
 
   override fun render(viewState: DailyWeatherContract.ViewState) {
-    swipe_refresh_layout.isRefreshing = false
+    binding.swipeRefreshLayout.isRefreshing = false
 
     dailyWeatherAdapter.submitList(viewState.dailyWeatherListItem)
 

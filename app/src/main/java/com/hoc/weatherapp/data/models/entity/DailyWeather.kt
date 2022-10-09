@@ -4,7 +4,7 @@ import android.os.Parcelable
 import androidx.room.*
 import androidx.room.ForeignKey.CASCADE
 import kotlinx.android.parcel.IgnoredOnParcel
-import kotlinx.android.parcel.Parcelize
+import kotlinx.parcelize.Parcelize
 import java.util.*
 
 @Parcelize
