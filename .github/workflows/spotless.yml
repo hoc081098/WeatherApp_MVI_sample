@@ -1,21 +1,15 @@
-name: reviewdog-suggester
+name: spotless
 on:
-  pull_request:
-    types: [ opened, synchronize, reopened ]
+  push:
     branches: [ try_mvi ]
     paths-ignore: [ '**.md' ]
 
 jobs:
-  kotlin:
-    name: runner / suggester / spotless
+  spotless-check:
+    name: Spotless check
     runs-on: ubuntu-latest
     steps:
-      - name: Check try_mvi branch
-        uses: actions/checkout@v3
-        with:
-          ref: try_mvi
-
-      - name: Checkout current branch
+      - name: Check out
         uses: actions/checkout@v3
 
       - name: Setup Java
@@ -42,17 +36,5 @@ jobs:
           BASEURL: ${{ secrets.PLACE_API_KEY }}
         run: echo PLACE_API_KEY="$PLACE_API_KEY" > ./local.properties
 
-      - name: Spotless apply
-        run: ./gradlew spotlessKotlinApply
-
-      - name: Reviewdog
-        uses: reviewdog/action-suggester@v1
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          tool_name: spotless
-
-      - name: Make gradlew executable
-        run: chmod +x ./gradlew
-
       - name: Spotless check
-        run: ./gradlew spotlessKotlinCheck
+        run: ./gradlew spotlessCheck
