@@ -1,6 +1,7 @@
 # WeatherApp
 
 [![Build CI](https://github.com/hoc081098/WeatherApp_MVI_sample/actions/workflows/build.yml/badge.svg)](https://github.com/hoc081098/WeatherApp_MVI_sample/actions/workflows/build.yml)
+[![spotless](https://github.com/hoc081098/WeatherApp_MVI_sample/actions/workflows/spotless.yml/badge.svg)](https://github.com/hoc081098/WeatherApp_MVI_sample/actions/workflows/spotless.yml)
 
 ## Sreenshots
 |  |  |   |
