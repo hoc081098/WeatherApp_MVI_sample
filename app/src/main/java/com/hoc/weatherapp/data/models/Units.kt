@@ -2,6 +2,7 @@ package com.hoc.weatherapp.data.models
 
 import com.hoc.weatherapp.utils.UnitConverter
 import java.text.DecimalFormat
+import java.util.Locale
 
 private val NUMBER_FORMAT = DecimalFormat("#.#")
 
@@ -35,7 +36,7 @@ enum class TemperatureUnit {
 
   companion object {
     fun fromString(s: String): TemperatureUnit {
-      return when (s.toLowerCase()) {
+      return when (s.lowercase()) {
         "celsius" -> CELSIUS
         "metric" -> CELSIUS
         "kelvin" -> KELVIN

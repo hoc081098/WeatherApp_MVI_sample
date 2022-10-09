@@ -3,8 +3,8 @@ package com.hoc.weatherapp.data.models.entity
 import android.os.Parcelable
 import androidx.room.*
 import androidx.room.ForeignKey.CASCADE
-import kotlinx.android.parcel.IgnoredOnParcel
 import kotlinx.parcelize.Parcelize
+import kotlinx.parcelize.IgnoredOnParcel
 import java.util.*
 
 @Parcelize

@@ -21,7 +21,7 @@ class WorkManagerInitializer : Initializer<Unit> {
             .build()
     )
 
-    WorkManager.getInstance().run {
+    WorkManager.getInstance(context).run {
       getWorkInfosForUniqueWorkLiveData(UpdateDailyWeatherWorker.UNIQUE_WORK_NAME)
           .observeForever {
             it.forEach { workInfo ->
