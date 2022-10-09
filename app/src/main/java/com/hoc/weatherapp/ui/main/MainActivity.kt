@@ -54,9 +54,12 @@ import org.koin.androidx.scope.createActivityRetainedScope
 import org.koin.core.scope.Scope
 
 @ExperimentalStdlibApi
-class MainActivity : BaseMviActivity<MainContract.View, MainPresenter>(
-  contentLayoutId = R.layout.activity_main
-), MainContract.View, AndroidScopeComponent {
+class MainActivity :
+  BaseMviActivity<MainContract.View, MainPresenter>(
+    contentLayoutId = R.layout.activity_main
+  ),
+  MainContract.View,
+  AndroidScopeComponent {
   private val binding by viewBinding<ActivityMainBinding>()
 
   private var mediaPlayer: MediaPlayer? = null
@@ -156,7 +159,6 @@ class MainActivity : BaseMviActivity<MainContract.View, MainPresenter>(
     }
   }
 
-
   private fun updateBackground(
     weather: CurrentWeather,
     city: City
@@ -189,7 +191,6 @@ class MainActivity : BaseMviActivity<MainContract.View, MainPresenter>(
       })
       .also { target1 = it }
   }
-
 
   private fun stopSound() {
     runCatching {

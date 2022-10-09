@@ -1,9 +1,9 @@
 package com.hoc.weatherapp.utils
 
+import java.util.*
 import org.threeten.bp.Instant
 import org.threeten.bp.ZoneId
 import org.threeten.bp.ZonedDateTime
-import java.util.*
 
 private val CALENDAR = Calendar.getInstance()
 
@@ -21,5 +21,5 @@ fun Date.trim(): Date {
 
 fun Date.toZonedDateTime(zoneId: String): ZonedDateTime {
   return Instant.ofEpochMilli(time)
-      .atZone(runCatching { ZoneId.of(zoneId) }.getOrElse { ZoneId.systemDefault() })
+    .atZone(runCatching { ZoneId.of(zoneId) }.getOrElse { ZoneId.systemDefault() })
 }

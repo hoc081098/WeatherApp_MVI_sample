@@ -2,7 +2,6 @@ package com.hoc.weatherapp.data.models
 
 import com.hoc.weatherapp.utils.UnitConverter
 import java.text.DecimalFormat
-import java.util.Locale
 
 private val NUMBER_FORMAT = DecimalFormat("#.#")
 
@@ -19,10 +18,10 @@ enum class TemperatureUnit {
 
   fun format(temperatureInKelvin: Double): String {
     return NUMBER_FORMAT.format(
-        UnitConverter.convertTemperature(
-            temperatureInKelvin,
-            this
-        )
+      UnitConverter.convertTemperature(
+        temperatureInKelvin,
+        this
+      )
     ) + symbol()
   }
 
@@ -56,10 +55,10 @@ enum class SpeedUnit {
 
   fun format(speedInMetersPerSecond: Double): String {
     return NUMBER_FORMAT.format(
-        UnitConverter.convertSpeed(
-            speedInMetersPerSecond,
-            this
-        )
+      UnitConverter.convertSpeed(
+        speedInMetersPerSecond,
+        this
+      )
     ) + symbol()
   }
 
@@ -72,17 +71,16 @@ enum class SpeedUnit {
   }
 }
 
-
 enum class PressureUnit {
   HPA,
   MM_HG;
 
   fun format(pressureIn_hPa: Double): String {
     return NUMBER_FORMAT.format(
-        UnitConverter.convertPressure(
-            pressureIn_hPa,
-            this
-        )
+      UnitConverter.convertPressure(
+        pressureIn_hPa,
+        this
+      )
     ) + symbol()
   }
 

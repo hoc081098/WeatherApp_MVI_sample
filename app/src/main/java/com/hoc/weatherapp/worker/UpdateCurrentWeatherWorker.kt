@@ -1,6 +1,5 @@
 package com.hoc.weatherapp.worker
 
-import android.app.Application
 import android.content.Context
 import androidx.work.RxWorker
 import androidx.work.WorkerParameters
@@ -20,8 +19,8 @@ import org.koin.core.component.inject
 import org.threeten.bp.LocalDateTime
 
 class UpdateCurrentWeatherWorker(
-    context: Context,
-    workerParams: WorkerParameters
+  context: Context,
+  workerParams: WorkerParameters
 ) : RxWorker(context, workerParams), KoinComponent {
 
   private val currentWeatherRepository by inject<CurrentWeatherRepository>()
@@ -34,23 +33,23 @@ class UpdateCurrentWeatherWorker(
   @ExperimentalStdlibApi
   override fun createWork(): Single<Result> {
     return currentWeatherRepository
-        .refreshCurrentWeatherOfSelectedCity()
-        .doOnSubscribe { debug("[RUNNING] doWork ${LocalDateTime.now()}", TAG) }
-        .doOnSuccess {
-          debug("[SUCCESS] doWork $it", TAG)
-          applicationContext.showNotificationIfEnabled(it, settingPreferences)
-        }
-        .doOnError {
-          debug("[FAILURE] doWork $it", TAG)
+      .refreshCurrentWeatherOfSelectedCity()
+      .doOnSubscribe { debug("[RUNNING] doWork ${LocalDateTime.now()}", TAG) }
+      .doOnSuccess {
+        debug("[SUCCESS] doWork $it", TAG)
+        applicationContext.showNotificationIfEnabled(it, settingPreferences)
+      }
+      .doOnError {
+        debug("[FAILURE] doWork $it", TAG)
 
-          if (it is NoSelectedCityException) {
-            debug("[FAILURE] cancel work request and notification", TAG)
-            applicationContext.cancelNotificationById(WEATHER_NOTIFICATION_ID)
-            cancelUpdateCurrentWeatherWorkRequest()
-          }
+        if (it is NoSelectedCityException) {
+          debug("[FAILURE] cancel work request and notification", TAG)
+          applicationContext.cancelNotificationById(WEATHER_NOTIFICATION_ID)
+          cancelUpdateCurrentWeatherWorkRequest()
         }
-        .map { Result.success(workDataOf(RESULT to "Update current success")) }
-        .onErrorReturn { Result.failure(workDataOf(RESULT to "Update current failure: ${it.message}")) }
+      }
+      .map { Result.success(workDataOf(RESULT to "Update current success")) }
+      .onErrorReturn { Result.failure(workDataOf(RESULT to "Update current failure: ${it.message}")) }
   }
 
   companion object {

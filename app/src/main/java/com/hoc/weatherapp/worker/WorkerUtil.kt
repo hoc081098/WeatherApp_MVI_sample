@@ -1,6 +1,10 @@
 package com.hoc.weatherapp.worker
 
-import androidx.work.*
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.ListenableWorker
+import androidx.work.Operation
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
 import com.google.common.util.concurrent.ListenableFuture
 import com.hoc.weatherapp.utils.debug
 import java.util.concurrent.Executor
@@ -27,24 +31,24 @@ object WorkerUtil {
    * [Operation.State.SUCCESS] state.
    */
   private inline fun <reified T : ListenableWorker> enqueuePeriodic(
-      tag: String,
-      uniqueName: String
+    tag: String,
+    uniqueName: String
   ): ListenableFuture<Operation.State.SUCCESS> {
     val request = PeriodicWorkRequestBuilder<T>(
-        repeatInterval = 20,
-        repeatIntervalTimeUnit = TimeUnit.MINUTES,
-        flexTimeInterval = 5,
-        flexTimeIntervalUnit = TimeUnit.MINUTES
+      repeatInterval = 20,
+      repeatIntervalTimeUnit = TimeUnit.MINUTES,
+      flexTimeInterval = 5,
+      flexTimeIntervalUnit = TimeUnit.MINUTES
     ).addTag(tag).build()
 
     return WorkManager
-        .getInstance()
-        .enqueueUniquePeriodicWork(
-            uniqueName,
-            ExistingPeriodicWorkPolicy.REPLACE,
-            request
-        )
-        .result
+      .getInstance()
+      .enqueueUniquePeriodicWork(
+        uniqueName,
+        ExistingPeriodicWorkPolicy.REPLACE,
+        request
+      )
+      .result
   }
 
   /**
@@ -72,8 +76,8 @@ object WorkerUtil {
     val tag = UpdateCurrentWeatherWorker.TAG
 
     enqueuePeriodic<UpdateCurrentWeatherWorker>(
-        uniqueName = UpdateCurrentWeatherWorker.UNIQUE_WORK_NAME,
-        tag = tag
+      uniqueName = UpdateCurrentWeatherWorker.UNIQUE_WORK_NAME,
+      tag = tag
     ) then { debug("[SUCCESS] enqueue current", tag) }
   }
 
@@ -85,8 +89,8 @@ object WorkerUtil {
     val tag = UpdateDailyWeatherWorker.TAG
 
     enqueuePeriodic<UpdateDailyWeatherWorker>(
-        uniqueName = UpdateDailyWeatherWorker.UNIQUE_WORK_NAME,
-        tag = tag
+      uniqueName = UpdateDailyWeatherWorker.UNIQUE_WORK_NAME,
+      tag = tag
     ) then { debug("[SUCCESS] enqueue daily", tag) }
   }
 

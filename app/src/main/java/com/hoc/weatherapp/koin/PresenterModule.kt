@@ -13,7 +13,8 @@ import org.koin.android.ext.koin.androidApplication
 import org.koin.core.scope.Scope
 import org.koin.dsl.module
 
-@ExperimentalStdlibApi val presenterModule = module {
+@ExperimentalStdlibApi
+val presenterModule = module {
   factory { getCitiesPresenter() }
 
   factory { getCurrentWeatherPresenter() }

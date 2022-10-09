@@ -9,8 +9,8 @@ import io.reactivex.subjects.BehaviorSubject
 
 class ColorHolderSource(androidApplication: Application) {
   private val subject = BehaviorSubject.createDefault(
-      androidApplication.themeColor(R.attr.colorPrimaryVariant) to
-          androidApplication.themeColor(R.attr.colorSecondary)
+    androidApplication.themeColor(R.attr.colorPrimaryVariant) to
+      androidApplication.themeColor(R.attr.colorSecondary)
   )
 
   val colorObservable = subject.asObservable()

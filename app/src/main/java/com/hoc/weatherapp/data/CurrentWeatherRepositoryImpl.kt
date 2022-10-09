@@ -20,79 +20,81 @@ import io.reactivex.rxkotlin.zipWith
 import io.reactivex.schedulers.Schedulers
 
 class CurrentWeatherRepositoryImpl(
-    private val openWeatherMapApiService: OpenWeatherMapApiService,
-    private val timezoneDbApiService: TimezoneDbApiService,
-    private val currentWeatherLocalDataSource: CurrentWeatherLocalDataSource,
-    private val fiveDayForecastLocalDataSource: FiveDayForecastLocalDataSource,
-    private val cityLocalDataSource: CityLocalDataSource,
-    private val selectedCityPreference: SelectedCityPreference
+  private val openWeatherMapApiService: OpenWeatherMapApiService,
+  private val timezoneDbApiService: TimezoneDbApiService,
+  private val currentWeatherLocalDataSource: CurrentWeatherLocalDataSource,
+  private val fiveDayForecastLocalDataSource: FiveDayForecastLocalDataSource,
+  private val cityLocalDataSource: CityLocalDataSource,
+  private val selectedCityPreference: SelectedCityPreference
 ) : CurrentWeatherRepository {
   private val selectedCityAndCurrentWeatherObservable =
-      selectedCityPreference
-          .observable
-          .distinctUntilChanged()
-          .switchMap { optionalCity ->
-            when (optionalCity) {
-              is Some -> currentWeatherLocalDataSource
-                  .getCityAndCurrentWeatherByCityId(optionalCity.value.id)
-                  .subscribeOn(Schedulers.io())
-                  .map(::Some)
-              is None -> Observable.just(None)
-            }
-          }
-          .replay(1)
-          .autoConnect(0)
+    selectedCityPreference
+      .observable
+      .distinctUntilChanged()
+      .switchMap { optionalCity ->
+        when (optionalCity) {
+          is Some ->
+            currentWeatherLocalDataSource
+              .getCityAndCurrentWeatherByCityId(optionalCity.value.id)
+              .subscribeOn(Schedulers.io())
+              .map(::Some)
+          is None -> Observable.just(None)
+        }
+      }
+      .replay(1)
+      .autoConnect(0)
 
   private val refreshCurrentWeatherOfSelectedCitySingle =
-      Single.fromCallable { selectedCityPreference.value }
-          .flatMap { cityOptional ->
-            when (cityOptional) {
-              is None -> Single.error(NoSelectedCityException)
-              is Some -> openWeatherMapApiService
-                  .getCurrentWeatherByCityId(cityOptional.value.id)
-                  .subscribeOn(Schedulers.io())
-                  .zipWith(getZoneIdIfNeeded(cityOptional.value))
-                  .flatMap {
-                    saveCityAndCurrentWeather(
-                        cityLocalDataSource,
-                        currentWeatherLocalDataSource,
-                        it.first,
-                        it.second
-                    )
-                  }
-            }
-          }
+    Single.fromCallable { selectedCityPreference.value }
+      .flatMap { cityOptional ->
+        when (cityOptional) {
+          is None -> Single.error(NoSelectedCityException)
+          is Some ->
+            openWeatherMapApiService
+              .getCurrentWeatherByCityId(cityOptional.value.id)
+              .subscribeOn(Schedulers.io())
+              .zipWith(getZoneIdIfNeeded(cityOptional.value))
+              .flatMap {
+                saveCityAndCurrentWeather(
+                  cityLocalDataSource,
+                  currentWeatherLocalDataSource,
+                  it.first,
+                  it.second
+                )
+              }
+        }
+      }
 
   override fun getAllCityAndCurrentWeathers(querySearch: String): Observable<List<CityAndCurrentWeather>> {
     return currentWeatherLocalDataSource
-        .getAllCityAndCurrentWeathers(querySearch)
-        .subscribeOn(Schedulers.io())
+      .getAllCityAndCurrentWeathers(querySearch)
+      .subscribeOn(Schedulers.io())
   }
 
   override fun getSelectedCityAndCurrentWeatherOfSelectedCity() =
-      selectedCityAndCurrentWeatherObservable
+    selectedCityAndCurrentWeatherObservable
 
   override fun refreshCurrentWeatherOfSelectedCity() = refreshCurrentWeatherOfSelectedCitySingle
 
   override fun refreshWeatherOf(city: City): Single<Pair<CityAndCurrentWeather, List<DailyWeather>>> {
     return openWeatherMapApiService
-        .getCurrentWeatherByCityId(city.id)
-        .subscribeOn(Schedulers.io())
-        .zipWith(getZoneIdIfNeeded(city))
-        .flatMap {
-          saveCityAndCurrentWeather(
-              cityLocalDataSource,
-              currentWeatherLocalDataSource,
-              it.first,
-              it.second
-          )
-        }
-        .zipWith(
-            openWeatherMapApiService
-                .get5DayEvery3HourForecastByCityId(city.id)
-                .subscribeOn(Schedulers.io())
-                .flatMap { saveFiveDayForecastWeather(fiveDayForecastLocalDataSource, it) }
+      .getCurrentWeatherByCityId(city.id)
+      .subscribeOn(Schedulers.io())
+      .zipWith(getZoneIdIfNeeded(city))
+      .flatMap {
+        saveCityAndCurrentWeather(
+          cityLocalDataSource,
+          currentWeatherLocalDataSource,
+          it.first,
+          it.second
         )
+      }
+      .zipWith(
+        openWeatherMapApiService
+          .get5DayEvery3HourForecastByCityId(city.id)
+          .subscribeOn(Schedulers.io())
+          .flatMap { saveFiveDayForecastWeather(fiveDayForecastLocalDataSource, it) }
+      )
   }
 
   private fun getZoneIdIfNeeded(city: City): Single<String> {

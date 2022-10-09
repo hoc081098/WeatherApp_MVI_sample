@@ -29,8 +29,8 @@ class HeaderItemDecoration<VB : ViewBinding>(private val listener: StickyHeaderI
 
     val childInContact = getChildInContact(parent, headerView.bottom)
 
-    if (childInContact != null
-      && parent.getChildAdapterPosition(childInContact)
+    if (childInContact != null &&
+      parent.getChildAdapterPosition(childInContact)
         .let { it != RecyclerView.NO_POSITION && listener.isHeader(it) }
     ) {
       moveHeader(c, headerView, childInContact)
@@ -62,7 +62,6 @@ class HeaderItemDecoration<VB : ViewBinding>(private val listener: StickyHeaderI
   }
 
   private fun fixLayoutSize(parent: ViewGroup, view: View) {
-
     // Specs for parent (RecyclerView)
     val widthSpec = View.MeasureSpec.makeMeasureSpec(parent.width, View.MeasureSpec.EXACTLY)
     val heightSpec = View.MeasureSpec.makeMeasureSpec(parent.height, View.MeasureSpec.UNSPECIFIED)

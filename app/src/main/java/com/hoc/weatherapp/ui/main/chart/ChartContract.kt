@@ -8,10 +8,10 @@ import com.hoc.weatherapp.data.models.entity.DailyWeather
 
 interface ChartContract {
   data class ViewState(
-      val weathers: List<DailyWeather>,
-      val temperatureUnit: TemperatureUnit,
-      val pressureUnit: PressureUnit,
-      val speedUnit: SpeedUnit
+    val weathers: List<DailyWeather>,
+    val temperatureUnit: TemperatureUnit,
+    val pressureUnit: PressureUnit,
+    val speedUnit: SpeedUnit
   )
 
   interface View : MvpView {

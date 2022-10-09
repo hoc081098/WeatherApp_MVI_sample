@@ -1,6 +1,5 @@
 package com.hoc.weatherapp.worker
 
-import android.app.Application
 import android.content.Context
 import androidx.work.RxWorker
 import androidx.work.WorkerParameters
@@ -18,8 +17,8 @@ import org.koin.core.component.inject
 import org.threeten.bp.LocalDateTime
 
 class UpdateDailyWeatherWorker(
-    context: Context,
-    workerParams: WorkerParameters
+  context: Context,
+  workerParams: WorkerParameters
 ) : RxWorker(context, workerParams), KoinComponent {
   private val fiveDayForecastRepository by inject<FiveDayForecastRepository>()
 
@@ -29,20 +28,20 @@ class UpdateDailyWeatherWorker(
 
   override fun createWork(): Single<Result> {
     return fiveDayForecastRepository
-        .refreshFiveDayForecastOfSelectedCity()
-        .doOnSubscribe { debug("[RUNNING] doWork ${LocalDateTime.now()}", TAG) }
-        .doOnSuccess { debug("[SUCCESS] doWork $it", TAG) }
-        .doOnError {
-          debug("[FAILURE] doWork $it", TAG)
+      .refreshFiveDayForecastOfSelectedCity()
+      .doOnSubscribe { debug("[RUNNING] doWork ${LocalDateTime.now()}", TAG) }
+      .doOnSuccess { debug("[SUCCESS] doWork $it", TAG) }
+      .doOnError {
+        debug("[FAILURE] doWork $it", TAG)
 
-          if (it is NoSelectedCityException) {
-            debug("[FAILURE] cancel work request and notification", TAG)
-            applicationContext.cancelNotificationById(WEATHER_NOTIFICATION_ID)
-            cancelUpdateDailyWeatherWorkRequest()
-          }
+        if (it is NoSelectedCityException) {
+          debug("[FAILURE] cancel work request and notification", TAG)
+          applicationContext.cancelNotificationById(WEATHER_NOTIFICATION_ID)
+          cancelUpdateDailyWeatherWorkRequest()
         }
-        .map { Result.success(workDataOf(RESULT to "Update daily success")) }
-        .onErrorReturn { Result.failure(workDataOf(RESULT to "Update daily failure: ${it.message}")) }
+      }
+      .map { Result.success(workDataOf(RESULT to "Update daily success")) }
+      .onErrorReturn { Result.failure(workDataOf(RESULT to "Update daily failure: ${it.message}")) }
   }
 
   companion object {

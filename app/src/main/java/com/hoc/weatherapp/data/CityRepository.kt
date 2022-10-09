@@ -6,7 +6,6 @@ import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
 
-
 interface CityRepository {
   /**
    * Change selected city to [city]
