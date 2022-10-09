@@ -31,8 +31,8 @@ jobs:
 
       - name: Build debug APK
         uses: gradle/gradle-build-action@v2
-          with:
-            arguments: assembleDebug --warning-mode all --stacktrace
+        with:
+          arguments: assembleDebug --warning-mode all --stacktrace
 
       - name: Upload APK
         uses: actions/upload-artifact@v3
