@@ -207,7 +207,7 @@ class MainActivity :
   }
 
   override fun render(state: MainContract.ViewState) {
-    window.statusBarColor = state.vibrantColor
+    window.statusBarColor = state.statusBarColor
     when (state) {
       is MainContract.ViewState.NoSelectedCity -> renderNoSelectedCity()
       is MainContract.ViewState.CityAndWeather -> renderCityAndWeather(state)

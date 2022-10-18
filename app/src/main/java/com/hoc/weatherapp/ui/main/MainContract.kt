@@ -11,15 +11,16 @@ import io.reactivex.Observable
 
 interface MainContract {
   sealed class ViewState {
-    abstract val vibrantColor: Int
+    @get:ColorInt
+    abstract val statusBarColor: Int
 
     data class CityAndWeather(
       val city: City,
       val weather: CurrentWeather,
-      @ColorInt override val vibrantColor: Int
+      @ColorInt override val statusBarColor: Int
     ) : ViewState()
 
-    data class NoSelectedCity(@ColorInt override val vibrantColor: Int) : ViewState()
+    data class NoSelectedCity(@ColorInt override val statusBarColor: Int) : ViewState()
   }
 
   data class BitmapAndBackgroundId(

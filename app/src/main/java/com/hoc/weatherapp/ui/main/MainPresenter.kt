@@ -1,20 +1,17 @@
 package com.hoc.weatherapp.ui.main
 
-import android.app.Application
 import android.graphics.Bitmap
 import androidx.annotation.ColorInt
 import androidx.annotation.WorkerThread
 import androidx.palette.graphics.Palette
 import androidx.palette.graphics.Target
 import com.hannesdorfmann.mosby3.mvi.MviBasePresenter
-import com.hoc.weatherapp.R
 import com.hoc.weatherapp.data.CurrentWeatherRepository
 import com.hoc.weatherapp.ui.main.MainContract.ViewState.CityAndWeather
 import com.hoc.weatherapp.ui.main.MainContract.ViewState.NoSelectedCity
 import com.hoc.weatherapp.utils.None
 import com.hoc.weatherapp.utils.Some
 import com.hoc.weatherapp.utils.debug
-import com.hoc.weatherapp.utils.themeColor
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
@@ -24,22 +21,21 @@ import java.util.concurrent.ConcurrentHashMap
 
 class MainPresenter(
   currentWeatherRepository: CurrentWeatherRepository,
-  private val colorHolderSource: ColorHolderSource,
-  private val androidApplication: Application
+  private val colorHolderSource: ColorHolderSource
 ) : MviBasePresenter<MainContract.View, MainContract.ViewState>() {
   private var disposable: Disposable? = null
-  private val colorCache = ConcurrentHashMap<Int, Pair<Int, Int>>()
+  private val colorCache = ConcurrentHashMap<Int, ColorHolderSource.Colors>()
 
   private val state = Observables.combineLatest(
     source1 = currentWeatherRepository.getSelectedCityAndCurrentWeatherOfSelectedCity(),
     source2 = colorHolderSource.colorObservable
-  ).map {
-    when (val optional = it.first) {
-      None -> NoSelectedCity(androidApplication.themeColor(R.attr.colorPrimaryVariant))
+  ) { weatherOptional, colorHolder ->
+    when (weatherOptional) {
+      None -> NoSelectedCity(colorHolderSource.defaultStatusBarColor)
       is Some -> CityAndWeather(
-        city = optional.value.city,
-        weather = optional.value.currentWeather,
-        vibrantColor = it.second.first
+        city = weatherOptional.value.city,
+        weather = weatherOptional.value.currentWeather,
+        statusBarColor = colorHolder.statusBarColor
       )
     }
   }
@@ -60,10 +56,10 @@ class MainPresenter(
 
             Observable
               .fromCallable {
-                getVibrantColor(
+                getColors(
                   resource = bitmap,
-                  colorPrimaryVariant = colorHolderSource.defaultColorPrimaryVariant,
-                  colorSecondary = colorHolderSource.defaultColorSecondary,
+                  defaultStatusBarColor = colorHolderSource.defaultStatusBarColor,
+                  defaultBackgroundColor = colorHolderSource.defaultBackgroundColor,
                 )
               }
               .doOnNext {
@@ -94,29 +90,29 @@ class MainPresenter(
 }
 
 @WorkerThread
-private fun getVibrantColor(
+private fun getColors(
   resource: Bitmap,
-  @ColorInt colorPrimaryVariant: Int,
-  @ColorInt colorSecondary: Int,
-): Pair<Int, Int> {
+  @ColorInt defaultStatusBarColor: Int,
+  @ColorInt defaultBackgroundColor: Int,
+): ColorHolderSource.Colors {
   return Palette
     .from(resource)
     .generate()
     .let { palette ->
-      @ColorInt val darkColor = listOf(
+      @ColorInt val statusBarColor = listOf(
         palette.getSwatchForTarget(Target.DARK_VIBRANT)?.rgb,
         palette.getSwatchForTarget(Target.VIBRANT)?.rgb,
         palette.getSwatchForTarget(Target.LIGHT_VIBRANT)?.rgb,
         palette.getSwatchForTarget(Target.DARK_MUTED)?.rgb,
         palette.getSwatchForTarget(Target.MUTED)?.rgb,
         palette.getSwatchForTarget(Target.DARK_MUTED)?.rgb
-      ).find { it !== null } ?: colorPrimaryVariant
+      ).find { it !== null } ?: defaultStatusBarColor
 
-      @ColorInt val lightColor = listOf(
+      @ColorInt val backgroundColor = listOf(
         palette.getSwatchForTarget(Target.LIGHT_VIBRANT)?.rgb,
         palette.getSwatchForTarget(Target.LIGHT_MUTED)?.rgb
-      ).find { it !== null } ?: colorSecondary
+      ).find { it !== null } ?: defaultBackgroundColor
 
-      darkColor to lightColor
+      ColorHolderSource.Colors(statusBarColor, backgroundColor)
     }
 }

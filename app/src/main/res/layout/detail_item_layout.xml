@@ -8,7 +8,7 @@
     android:padding="4dp">
 
     <ImageView
-        android:id="@+id/imageView5"
+        android:id="@+id/imageView"
         android:layout_width="48dp"
         android:layout_height="48dp"
         android:adjustViewBounds="true"
@@ -35,6 +35,6 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toEndOf="@+id/imageView5"
+        app:layout_constraintStart_toEndOf="@+id/imageView"
         app:layout_constraintTop_toTopOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>
