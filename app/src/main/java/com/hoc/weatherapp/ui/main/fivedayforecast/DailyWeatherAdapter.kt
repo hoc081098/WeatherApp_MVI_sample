@@ -67,7 +67,7 @@ class DailyWeatherAdapter :
         textView = textViewDate,
         headerItem = headerItem,
         itemView = root,
-        iconBackgroundColor = weather?.colors?.first
+        iconBackgroundColor = weather?.colors?.statusBarColor
       )
       textViewDate.setTextColor(ContextCompat.getColor(root.context, R.color.colorHeaderText))
     }
@@ -126,13 +126,20 @@ class DailyWeatherAdapter :
       textTempMax.text = weather.temperatureMax
       textWeather.text = weather.weatherDescription
       textViewDataTime.text = ITEM_DATE_FORMATTER.format(weather.dataTime)
-      imageIconCityItem.setBackgroundColor(weather.colors.first)
+      imageIconCityItem.setBackgroundColor(weather.colors.statusBarColor)
 
       Glide.with(itemView.context)
         .load(itemView.context.getIconDrawableFromDailyWeather(weather.weatherIcon))
-        .apply(RequestOptions.fitCenterTransform().centerCrop())
+        .apply(
+          RequestOptions
+            .fitCenterTransform()
+            .centerCrop()
+        )
         .transition(DrawableTransitionOptions.withCrossFade())
-        .apply(ColorDrawable(weather.colors.first).let(RequestOptions::placeholderOf))
+        .apply(
+          ColorDrawable(weather.colors.statusBarColor)
+            .let(RequestOptions::placeholderOf)
+        )
         .into(imageIconCityItem)
 
       Unit

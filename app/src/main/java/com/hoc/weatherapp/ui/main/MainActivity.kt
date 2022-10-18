@@ -10,13 +10,9 @@ import android.view.View
 import android.view.WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS
 import android.view.WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS
 import android.widget.ImageView
-import androidx.annotation.ColorInt
-import androidx.annotation.WorkerThread
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentPagerAdapter
-import androidx.palette.graphics.Palette
-import androidx.palette.graphics.Target
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.BitmapTransitionOptions
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
@@ -40,13 +36,10 @@ import com.hoc.weatherapp.utils.Some
 import com.hoc.weatherapp.utils.blur.GlideBlurTransformation
 import com.hoc.weatherapp.utils.debug
 import com.hoc.weatherapp.utils.startActivity
-import com.hoc.weatherapp.utils.themeColor
 import com.hoc.weatherapp.utils.ui.ZoomOutPageTransformer
 import com.hoc.weatherapp.utils.ui.getBackgroundDrawableFromWeather
 import com.hoc.weatherapp.utils.ui.getSoundUriFromCurrentWeather
 import com.hoc081098.viewbindingdelegate.viewBinding
-import io.reactivex.Observable
-import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.PublishSubject
 import org.koin.android.ext.android.get
 import org.koin.android.scope.AndroidScopeComponent
@@ -63,7 +56,8 @@ class MainActivity :
   private val binding by viewBinding<ActivityMainBinding>()
 
   private var mediaPlayer: MediaPlayer? = null
-  private val changeBackground = PublishSubject.create<Optional<Bitmap>>()
+  private val changeBackground =
+    PublishSubject.create<Optional<MainContract.BitmapAndBackgroundId>>()
 
   private var target1: CustomViewTarget<*, *>? = null
   private var target2: CustomViewTarget<*, *>? = null
@@ -163,6 +157,8 @@ class MainActivity :
     weather: CurrentWeather,
     city: City
   ) {
+    val backgroundId = getBackgroundDrawableFromWeather(weather, city)
+
     Glide
       .with(this)
       .apply {
@@ -171,7 +167,7 @@ class MainActivity :
         changeBackground.onNext(None)
       }
       .asBitmap()
-      .load(getBackgroundDrawableFromWeather(weather, city))
+      .load(backgroundId)
       .apply(
         RequestOptions
           .bitmapTransform(GlideBlurTransformation(this, 20f))
@@ -186,7 +182,7 @@ class MainActivity :
 
         override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
           view.setImageBitmap(resource)
-          changeBackground.onNext(Some(resource))
+          changeBackground.onNext(Some(MainContract.BitmapAndBackgroundId(resource, backgroundId)))
         }
       })
       .also { target1 = it }
@@ -211,32 +207,14 @@ class MainActivity :
   }
 
   override fun render(state: MainContract.ViewState) {
-    window.statusBarColor = state.vibrantColor
+    window.statusBarColor = state.statusBarColor
     when (state) {
       is MainContract.ViewState.NoSelectedCity -> renderNoSelectedCity()
       is MainContract.ViewState.CityAndWeather -> renderCityAndWeather(state)
     }
   }
 
-  override fun changeColorIntent(): Observable<Pair<Int, Int>> {
-    return changeBackground
-      .switchMap { optional ->
-        when (optional) {
-          is Some -> {
-            Observable
-              .fromCallable {
-                getVibrantColor(
-                  resource = optional.value,
-                  colorPrimaryVariant = themeColor(R.attr.colorPrimaryVariant),
-                  colorSecondary = themeColor(R.attr.colorSecondary),
-                )
-              }
-              .subscribeOn(Schedulers.computation())
-          }
-          None -> Observable.empty()
-        }
-      }
-  }
+  override fun changeColorIntent() = changeBackground
 
   private fun renderCityAndWeather(state: MainContract.ViewState.CityAndWeather) {
     updateBackground(state.weather, state.city)
@@ -276,32 +254,4 @@ class MainActivity :
   }
 
   override fun createPresenter() = get<MainPresenter>()
-}
-
-@WorkerThread
-private fun getVibrantColor(
-  resource: Bitmap,
-  @ColorInt colorPrimaryVariant: Int,
-  @ColorInt colorSecondary: Int,
-): Pair<Int, Int> {
-  return Palette
-    .from(resource)
-    .generate()
-    .let { palette ->
-      @ColorInt val darkColor = listOf(
-        palette.getSwatchForTarget(Target.DARK_VIBRANT)?.rgb,
-        palette.getSwatchForTarget(Target.VIBRANT)?.rgb,
-        palette.getSwatchForTarget(Target.LIGHT_VIBRANT)?.rgb,
-        palette.getSwatchForTarget(Target.DARK_MUTED)?.rgb,
-        palette.getSwatchForTarget(Target.MUTED)?.rgb,
-        palette.getSwatchForTarget(Target.DARK_MUTED)?.rgb
-      ).find { it !== null } ?: colorPrimaryVariant
-
-      @ColorInt val lightColor = listOf(
-        palette.getSwatchForTarget(Target.LIGHT_VIBRANT)?.rgb,
-        palette.getSwatchForTarget(Target.LIGHT_MUTED)?.rgb
-      ).find { it !== null } ?: colorSecondary
-
-      darkColor to lightColor
-    }
 }
