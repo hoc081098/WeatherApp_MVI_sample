@@ -82,7 +82,7 @@ dependencies {
 
     // play services
     implementation 'com.google.android.gms:play-services-location:20.0.0'
-    implementation 'com.google.android.libraries.places:places:2.6.0'
+    implementation 'com.google.android.libraries.places:places:2.7.0'
 
     // room persistence
     final roomVersion = '2.4.3'
