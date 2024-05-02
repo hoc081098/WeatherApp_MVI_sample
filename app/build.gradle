@@ -78,7 +78,7 @@ dependencies {
     implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.5.1'
 
     // google material
-    implementation 'com.google.android.material:material:1.6.1'
+    implementation 'com.google.android.material:material:1.12.0'
 
     // play services
     implementation 'com.google.android.gms:play-services-location:20.0.0'
