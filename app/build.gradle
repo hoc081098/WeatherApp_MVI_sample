@@ -18,6 +18,7 @@ if (localProperties['PLACE_API_KEY'] == null) {
 }
 
 android {
+    namespace 'com.hoc.weatherapp'
     compileSdkVersion 33
     defaultConfig {
         applicationId "com.hoc.weatherapp"
