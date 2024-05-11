@@ -66,32 +66,32 @@ dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
 
     // androidx
-    implementation 'androidx.appcompat:appcompat:1.5.1'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'androidx.gridlayout:gridlayout:1.0.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
-    implementation 'androidx.preference:preference-ktx:1.2.0'
+    implementation 'androidx.preference:preference-ktx:1.2.1'
     implementation 'androidx.legacy:legacy-preference-v14:1.0.0'
     implementation 'androidx.palette:palette-ktx:1.0.0'
     implementation "androidx.startup:startup-runtime:1.1.1"
 
-    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.5.1'
-    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.5.1'
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0'
+    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.7.0'
 
     // google material
-    implementation 'com.google.android.material:material:1.6.1'
+    implementation 'com.google.android.material:material:1.12.0'
 
     // play services
     implementation 'com.google.android.gms:play-services-location:20.0.0'
-    implementation 'com.google.android.libraries.places:places:2.6.0'
+    implementation 'com.google.android.libraries.places:places:2.7.0'
 
     // room persistence
-    final roomVersion = '2.4.3'
+    final roomVersion = '2.6.1'
     implementation "androidx.room:room-runtime:$roomVersion"
     kapt "androidx.room:room-compiler:$roomVersion"
     implementation "androidx.room:room-rxjava2:$roomVersion"
 
     // work manager
-    final workVersion = '2.7.1'
+    final workVersion = '2.9.0'
     implementation "androidx.work:work-runtime-ktx:$workVersion"
     implementation "androidx.work:work-rxjava2:$workVersion"
 
@@ -100,15 +100,15 @@ dependencies {
     implementation("com.hannesdorfmann.mosby3:mvi:$mosbyVersion")
 
     testImplementation 'junit:junit:4.13.2'
-    androidTestImplementation 'androidx.test:runner:1.4.0'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
+    androidTestImplementation 'androidx.test:runner:1.5.2'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
 
     // retrofit, moshi
-    implementation 'com.squareup.retrofit2:retrofit:2.9.0'
-    implementation 'com.squareup.retrofit2:converter-moshi:2.9.0'
-    implementation 'com.squareup.retrofit2:adapter-rxjava2:2.9.0'
-    implementation 'com.squareup.okhttp3:logging-interceptor:4.10.0'
-    implementation 'com.squareup.moshi:moshi-kotlin:1.14.0'
+    implementation 'com.squareup.retrofit2:retrofit:2.11.0'
+    implementation 'com.squareup.retrofit2:converter-moshi:2.11.0'
+    implementation 'com.squareup.retrofit2:adapter-rxjava2:2.11.0'
+    implementation 'com.squareup.okhttp3:logging-interceptor:4.12.0'
+    implementation 'com.squareup.moshi:moshi-kotlin:1.15.1'
 
     // rxkotlin & rxandroid
     implementation 'io.reactivex.rxjava2:rxkotlin:2.4.0'
@@ -118,10 +118,10 @@ dependencies {
     // rxbinding & threetenabp
     implementation 'com.jakewharton.rxbinding3:rxbinding:3.1.0'
     implementation 'com.jakewharton.rxbinding3:rxbinding-swiperefreshlayout:3.1.0'
-    implementation 'com.jakewharton.threetenabp:threetenabp:1.4.2'
+    implementation 'com.jakewharton.threetenabp:threetenabp:1.4.7'
 
     // koin
-    final koinVersion= "3.2.2"
+    final koinVersion= "3.5.6"
     implementation "io.insert-koin:koin-core:$koinVersion"
     implementation "io.insert-koin:koin-android:$koinVersion"
 
@@ -129,8 +129,8 @@ dependencies {
     implementation 'com.tbuonomo.andrui:viewpagerdotsindicator:4.1.2'
 
     // glide
-    implementation 'com.github.bumptech.glide:glide:4.14.2'
-    kapt 'com.github.bumptech.glide:compiler:4.14.2'
+    implementation 'com.github.bumptech.glide:glide:4.16.0'
+    kapt 'com.github.bumptech.glide:compiler:4.16.0'
 
     // chart & material search view
     implementation 'com.diogobernardino:williamchart:3.11.0'
