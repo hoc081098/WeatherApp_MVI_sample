@@ -81,8 +81,8 @@ dependencies {
     implementation 'com.google.android.material:material:1.6.1'
 
     // play services
-    implementation 'com.google.android.gms:play-services-location:20.0.0'
-    implementation 'com.google.android.libraries.places:places:2.6.0'
+    implementation 'com.google.android.gms:play-services-location:21.3.0'
+    implementation 'com.google.android.libraries.places:places:4.0.0'
 
     // room persistence
     final roomVersion = '2.4.3'
@@ -121,7 +121,7 @@ dependencies {
     implementation 'com.jakewharton.threetenabp:threetenabp:1.4.2'
 
     // koin
-    final koinVersion= "3.2.2"
+    final koinVersion= "4.0.0"
     implementation "io.insert-koin:koin-core:$koinVersion"
     implementation "io.insert-koin:koin-android:$koinVersion"
 
