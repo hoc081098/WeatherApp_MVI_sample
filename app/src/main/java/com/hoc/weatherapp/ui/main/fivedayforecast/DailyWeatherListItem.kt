@@ -2,13 +2,14 @@ package com.hoc.weatherapp.ui.main.fivedayforecast
 
 import android.os.Parcelable
 import com.hoc.weatherapp.data.models.WindDirection
+import com.hoc.weatherapp.ui.main.ColorHolderSource
 import kotlinx.parcelize.Parcelize
 import org.threeten.bp.ZonedDateTime
 
 sealed class DailyWeatherListItem {
   @Parcelize
   data class Weather(
-    val colors: Pair<Int, Int>,
+    val colors: ColorHolderSource.Colors,
     val weatherIcon: String,
     val dataTime: ZonedDateTime,
     val weatherDescription: String,

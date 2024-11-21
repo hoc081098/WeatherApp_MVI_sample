@@ -41,7 +41,7 @@ private fun Scope.getChartPresenter(): ChartPresenter {
 private fun Scope.getMainPresenter(): MainPresenter {
   val colorHolderSource = get<ColorHolderSource>()
   debug("Create MainPresenter with $colorHolderSource", tag = "[presenter_module]")
-  return MainPresenter(get(), colorHolderSource, androidApplication())
+  return MainPresenter(get(), colorHolderSource)
 }
 
 @ExperimentalStdlibApi

@@ -91,10 +91,8 @@ class DailyWeatherPresenter(
     source3 = settingPreferences.speedUnitPreference.observable,
     source4 = settingPreferences.pressureUnitPreference.observable,
     source5 = colorHolderSource.colorObservable,
-    combineFunction = { list, temperatureUnit, speedUnit, pressureUnit, color ->
-      Tuple5(list, temperatureUnit, speedUnit, pressureUnit, color)
-    }
-  ).map(tupleToWeatherPartialChange).onErrorResumeNext(showError)
+    combineFunction = ::tupleToWeatherPartialChange
+  ).onErrorResumeNext(showError)
 
   override fun bindIntents() {
     subscribeViewState(
@@ -112,19 +110,16 @@ class DailyWeatherPresenter(
   private companion object {
     private const val TAG = "__five_day_forecast__"
 
-    private data class Tuple5(
-      val weathers: Pair<City, List<DailyWeather>>,
-      val temperatureUnit: TemperatureUnit,
-      val speedUnit: SpeedUnit,
-      val pressureUnit: PressureUnit,
-      val colors: Pair<Int, Int>
-    )
-
     @ExperimentalStdlibApi
     @JvmStatic
-    private val tupleToWeatherPartialChange = Function<Tuple5, PartialStateChange> { tuple5 ->
-      val (cityAndWeathers, temperatureUnit, windSpeedUnit, pressureUnit, colors) = tuple5
-      cityAndWeathers
+    private fun tupleToWeatherPartialChange(
+      cityAndWeathers: Pair<City, List<DailyWeather>>,
+      temperatureUnit: TemperatureUnit,
+      windSpeedUnit: SpeedUnit,
+      pressureUnit: PressureUnit,
+      colors: ColorHolderSource.Colors
+    ): PartialStateChange {
+      return cityAndWeathers
         .second
         .groupBy { it.timeOfDataForecasted.trim() }
         .toSortedMap()
@@ -132,28 +127,28 @@ class DailyWeatherPresenter(
           val zoneId = cityAndWeathers.first.zoneId
 
           listOf(DailyWeatherListItem.Header(date.toZonedDateTime(zoneId))) +
-            weathers.map {
+            weathers.map { weather ->
               DailyWeatherListItem.Weather(
-                weatherIcon = it.icon,
-                main = it.main,
-                weatherDescription = it.description.replaceFirstChar {
+                weatherIcon = weather.icon,
+                main = weather.main,
+                weatherDescription = weather.description.replaceFirstChar {
                   if (it.isLowerCase()) it.titlecase(
                     Locale.ROOT
                   ) else it.toString()
                 },
-                temperatureMin = temperatureUnit.format(it.temperatureMin),
-                temperatureMax = temperatureUnit.format(it.temperatureMax),
-                temperature = temperatureUnit.format(it.temperature),
-                dataTime = it.timeOfDataForecasted.toZonedDateTime(zoneId),
-                cloudiness = "${it.cloudiness}%",
-                humidity = "${it.humidity}%",
-                rainVolumeForTheLast3Hours = "${it.rainVolumeForTheLast3Hours}mm",
-                snowVolumeForTheLast3Hours = "${it.snowVolumeForTheLast3Hours}mm",
-                windDirection = WindDirection.fromDegrees(it.winDegrees),
-                groundLevel = pressureUnit.format(it.groundLevel),
-                pressure = pressureUnit.format(it.pressure),
-                seaLevel = pressureUnit.format(it.seaLevel),
-                winSpeed = windSpeedUnit.format(it.windSpeed),
+                temperatureMin = temperatureUnit.format(weather.temperatureMin),
+                temperatureMax = temperatureUnit.format(weather.temperatureMax),
+                temperature = temperatureUnit.format(weather.temperature),
+                dataTime = weather.timeOfDataForecasted.toZonedDateTime(zoneId),
+                cloudiness = "${weather.cloudiness}%",
+                humidity = "${weather.humidity}%",
+                rainVolumeForTheLast3Hours = "${weather.rainVolumeForTheLast3Hours}mm",
+                snowVolumeForTheLast3Hours = "${weather.snowVolumeForTheLast3Hours}mm",
+                windDirection = WindDirection.fromDegrees(weather.winDegrees),
+                groundLevel = pressureUnit.format(weather.groundLevel),
+                pressure = pressureUnit.format(weather.pressure),
+                seaLevel = pressureUnit.format(weather.seaLevel),
+                winSpeed = windSpeedUnit.format(weather.windSpeed),
                 colors = colors
               )
             }
