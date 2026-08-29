@@ -81,8 +81,8 @@ dependencies {
     implementation 'com.google.android.material:material:1.6.1'
 
     // play services
-    implementation 'com.google.android.gms:play-services-location:20.0.0'
-    implementation 'com.google.android.libraries.places:places:2.6.0'
+    implementation 'com.google.android.gms:play-services-location:21.4.0'
+    implementation 'com.google.android.libraries.places:places:5.3.0'
 
     // room persistence
     final roomVersion = '2.4.3'
@@ -104,10 +104,10 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
 
     // retrofit, moshi
-    implementation 'com.squareup.retrofit2:retrofit:2.9.0'
-    implementation 'com.squareup.retrofit2:converter-moshi:2.9.0'
-    implementation 'com.squareup.retrofit2:adapter-rxjava2:2.9.0'
-    implementation 'com.squareup.okhttp3:logging-interceptor:4.10.0'
+    implementation 'com.squareup.retrofit2:retrofit:3.0.0'
+    implementation 'com.squareup.retrofit2:converter-moshi:3.0.0'
+    implementation 'com.squareup.retrofit2:adapter-rxjava2:3.0.0'
+    implementation 'com.squareup.okhttp3:logging-interceptor:5.5.0'
     implementation 'com.squareup.moshi:moshi-kotlin:1.14.0'
 
     // rxkotlin & rxandroid
@@ -121,7 +121,7 @@ dependencies {
     implementation 'com.jakewharton.threetenabp:threetenabp:1.4.2'
 
     // koin
-    final koinVersion= "3.2.2"
+    final koinVersion= "4.2.2"
     implementation "io.insert-koin:koin-core:$koinVersion"
     implementation "io.insert-koin:koin-android:$koinVersion"
 
@@ -129,8 +129,8 @@ dependencies {
     implementation 'com.tbuonomo.andrui:viewpagerdotsindicator:4.1.2'
 
     // glide
-    implementation 'com.github.bumptech.glide:glide:4.14.2'
-    kapt 'com.github.bumptech.glide:compiler:4.14.2'
+    implementation 'com.github.bumptech.glide:glide:5.0.9'
+    kapt 'com.github.bumptech.glide:compiler:5.0.9'
 
     // chart & material search view
     implementation 'com.diogobernardino:williamchart:3.11.0'
